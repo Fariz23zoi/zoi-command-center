@@ -1,0 +1,30 @@
+{
+  "_catatan": "Skenario Mock Provider. DILARANG menulis angka/statistik di sini (dijaga tes). Semua jawaban berbahasa Indonesia dan menjelaskan bahwa ini tiruan bila relevan.",
+  "default": "Ini jawaban tiruan dari Mock Provider untuk menguji alur chat, avatar, dan penyimpanan. Jawaban AI sungguhan memakai Ollama di mode local.",
+  "rules": [
+    {
+      "match": "\\b(halo|hai|hi|hello|selamat (pagi|siang|sore|malam))\\b",
+      "reply": "Halo! Saya ZOI dalam mode pengembangan. Jawaban saya saat ini berasal dari Mock Provider, bukan AI sungguhan."
+    },
+    {
+      "match": "\\b(siapa kamu|kamu siapa|perkenalkan)\\b",
+      "reply": "Saya ZOI, asisten YouTube lokal. Di mode development saya memakai Mock Provider; di local server saya akan memakai model AI lokal lewat Ollama."
+    },
+    {
+      "match": "\\b(analisis|analisa|statistik|subscriber|views|penonton|monetisasi|pendapatan|revenue)\\b",
+      "reply": "Saya tidak bisa memberi data channel di mode ini. Mock Provider tidak pernah membuat statistik. Data nyata akan diambil dari YouTube API setelah channel dihubungkan."
+    },
+    {
+      "match": "\\b(bantuan|help|bisa apa)\\b",
+      "reply": "Saat ini yang benar-benar berfungsi: pemeriksaan sistem, Task Manager, pengaturan, dan alur chat ini. Fitur YouTube, ide konten, dan produksi menyusul di fase berikutnya."
+    },
+    {
+      "match": "\\b(clipper|shorts)\\b",
+      "reply": "Integrasi ZOI AI CLIPPER sedang disiapkan lewat adapter. Untuk sekarang ZOI hanya memeriksa keberadaan foldernya tanpa mengubah apa pun."
+    },
+    {
+      "match": "\\b(blueprint|animasi|edukasi)\\b",
+      "reply": "Blueprint Studio tetap dipakai apa adanya. ZOI nanti menyiapkan paket produksi untuknya tanpa mengubah file aslinya."
+    }
+  ]
+}
