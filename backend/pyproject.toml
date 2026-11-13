@@ -1,0 +1,30 @@
+[project]
+name = "zoi-backend"
+version = "0.1.0"
+description = "ZOI YouTube Intelligence — backend (FastAPI + SQLite)"
+license = "MIT"
+requires-python = ">=3.12"
+
+[project.scripts]
+zoi-cli = "app.cli:main"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "PTH"]
+ignore = ["S101", "S603", "S607", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S", "PTH"]
+"alembic/*" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+  "error::DeprecationWarning:app.*",
+  "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+]
