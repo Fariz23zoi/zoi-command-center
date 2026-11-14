@@ -122,6 +122,10 @@ Buka `http://127.0.0.1` lalu:
       tekan Selesai → teks masuk kotak pesan. Ini pertama kalinya Whisper dijalankan dengan model sungguhan
 - [ ] (Bila Piper dipasang) Terima catatan lisensi → "Coba suara" → avatar bicara; nyalakan "Bacakan jawaban" dan
       uji tombol Berhenti
+- [ ] (Bila Ollama dipasang) Ketik permintaan lalu tekan **Rencanakan** (mis. "cek status sistem lalu catat hasilnya
+      di memori") → periksa rencana → Jalankan → setujui langkah simpan memori. Ini pertama kalinya perencana
+      memakai model sungguhan; bila rencananya buruk, jalankan **Uji model** dan lihat skor tool
+- [ ] Halaman Memory: tambah satu memori, cari, ubah, hapus
 - [ ] (Opsional) Jalankan tes roundtrip suara: `ZOI_TEST_WHISPER_DIR=… ZOI_TEST_PIPER_URL=http://127.0.0.1:5000
       python -m pytest tests/test_voice.py -k real`
 

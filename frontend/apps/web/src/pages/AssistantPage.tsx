@@ -14,14 +14,18 @@ export function AssistantPage() {
   }, [conversationId, messages.length]);
 
   async function open(id: string) {
-    const { messages: list } = await api.messages(id);
+    const [{ messages: list }, { runs }] = await Promise.all([api.messages(id), api.agent.runs(id)]);
+    useApp.getState().setAgentRuns(runs);
     useApp.getState().setConversation(id, list);
   }
 
   return (
     <section className="page">
       <h1>AI Assistant</h1>
-      <p className="muted">Chat dasar Phase 1. Agent yang bisa menjalankan tools dibangun di Phase 5.</p>
+      <p className="muted">
+        Chat biasa, atau tekan <strong>Rencanakan</strong> (atau awali pesan dengan <code>/agen</code>) agar ZOI menyusun
+        rencana langkah memakai tool. Rencana selalu ditampilkan dulu; langkah yang mengubah data meminta izinmu.
+      </p>
       <div className="row">
         <button type="button" onClick={() => useApp.getState().setConversation(null, [])}>Percakapan baru</button>
       </div>

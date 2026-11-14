@@ -61,6 +61,8 @@ export interface ChatMessageInfo {
   status: "streaming" | "complete" | "error" | "stopped"; error: string | null; created_at: string | null;
   /** Proses berpikir model (bila model mendukung), terpisah dari jawaban. */
   thinking?: string | null;
+  /** Pesan yang terkait permintaan agen (Phase 5). */
+  agent_run_id?: string | null;
 }
 
 export interface ConversationInfo { id: string; title: string; is_mock: boolean; updated_at: string }
@@ -84,7 +86,10 @@ export type ZoiEvent =
   | { type: "chat.thinking"; at: string; payload: { conversation_id: string; message_id: string; text: string } }
   | { type: "preferences.updated"; at: string; payload: Preferences }
   | { type: "provider.updated"; at: string; payload: { active_model: string | null; active_source: AiModelSource } }
-  | { type: "voice.preferences.updated"; at: string; payload: VoicePreferences };
+  | { type: "voice.preferences.updated"; at: string; payload: VoicePreferences }
+  | { type: "chat.message"; at: string; payload: { conversation_id: string; message: ChatMessageInfo } }
+  | { type: "agent.run.updated"; at: string; payload: { run: AgentRunInfo } }
+  | { type: "memory.updated"; at: string; payload: { id: string | null } };
 
 // ── AI lokal (Phase 3) ─────────────────────────────────────────────────────
 export type AiModelSource = "ui" | "env" | "none";
@@ -162,3 +167,43 @@ export interface VoiceStatus {
 export interface TranscriptInfo {
   text: string; language: string | null; audio_seconds: number | null; elapsed_seconds: number; is_mock: boolean;
 }
+
+// ── Agen & memori (Phase 5) ────────────────────────────────────────────────
+export type MemoryKind = "fakta" | "preferensi" | "proyek";
+
+export interface MemoryInfo {
+  id: string; kind: MemoryKind; content: string; source: "pengguna" | "agen"; is_mock: boolean;
+  created_at: string; updated_at: string;
+}
+
+export type ToolPermission = "read" | "write_local" | "external";
+
+export interface AgentToolInfo {
+  name: string; description: string; permission: ToolPermission; args_schema: Record<string, unknown>;
+  mode: "ask" | "auto";
+}
+
+export interface AgentStep { tool: string; argumen: Record<string, unknown>; alasan: string; permission: ToolPermission | null }
+
+export interface AgentStepResult {
+  index: number; tool: string; args: Record<string, unknown>; status: "ok" | "error" | "rejected";
+  output: unknown; error: string | null;
+}
+
+export interface ApprovalInfo {
+  id: string; run_id: string; step_index: number; tool: string; args: Record<string, unknown>;
+  status: "pending" | "approved" | "rejected" | "expired" | "auto"; is_mock: boolean;
+  created_at: string; decided_at: string | null;
+}
+
+export type AgentRunStatus = "planning" | "invalid" | "planned" | "rejected" | "running" | "waiting_approval"
+  | "completed" | "failed" | "stopped" | "cancelled";
+
+export interface AgentRunInfo {
+  id: string; conversation_id: string | null; request: string; status: AgentRunStatus;
+  plan: { tujuan: string; langkah: AgentStep[] } | null; errors: string[]; results: AgentStepResult[];
+  summary: string | null; warnings: string[]; task_id: string | null; provider: string; is_mock: boolean;
+  created_at: string; updated_at: string; approvals: ApprovalInfo[];
+}
+
+export interface AgentStatusInfo { available: boolean; detail: string; tools: AgentToolInfo[]; can_publish: false }

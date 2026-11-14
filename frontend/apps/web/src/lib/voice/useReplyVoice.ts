@@ -19,6 +19,13 @@ export function useReplyVoice() {
       for (const m of messages) {
         if (m.role !== "assistant" || seen.has(m.id)) continue;
         seen.add(m.id);
+        if (m.agent_run_id && m.status === "complete") {
+          // Ringkasan agen datang utuh (bukan bertahap) — dibacakan sekaligus.
+          const reader = voicePrefs?.speak_replies ? startReading() : null;
+          reader?.feed(m.content);
+          reader?.finish();
+          continue;
+        }
         if (m.status !== "streaming") continue;
         current = { id: m.id, read: 0, reader: voicePrefs?.speak_replies ? startReading() : null };
       }

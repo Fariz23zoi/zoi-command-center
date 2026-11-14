@@ -19,6 +19,7 @@ from app.db.base import utcnow
 from app.db.models import Conversation, Message
 from app.db.session import Database
 from app.logging_setup import get_logger
+from app.memory.service import MemoryService
 from app.providers.base import ChatMessage, LLMProvider
 
 log = get_logger("chat")
@@ -44,6 +45,7 @@ class ChatService:
         self.provider = provider
         self._running: set[asyncio.Task[None]] = set()
         self._by_message: dict[str, asyncio.Task[None]] = {}
+        self.memory: MemoryService | None = None  # dipasang di main (Phase 5)
 
     async def send(self, text: str, conversation_id: str | None = None) -> dict[str, Any]:
         text = text.strip()
@@ -90,6 +92,32 @@ class ChatService:
         task.add_done_callback(_done)
         return result
 
+    def add_message(self, *, conversation_id: str | None, role: str, content: str,
+                    agent_run_id: str | None = None) -> dict[str, Any]:
+        """Pesan selesai (bukan streaming) untuk permintaan & ringkasan agen. Disiarkan sebagai chat.message."""
+        is_mock = self.provider.is_mock
+        with self.db.session() as s:
+            if conversation_id:
+                conversation = s.get(Conversation, conversation_id)
+                if conversation is None:
+                    raise NotFound("Percakapan tidak ditemukan.")
+                if conversation.is_mock != is_mock:
+                    raise ZoiError("Percakapan ini dibuat dengan penyedia AI yang berbeda. Mulai percakapan baru.",
+                                   code="provider_mismatch")
+            else:
+                conversation = Conversation(id=str(uuid.uuid4()), title=content[:60], is_mock=is_mock)
+                s.add(conversation)
+            conversation.updated_at = utcnow()
+            message = Message(id=str(uuid.uuid4()), conversation_id=conversation.id, role=role, content=content,
+                              provider=None if role == "user" else self.provider.name,
+                              model=None if role == "user" else self.provider.model,
+                              is_mock=is_mock, status="complete", agent_run_id=agent_run_id)
+            s.add(message)
+            s.flush()
+            data = message_dict(message)
+        self.bus.publish("chat.message", {"conversation_id": data["conversation_id"], "message": data})
+        return data
+
     def stop(self, message_id: str) -> bool:
         """Menghentikan jawaban yang sedang berjalan. Koneksi ke penyedia AI ikut ditutup sehingga Ollama berhenti."""
         task = self._by_message.get(message_id)
@@ -125,7 +153,13 @@ class ChatService:
                 .limit(HISTORY_LIMIT)
             ).all()
             newest_first = [ChatMessage(role=m.role, content=m.content) for m in rows]  # type: ignore[arg-type]
-        return trim_history(newest_first, context_tokens)
+        latest_user = next((m.content for m in newest_first if m.role == "user"), "")
+        block = self.memory.prompt_block(latest_user) if self.memory and latest_user else None
+        if not block:
+            return trim_history(newest_first, context_tokens)
+        # Memori relevan disisipkan sebagai DATA tepat setelah system prompt; anggaran riwayat dikurangi.
+        trimmed = trim_history(newest_first, max(512, context_tokens - estimate_tokens(block)))
+        return [trimmed[0], ChatMessage(role="system", content=block), *trimmed[1:]]
 
     async def _stream(self, conversation_id: str, message_id: str) -> None:
         self.agent.set(AgentState.THINKING, "Menyusun jawaban")
@@ -183,7 +217,7 @@ def message_dict(m: Message) -> dict[str, Any]:
     return {
         "id": m.id, "conversation_id": m.conversation_id, "role": m.role, "content": m.content,
         "provider": m.provider, "model": m.model, "is_mock": m.is_mock, "status": m.status, "error": m.error,
-        "thinking": m.thinking,
+        "thinking": m.thinking, "agent_run_id": m.agent_run_id,
         "created_at": m.created_at.isoformat() if m.created_at else None,
     }
 

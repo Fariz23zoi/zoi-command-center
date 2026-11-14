@@ -1,4 +1,4 @@
-"""Tabel ZOI (Phase 1 + 3). Tidak ada path absolut mesin yang disimpan di sini."""
+"""Tabel ZOI (Phase 1, 3, 5). Tidak ada path absolut mesin yang disimpan di sini."""
 
 from __future__ import annotations
 
@@ -93,6 +93,7 @@ class Message(Base):
     status: Mapped[str] = mapped_column(String(16), default="complete")  # streaming complete error stopped
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     thinking: Mapped[str | None] = mapped_column(Text, nullable=True)  # proses berpikir model (Phase 3), terpisah
+    agent_run_id: Mapped[str | None] = mapped_column(String(36), nullable=True)  # permintaan agen (Phase 5)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
 
     conversation: Mapped[Conversation] = relationship(back_populates="messages")
@@ -112,3 +113,51 @@ class ModelEvaluation(Base):
     summary_json: Mapped[str] = mapped_column(Text)
     results_json: Mapped[str] = mapped_column(Text)
     ratings_json: Mapped[str] = mapped_column(Text, default="{}")
+
+
+class MemoryItem(Base):
+    """Memori jangka panjang (Phase 5). Dicari lewat tabel FTS5 `memories_fts` (dijaga trigger di migrasi 0003)."""
+
+    __tablename__ = "memories"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16), default="fakta")  # fakta | preferensi | proyek
+    content: Mapped[str] = mapped_column(Text)
+    source: Mapped[str] = mapped_column(String(16), default="pengguna")  # pengguna | agen
+    is_mock: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
+
+
+class AgentRun(Base):
+    """Satu permintaan agen: rencana → (persetujuan) → langkah → ringkasan."""
+
+    __tablename__ = "agent_runs"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    conversation_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    request: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(24), index=True)
+    plan_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    errors_json: Mapped[str] = mapped_column(Text, default="[]")
+    results_json: Mapped[str] = mapped_column(Text, default="[]")
+    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    warnings_json: Mapped[str] = mapped_column(Text, default="[]")
+    task_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    provider: Mapped[str] = mapped_column(String(32))
+    is_mock: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+
+
+class Approval(Base):
+    """Keputusan izin untuk satu langkah agen yang mengubah data. Semua keputusan tercatat."""
+
+    __tablename__ = "approvals"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    run_id: Mapped[str] = mapped_column(String(36), index=True)
+    step_index: Mapped[int] = mapped_column(Integer)
+    tool: Mapped[str] = mapped_column(String(64))
+    args_json: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(16), index=True)  # pending approved rejected expired auto
+    is_mock: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
+    decided_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)

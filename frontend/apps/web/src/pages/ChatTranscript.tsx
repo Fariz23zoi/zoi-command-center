@@ -1,6 +1,10 @@
 import type { ChatMessageInfo } from "@zoi/api-client";
 
+import { useApp } from "../stores/appStore";
+import { AgentRunCard } from "./AgentRunCard";
+
 export function ChatTranscript({ messages }: { messages: ChatMessageInfo[] }) {
+  const runs = useApp((s) => s.agentRuns);
   if (messages.length === 0) {
     return <p className="muted empty-chat">Belum ada percakapan. Tulis pesan di bawah.</p>;
   }
@@ -11,6 +15,7 @@ export function ChatTranscript({ messages }: { messages: ChatMessageInfo[] }) {
           <div className="msg-meta">
             <span>{m.role === "user" ? "Kamu" : "ZOI"}</span>
             {m.role === "assistant" && m.is_mock && <span className="badge mock" data-testid="mock-badge">MOCK</span>}
+            {m.agent_run_id && <span className="badge">{m.role === "user" ? "permintaan agen" : "hasil agen"}</span>}
             {m.role === "assistant" && m.status === "streaming" && <span className="badge">menulis…</span>}
             {m.status === "stopped" && <span className="badge" data-testid="stopped-badge">dihentikan</span>}
           </div>
@@ -22,6 +27,8 @@ export function ChatTranscript({ messages }: { messages: ChatMessageInfo[] }) {
           )}
           {m.content && <p className="msg-body">{m.content}</p>}
           {m.status === "error" && <p className="msg-error" role="alert">{m.error}</p>}
+          {m.role === "user" && m.agent_run_id && runs[m.agent_run_id] && <AgentRunCard run={runs[m.agent_run_id]} />}
+          {m.role === "user" && m.agent_run_id && !runs[m.agent_run_id] && <p className="muted">Memuat permintaan agen…</p>}
         </li>
       ))}
     </ol>

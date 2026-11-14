@@ -87,6 +87,10 @@ def _strip_mock(db_file: Path) -> None:
         conn.execute("PRAGMA foreign_keys=ON")
         conn.execute("DELETE FROM messages WHERE is_mock = 1")
         conn.execute("DELETE FROM conversations WHERE is_mock = 1")
+        # Phase 5 (indeks FTS memori ikut terhapus lewat trigger). Nama tabel tetap, bukan masukan pengguna.
+        conn.execute("DELETE FROM memories WHERE is_mock = 1")
+        conn.execute("DELETE FROM agent_runs WHERE is_mock = 1")
+        conn.execute("DELETE FROM approvals WHERE is_mock = 1")
         conn.commit()
         conn.execute("VACUUM")
 

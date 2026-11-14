@@ -23,6 +23,12 @@ import httpx
 from app.providers.mock import TRIGGER_BAD_TOOL, TRIGGER_ERROR, TRIGGER_TIMEOUT, TRIGGER_TOOL
 
 TRIGGER_SLOW = "/uji-lambat"
+TRIGGER_INVENTED_TOOL = "/uji-rencana-karangan"
+TRIGGER_INVENTED_NUMBER = "/uji-angka-karangan"
+FAKE_PLAN = {"tujuan": "Cek waktu lalu simpan catatan", "langkah": [
+    {"tool": "waktu_sekarang", "argumen": {}, "alasan": "Mengetahui waktu sekarang"},
+    {"tool": "simpan_memori", "argumen": {"isi": "Catatan dari Ollama tiruan", "jenis": "fakta"},
+     "alasan": "Menyimpan catatan (perlu izin)"}]}
 TRIGGER_THINK_TAG = "/uji-tag-think"
 INSTALLED = ["qwen3:4b"]
 
@@ -128,6 +134,15 @@ class FakeOllama:
             args = {"judul": last[:40]} if name == "buat_tugas" else {}
             return 200, Paced([{"message": {"role": "assistant", "content": "",
                                             "tool_calls": [{"function": {"name": name, "arguments": args}}]},
+                                "done": False}, done], 0)
+        if isinstance(body.get("format"), dict) and body["format"].get("title") == "Rencana":
+            plan = FAKE_PLAN
+            if TRIGGER_INVENTED_TOOL in last:
+                plan = {"tujuan": "Unggah video", "langkah": [{"tool": "unggah_video", "argumen": {}, "alasan": "x"}]}
+            return 200, Paced([{"message": {"role": "assistant", "content": json.dumps(plan)}, "done": False},
+                               done], 0)
+        if "<<DATA HASIL TOOL>>" in last and TRIGGER_INVENTED_NUMBER in last:
+            return 200, Paced([{"message": {"role": "assistant", "content": "Channel kamu punya 12345 subscriber."},
                                 "done": False}, done], 0)
         if body.get("format") is not None:
             return 200, Paced([{"message": {"role": "assistant", "content": json.dumps(_example(body["format"]))},

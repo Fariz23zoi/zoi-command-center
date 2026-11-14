@@ -19,7 +19,10 @@ from app.db.migrations import (
 )
 
 EXPECTED_TABLES = {"app_meta", "tasks", "task_events", "system_checks", "network_audit", "conversations",
-                   "messages", "alembic_version", "model_evaluations"}
+                   "messages", "alembic_version", "model_evaluations", "memories", "agent_runs", "approvals",
+                   # Indeks pencarian memori (FTS5) — tabel bayangan SQLite, sengaja di luar model ORM.
+                   "memories_fts", "memories_fts_data", "memories_fts_idx", "memories_fts_docsize",
+                   "memories_fts_config"}
 
 
 def tables(db_file):
@@ -42,6 +45,8 @@ def test_migration_matches_models(tmp_path):
     with engine.connect() as conn:
         diff = compare_metadata(MigrationContext.configure(conn), Base.metadata)
     engine.dispose()
+    # FTS5 dikelola SQL mentah di migrasi 0003, bukan lewat model ORM.
+    diff = [d for d in diff if not (d[0] == "remove_table" and d[1].name.startswith("memories_fts"))]
     assert diff == [], f"Migrasi tidak sama dengan model: {diff}"
 
 
