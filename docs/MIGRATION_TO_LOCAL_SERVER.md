@@ -66,9 +66,11 @@ ZOI **tidak pernah** memasang Ollama atau mengunduh model. Bila hardware memadai
    ke drive lain sebelum mengunduh model.
 2. Unduh satu model lokal, misalnya `ollama pull qwen3:4b` (±2,5 GB) atau `qwen3:8b` (±5 GB).
    Jangan memakai model bertag `cloud` — ZOI menolaknya.
-3. Isi `ZOI_OLLAMA_MODEL` di `.env`.
+3. Isi `ZOI_OLLAMA_MODEL` di `.env` — atau pilih model nanti di **Settings › AI Lokal** (pilihan di sana
+   tersimpan di database dan menimpa `.env`).
 
-Ollama di komputer lain di jaringan rumah juga bisa: `ZOI_OLLAMA_URL=http://192.168.x.x:11434`.
+Ollama di komputer lain di jaringan rumah juga bisa: `ZOI_OLLAMA_URL=http://192.168.x.x:11434` dan tambahkan
+`192.168.x.x` ke `ZOI_EXTRA_ALLOWED_HOSTS`.
 
 ## 6. Impor data (jika ada)
 
@@ -93,6 +95,10 @@ Buka `http://127.0.0.1` lalu:
 - [ ] Task Manager → "Jalankan pemeriksaan sistem" → Selesai
 - [ ] Overview menampilkan CLIPPER/Blueprint "ditemukan (read-only)" bila path diisi
 - [ ] `python -m app.cli doctor --skip-port` tanpa baris FAIL
+- [ ] (Bila Ollama dipasang) Settings › AI Lokal: versi Ollama, model terpasang, dan model aktif tampil;
+      "Uji koneksi" berhasil; chat menjawab tanpa lencana MOCK; tombol **Berhenti** menghentikan jawaban
+- [ ] (Bila Ollama dipasang) Jalankan **Uji model** sekali untuk model aktif dan nilai jawaban percakapannya.
+      Ini pertama kalinya ZOI berbicara dengan Ollama sungguhan — semua tes sebelumnya memakai Ollama tiruan
 
 Opsional: `deploy\windows\autostart.ps1` agar ZOI berjalan otomatis saat login.
 

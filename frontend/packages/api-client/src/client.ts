@@ -1,6 +1,6 @@
 import type {
-  AdapterStatus, ChatMessageInfo, ConversationInfo, Preferences, ProviderStatus, PublicConfig,
-  SendChatResponse, SystemStatus, TaskInfo, ZoiEvent,
+  AdapterStatus, AiModelSource, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
+  ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, ZoiEvent,
 } from "./types";
 
 /** Header wajib untuk permintaan yang mengubah data (perlindungan CSRF di backend). */
@@ -39,8 +39,28 @@ export const api = {
   conversations: () => request<{ conversations: ConversationInfo[] }>("GET", "/api/conversations"),
   messages: (conversationId: string) =>
     request<{ messages: ChatMessageInfo[] }>("GET", `/api/conversations/${encodeURIComponent(conversationId)}/messages`),
+  stopChat: (messageId: string) =>
+    request<{ stopped: boolean }>("POST", `/api/chat/${encodeURIComponent(messageId)}/stop`),
   preferences: () => request<Preferences>("GET", "/api/preferences"),
   savePreferences: (prefs: Preferences) => request<Preferences>("PUT", "/api/preferences", prefs),
+  ai: {
+    status: () => request<AiStatus>("GET", "/api/ai/status"),
+    test: () => request<{ ok: boolean; detail: string; latency_ms: number | null }>("POST", "/api/ai/test"),
+    model: (name: string) => request<ModelDetails>("GET", `/api/ai/model?name=${encodeURIComponent(name)}`),
+    setActive: (model: string) =>
+      request<{ active_model: string | null; active_source: AiModelSource }>("PUT", "/api/ai/active-model", { model }),
+    resetActive: () =>
+      request<{ active_model: string | null; active_source: AiModelSource }>("DELETE", "/api/ai/active-model"),
+    unload: (model: string) => request<{ running: RunningModel[] }>("POST", "/api/ai/unload", { model }),
+    evaluations: () =>
+      request<{ evaluations: EvaluationInfo[]; prompts: { id: string; category: string; prompt: string }[] }>(
+        "GET", "/api/ai/evaluations"),
+    evaluation: (id: string) => request<EvaluationInfo>("GET", `/api/ai/evaluations/${encodeURIComponent(id)}`),
+    startEvaluation: (model: string) => request<TaskInfo>("POST", "/api/ai/evaluations", { model }),
+    rate: (id: string, promptId: string, rating: "up" | "down" | null) =>
+      request<EvaluationInfo>("PUT", `/api/ai/evaluations/${encodeURIComponent(id)}/rating`,
+        { prompt_id: promptId, rating }),
+  },
 };
 
 export interface EventConnection { close(): void }

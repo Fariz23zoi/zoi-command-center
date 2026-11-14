@@ -20,6 +20,12 @@ async def send_message(body: ChatRequest, ctx: AppContext = Depends(get_ctx)) ->
     return await ctx.chat.send(body.message, body.conversation_id)
 
 
+@router.post("/chat/{message_id}/stop")
+def stop_message(message_id: str, ctx: AppContext = Depends(get_ctx)) -> dict:
+    """Menghentikan jawaban yang sedang ditulis. stopped=false bila jawaban sudah selesai."""
+    return {"stopped": ctx.chat.stop(message_id)}
+
+
 @router.get("/conversations")
 def conversations(ctx: AppContext = Depends(get_ctx)) -> dict:
     return {"conversations": ctx.chat.list_conversations()}

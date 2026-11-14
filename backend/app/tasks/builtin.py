@@ -58,7 +58,12 @@ def system_check_kind(
 def make_run_async(loop: asyncio.AbstractEventLoop) -> Callable[[Any], Any]:
     """Jalankan coroutine di event loop utama dari thread worker."""
 
-    def run_async(coro: Any) -> Any:
-        return asyncio.run_coroutine_threadsafe(coro, loop).result(timeout=30)
+    def run_async(coro: Any, timeout: float = 30) -> Any:
+        future = asyncio.run_coroutine_threadsafe(coro, loop)
+        try:
+            return future.result(timeout=timeout)
+        except BaseException:
+            future.cancel()
+            raise
 
     return run_async

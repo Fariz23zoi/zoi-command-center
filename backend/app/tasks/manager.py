@@ -51,9 +51,10 @@ class TaskKind:
 
 
 class TaskContext:
-    def __init__(self, manager: TaskManager, task_id: str) -> None:
+    def __init__(self, manager: TaskManager, task_id: str, params: dict[str, Any] | None = None) -> None:
         self._manager = manager
         self.task_id = task_id
+        self.params: dict[str, Any] = dict(params or {})
         self.cancel_event = threading.Event()
 
     def check_cancelled(self) -> None:
@@ -93,16 +94,16 @@ class TaskManager:
                 s.add(TaskEvent(task_id=task.id, status=task.status, progress=task.progress, message=task.error))
             return len(stale)
 
-    def submit(self, kind: str) -> dict[str, Any]:
+    def submit(self, kind: str, params: dict[str, Any] | None = None, name: str | None = None) -> dict[str, Any]:
         spec = self._kinds.get(kind)
         if spec is None:
             raise KeyError(kind)
         task_id = str(uuid.uuid4())
         with self.db.session() as s:
-            s.add(Task(id=task_id, name=spec.name, kind=kind, status=TaskStatus.QUEUED.value, progress=0,
-                       message="Menunggu giliran"))
+            s.add(Task(id=task_id, name=(name or spec.name)[:120], kind=kind, status=TaskStatus.QUEUED.value,
+                       progress=0, message="Menunggu giliran"))
             s.add(TaskEvent(task_id=task_id, status=TaskStatus.QUEUED.value, progress=0, message="Menunggu giliran"))
-        ctx = TaskContext(self, task_id)
+        ctx = TaskContext(self, task_id, params)
         with self._lock:
             self._contexts[task_id] = ctx
         self._publish(task_id)

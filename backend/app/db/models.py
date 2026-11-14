@@ -1,4 +1,4 @@
-"""Tabel Phase 1. Tidak ada path absolut mesin yang disimpan di sini."""
+"""Tabel ZOI (Phase 1 + 3). Tidak ada path absolut mesin yang disimpan di sini."""
 
 from __future__ import annotations
 
@@ -90,8 +90,25 @@ class Message(Base):
     provider: Mapped[str | None] = mapped_column(String(32), nullable=True)
     model: Mapped[str | None] = mapped_column(String(120), nullable=True)
     is_mock: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
-    status: Mapped[str] = mapped_column(String(16), default="complete")  # streaming complete error
+    status: Mapped[str] = mapped_column(String(16), default="complete")  # streaming complete error stopped
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    thinking: Mapped[str | None] = mapped_column(Text, nullable=True)  # proses berpikir model (Phase 3), terpisah
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
 
     conversation: Mapped[Conversation] = relationship(back_populates="messages")
+
+
+class ModelEvaluation(Base):
+    """Hasil uji kecocokan model (Phase 3). Hanya hasil pengukuran nyata; Mock tidak pernah menulis ke sini."""
+
+    __tablename__ = "model_evaluations"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    model: Mapped[str] = mapped_column(String(120), index=True)
+    machine: Mapped[str] = mapped_column(String(120))  # nama komputer tempat uji dijalankan (bukan path)
+    ollama_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    prompts_version: Mapped[int] = mapped_column(Integer)
+    started_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    finished_at: Mapped[datetime] = mapped_column(UTCDateTime, index=True)
+    summary_json: Mapped[str] = mapped_column(Text)
+    results_json: Mapped[str] = mapped_column(Text)
+    ratings_json: Mapped[str] = mapped_column(Text, default="{}")

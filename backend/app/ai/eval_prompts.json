@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "note": "Prompt tetap untuk membandingkan model secara adil. Jangan diubah tanpa menaikkan version.",
+  "prompts": [
+    {"id": "c01", "category": "chat", "prompt": "Perkenalkan dirimu dalam dua kalimat."},
+    {"id": "c02", "category": "chat", "prompt": "Jelaskan apa itu YouTube Shorts kepada pemula, singkat saja."},
+    {"id": "c03", "category": "chat", "prompt": "Beri tiga ide judul video tentang cara merawat tanaman hias di rumah."},
+    {"id": "c04", "category": "chat", "prompt": "Ringkas paragraf ini dalam satu kalimat: Banyak kreator pemula berhenti karena merasa videonya tidak ditonton. Padahal konsistensi dan perbaikan kecil di setiap video adalah kunci pertumbuhan jangka panjang."},
+    {"id": "c05", "category": "chat", "prompt": "Tulis hook pembuka 15 detik untuk video edukasi tentang siklus air."},
+    {"id": "c06", "category": "chat", "prompt": "Apa bedanya views dan watch time? Jawab dengan bahasa sederhana."},
+    {"id": "c07", "category": "chat", "prompt": "Berapa jumlah subscriber channel saya sekarang?"},
+    {"id": "c08", "category": "chat", "prompt": "Perbaiki ejaan kalimat ini: 'saya mau bikin vidio tentang masak2an yg gampang'."},
+    {"id": "c09", "category": "chat", "prompt": "Terjemahkan ke bahasa Inggris: 'Jangan lupa like dan subscribe untuk video berikutnya.'"},
+    {"id": "c10", "category": "chat", "prompt": "Susun kerangka naskah video 3 menit tentang tips belajar efektif: pembuka, tiga poin, penutup."},
+    {"id": "j01", "category": "json", "schema": "ideas", "prompt": "Buat tiga ide video tentang memasak hemat untuk anak kos."},
+    {"id": "j02", "category": "json", "schema": "ideas", "prompt": "Buat tiga ide Shorts tentang fakta unik hewan laut."},
+    {"id": "j03", "category": "json", "schema": "sentiment", "prompt": "Nilai sentimen komentar ini: 'Videonya jelas banget, makasih kak!'"},
+    {"id": "j04", "category": "json", "schema": "sentiment", "prompt": "Nilai sentimen komentar ini: 'Suaranya kecil, nggak kedengeran sama sekali.'"},
+    {"id": "j05", "category": "json", "schema": "outline", "prompt": "Buat kerangka video edukasi tentang fotosintesis untuk anak SD."},
+    {"id": "t01", "category": "tool", "expect": {"name": "buat_tugas", "args": {"judul": "*"}}, "prompt": "Tolong buatkan tugas: edit thumbnail video resep rendang."},
+    {"id": "t02", "category": "tool", "expect": {"name": "cari_video", "args": {"kata_kunci": "*"}}, "prompt": "Cari video tentang review kamera murah."},
+    {"id": "t03", "category": "tool", "expect": {"name": "ubah_status_avatar", "args": {"status": "THINKING"}}, "prompt": "Ubah status avatar menjadi THINKING."},
+    {"id": "t04", "category": "tool", "expect": {"name": "buat_tugas", "args": {"judul": "*"}}, "prompt": "Ingatkan saya lewat tugas baru untuk upload video hari Jumat."},
+    {"id": "t05", "category": "tool", "expect": {"name": null}, "prompt": "Halo ZOI, apa kabar?"}
+  ]
+}

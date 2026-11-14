@@ -3,7 +3,7 @@
 Platform web lokal dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
 **ZERO PAID API · ZERO SUBSCRIPTION · LOCAL FIRST.** Lisensi: MIT.
 
-> Status: **Phase 2 — avatar 3D** (di atas fondasi Phase 1). Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
+> Status: **Phase 3 — AI lokal (Ollama)** (di atas Phase 1–2). Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
 > ditampilkan sebagai "Belum tersedia — Phase N", tanpa data contoh.
 
 ## Arsitektur singkat
@@ -51,7 +51,7 @@ python -m app.cli data import <file.zip>         # pulihkan (ZOI harus berhenti;
 python -m app.cli db upgrade | db status | backup
 ```
 
-## Yang sudah berfungsi (Phase 1–2)
+## Yang sudah berfungsi (Phase 1–3)
 
 | Fitur | Status |
 |---|---|
@@ -65,7 +65,12 @@ python -m app.cli db upgrade | db status | backup
 | Avatar 3D (wajah Rocketbox): lip-sync dari audio, kedip, alis; fallback 2D otomatis (WebGL 2, uji FPS, `ZOI_AVATAR_MODE=2d`) | ✅ |
 | Settings: mode avatar, karakter, uji ulang perangkat, uji lip-sync dari file lokal | ✅ |
 | Gerak kepala / arah pandang / ekspresi avatar | tidak didukung paket (ADR 0005) |
-| YouTube, ide konten, CLIPPER/Blueprint penuh, memory, automation, voice | Phase 3–8 |
+| Settings › AI Lokal: status & versi Ollama, model terpasang (ukuran, kemampuan, konteks, lisensi), model di memori, pilih model aktif, lepaskan dari memori | ✅ (diuji dengan Ollama tiruan) |
+| ZOI **tidak pernah** mengunduh/menghapus model — endpoint `pull/delete/create/push/copy` diblokir di klien; katalog hanya memberi perintah salin | ✅ |
+| Chat: riwayat dipotong sesuai konteks model, proses berpikir terpisah (dilipat), tombol Berhenti | ✅ |
+| Keluaran JSON tervalidasi (`chat_json`) + 1× percobaan ulang — fondasi agent | ✅ |
+| Uji kecocokan model: 20 prompt Bahasa Indonesia, angka terukur + penilaian 👍/👎 pengguna (`zoi-cli ai eval`) | ✅ (belum dijalankan dengan model sungguhan) |
+| YouTube, ide konten, CLIPPER/Blueprint penuh, memory, automation, voice | Phase 4–8 |
 
 ## Pengujian
 

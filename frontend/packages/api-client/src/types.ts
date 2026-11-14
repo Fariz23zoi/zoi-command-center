@@ -58,7 +58,9 @@ export interface TaskInfo {
 export interface ChatMessageInfo {
   id: string; conversation_id: string; role: "user" | "assistant" | "system"; content: string;
   provider: string | null; model: string | null; is_mock: boolean;
-  status: "streaming" | "complete" | "error"; error: string | null; created_at: string | null;
+  status: "streaming" | "complete" | "error" | "stopped"; error: string | null; created_at: string | null;
+  /** Proses berpikir model (bila model mendukung), terpisah dari jawaban. */
+  thinking?: string | null;
 }
 
 export interface ConversationInfo { id: string; title: string; is_mock: boolean; updated_at: string }
@@ -79,4 +81,54 @@ export type ZoiEvent =
   | { type: "task.updated"; at: string; payload: TaskInfo }
   | { type: "chat.delta"; at: string; payload: { conversation_id: string; message_id: string; text: string } }
   | { type: "chat.done"; at: string; payload: { conversation_id: string; message: ChatMessageInfo } }
-  | { type: "preferences.updated"; at: string; payload: Preferences };
+  | { type: "chat.thinking"; at: string; payload: { conversation_id: string; message_id: string; text: string } }
+  | { type: "preferences.updated"; at: string; payload: Preferences }
+  | { type: "provider.updated"; at: string; payload: { active_model: string | null; active_source: AiModelSource } };
+
+// ── AI lokal (Phase 3) ─────────────────────────────────────────────────────
+export type AiModelSource = "ui" | "env" | "none";
+
+export interface InstalledModel {
+  name: string; size_bytes: number | null; family: string | null; parameter_size: string | null;
+  quantization: string | null; modified_at: string | null; is_cloud: boolean;
+}
+
+export interface RunningModel {
+  name: string; size_bytes: number | null; vram_bytes: number | null; context_tokens: number | null;
+  expires_at: string | null;
+}
+
+export interface ModelDetails {
+  name: string; capabilities: string[]; context_tokens: number | null; architecture: string | null;
+  parameter_size: string | null; quantization: string | null; license_line: string | null;
+}
+
+export interface CatalogModel { tag: string; family: string; license: string; download: string; context: string; fit: string }
+
+export interface AiCatalog {
+  checked_at: string; source: string; models: CatalogModel[]; not_default: { family: string; reason: string }[];
+}
+
+export interface AiStatus {
+  provider: string; is_mock: boolean; reachable: boolean; ready: boolean; detail: string;
+  url: string | null; location: "lokal" | "jaringan" | null; version: string | null;
+  active_model: string | null; active_source: AiModelSource; env_model: string | null;
+  installed: InstalledModel[]; running: RunningModel[]; catalog: AiCatalog; can_download: false;
+}
+
+export interface EvalSummary {
+  json: { passed: number; total: number }; tool: { passed: number; total: number }; chat_errors: number;
+  median_first_token_s: number | null; median_tokens_per_s: number | null; errors: number;
+}
+
+export interface EvalPromptResult {
+  id: string; category: "chat" | "json" | "tool"; prompt: string; passed: boolean | null; response: string;
+  error: string | null; first_token_s: number | null; tokens_per_s: number | null; output_tokens: number | null;
+  thinking_chars: number; attempts: number | null; detail: string;
+}
+
+export interface EvaluationInfo {
+  id: string; model: string; machine: string; ollama_version: string | null; prompts_version: number;
+  started_at: string; finished_at: string; summary: EvalSummary; ratings: { up: number; down: number };
+  results?: EvalPromptResult[]; rating_by_prompt?: Record<string, "up" | "down">;
+}

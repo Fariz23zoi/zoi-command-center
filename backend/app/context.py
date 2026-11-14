@@ -8,6 +8,7 @@ from typing import Any
 
 from fastapi import Request
 
+from app.ai.local import LocalAIService
 from app.chat.service import ChatService
 from app.config.modes import RuntimeConfig
 from app.config.settings import Settings
@@ -32,6 +33,7 @@ class AppContext:
     adapters: list[ExternalAppAdapter]
     tasks: TaskManager
     chat: ChatService
+    local_ai: LocalAIService
     migration_backup: str | None = None
     started_monotonic: float = field(default_factory=time.monotonic)
     cache: dict[str, Any] = field(default_factory=dict)
