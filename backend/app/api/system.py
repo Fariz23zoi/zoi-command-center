@@ -78,6 +78,7 @@ class Preferences(BaseModel):
     model_config = ConfigDict(extra="forbid")
     ui_language: Literal["id", "en"] = "id"
     avatar_mode_preference: Literal["auto", "2d", "3d"] = "auto"
+    avatar_character: Literal["female", "male"] = "female"
 
 
 PREF_KEY = "preferences"

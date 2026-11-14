@@ -14,7 +14,7 @@ function renderApp(path = "/", cfg = config()) {
   mockFetch({
     "/api/config": cfg, "/api/tasks": { tasks: [] }, "/api/provider/status": provider,
     "/api/adapters": { adapters: [] }, "/api/conversations": { conversations: [] },
-    "/api/preferences": { ui_language: "id", avatar_mode_preference: "auto" },
+    "/api/preferences": { ui_language: "id", avatar_mode_preference: "auto", avatar_character: "female" },
   });
   return render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>);
 }
@@ -22,7 +22,8 @@ function renderApp(path = "/", cfg = config()) {
 beforeEach(() => {
   FakeWebSocket.instances = [];
   vi.stubGlobal("WebSocket", FakeWebSocket);
-  useApp.setState({ config: null, tasks: [], messages: [], conversationId: null, agent: { state: "IDLE", reason: "" } });
+  useApp.setState({ config: null, prefs: null, bootstrapped: false, avatarRenderer: null, avatarNote: null, tasks: [], messages: [],
+    conversationId: null, agent: { state: "IDLE", reason: "" } });
 });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -58,6 +59,7 @@ describe("Command Center", () => {
 
   it("avatar mengikuti event status dari backend", async () => {
     renderApp();
+    await waitFor(() => expect(document.querySelector("[data-state]")).not.toBeNull());
     const ws = FakeWebSocket.instances[0];
     act(() => ws.emit({ type: "agent.state", at: "", payload: { state: "THINKING", reason: "Menyusun jawaban" } }));
     expect(document.querySelector("[data-state]")?.getAttribute("data-state")).toBe("THINKING");
@@ -81,5 +83,20 @@ describe("Command Center", () => {
   it("tombol suara dinonaktifkan dengan alasan yang jujur", () => {
     renderApp();
     expect(screen.getByRole("button", { name: /Input suara/ })).toBeDisabled();
+  });
+
+  it("Settings: server memaksa 2D → pilihan avatar dikunci dan dijelaskan", async () => {
+    renderApp("/settings", config({ avatar_mode: "2d" }));
+    expect(await screen.findByLabelText("Avatar")).toBeDisabled();
+    expect(screen.getByText(/Server memaksa 2D/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("avatar-renderer")).toHaveTextContent("2d"));
+    expect(screen.getByLabelText(/Uji lip-sync/)).toBeDisabled();
+  });
+
+  it("Settings: tanpa WebGL 2 avatar memakai 2D dengan catatan jujur", async () => {
+    renderApp("/settings");
+    await waitFor(() => expect(screen.getByTestId("avatar-renderer")).toHaveTextContent("2d"));
+    expect(screen.getAllByText(/tidak mendukung WebGL 2/).length).toBeGreaterThan(0);
+    expect(screen.getByLabelText("Karakter 3D")).toHaveValue("female");
   });
 });

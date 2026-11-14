@@ -37,10 +37,13 @@ def test_missing_tools_reported_not_invented(monkeypatch):
 
 
 def test_preferences_roundtrip_and_validation(client):
-    assert client.get("/api/preferences").json() == {"ui_language": "id", "avatar_mode_preference": "auto"}
+    assert client.get("/api/preferences").json() == {"ui_language": "id", "avatar_mode_preference": "auto",
+                                                     "avatar_character": "female"}
     assert client.put("/api/preferences", json={"ui_language": "en", "avatar_mode_preference": "2d"}).status_code == 200
     assert client.get("/api/preferences").json()["avatar_mode_preference"] == "2d"
     assert client.put("/api/preferences", json={"ui_language": "fr"}).status_code == 422
+    assert client.put("/api/preferences", json={"avatar_character": "robot"}).status_code == 422
+    assert client.put("/api/preferences", json={"avatar_character": "male"}).json()["avatar_character"] == "male"
     assert client.put("/api/preferences", json={"clipper_dir": "C:/x"}).status_code == 422
 
 

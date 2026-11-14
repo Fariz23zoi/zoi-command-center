@@ -3,7 +3,7 @@
 Platform web lokal dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
 **ZERO PAID API · ZERO SUBSCRIPTION · LOCAL FIRST.** Lisensi: MIT.
 
-> Status: **Phase 1 — fondasi.** Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
+> Status: **Phase 2 — avatar 3D** (di atas fondasi Phase 1). Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
 > ditampilkan sebagai "Belum tersedia — Phase N", tanpa data contoh.
 
 ## Arsitektur singkat
@@ -11,7 +11,7 @@ Platform web lokal dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
 | Bagian | Lokasi | Catatan |
 |---|---|---|
 | Frontend | `frontend/apps/web` | React + TypeScript + Vite. Di mode local disajikan backend sebagai file statis |
-| Avatar | `frontend/packages/avatar` | Paket terpisah. Sekarang avatar 2D (SVG); 3D menyusul di Phase 2 tanpa mengubah aplikasi |
+| Avatar | `frontend/packages/avatar` | Paket terpisah. 2D (SVG) dan 3D (talking-avatar + three.js, aset lokal); renderer dipilih otomatis — lihat ADR 0005 |
 | Backend | `backend/app` | FastAPI, satu proses, bind `127.0.0.1` saja |
 | Database | `backend/app/db` | SQLite satu file di `ZOI_DATA_DIR`, migrasi Alembic, ekspor/impor ZIP berverifikasi |
 | Penyedia AI | `backend/app/providers` | `mock` (development, selalu berlabel MOCK) · `ollama` (local) · `none` |
@@ -51,7 +51,7 @@ python -m app.cli data import <file.zip>         # pulihkan (ZOI harus berhenti;
 python -m app.cli db upgrade | db status | backup
 ```
 
-## Yang sudah berfungsi (Phase 1)
+## Yang sudah berfungsi (Phase 1–2)
 
 | Fitur | Status |
 |---|---|
@@ -62,7 +62,10 @@ python -m app.cli db upgrade | db status | backup
 | Status sistem, penyedia AI, dan deteksi CLIPPER/Blueprint (read-only) | ✅ |
 | Cost Guard: koneksi keluar hanya ke allowlist; layanan AI berbayar diblokir & dicatat | ✅ |
 | Ekspor/impor data portabel + backup otomatis sebelum migrasi | ✅ |
-| YouTube, ide konten, CLIPPER/Blueprint penuh, memory, automation, voice, avatar 3D | Phase 2–8 |
+| Avatar 3D (wajah Rocketbox): lip-sync dari audio, kedip, alis; fallback 2D otomatis (WebGL 2, uji FPS, `ZOI_AVATAR_MODE=2d`) | ✅ |
+| Settings: mode avatar, karakter, uji ulang perangkat, uji lip-sync dari file lokal | ✅ |
+| Gerak kepala / arah pandang / ekspresi avatar | tidak didukung paket (ADR 0005) |
+| YouTube, ide konten, CLIPPER/Blueprint penuh, memory, automation, voice | Phase 3–8 |
 
 ## Pengujian
 
