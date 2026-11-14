@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlparse
 
-from app.config.settings import REPO_ROOT, AvatarMode, Mode, ProviderChoice, Settings
+from app.config.settings import REPO_ROOT, AvatarMode, Mode, ProviderChoice, Settings, SttChoice, TtsChoice
 
 DEV_FRONTEND_ORIGINS = ("http://127.0.0.1:5173", "http://localhost:5173")
 DEFAULT_PORTS = {Mode.DEVELOPMENT: 8000, Mode.LOCAL: 80}
@@ -36,6 +36,10 @@ class RuntimeConfig:
     ollama_model: str
     mock_latency_ms: int
     avatar_mode: AvatarMode
+    stt: str  # "mock" | "whisper" | "none"
+    whisper_model_dir: Path | None
+    tts: str  # "mock" | "piper" | "none"
+    piper_url: str
     cors_origins: tuple[str, ...]
     serve_frontend: bool
     frontend_dist: Path
@@ -112,6 +116,17 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
             "ZOI_OLLAMA_MODEL belum diisi — fitur AI akan berstatus 'tidak tersedia' sampai model dipilih."
         )
 
+    stt = _voice_choice(settings.stt, SttChoice, "whisper", settings.mode, "ZOI_STT")
+    tts = _voice_choice(settings.tts, TtsChoice, "piper", settings.mode, "ZOI_TTS")
+    piper = urlparse(settings.piper_url)
+    if piper.scheme not in {"http", "https"} or not piper.hostname:
+        raise ConfigError(f"ZOI_PIPER_URL tidak valid: {settings.piper_url!r} (contoh: http://127.0.0.1:5000)")
+    whisper_dir = settings.whisper_model_dir
+    if whisper_dir is not None and not whisper_dir.is_absolute():
+        whisper_dir = (REPO_ROOT / whisper_dir).resolve()
+    if stt == "whisper" and whisper_dir is None:
+        warnings.append("ZOI_WHISPER_MODEL_DIR belum diisi — input suara berstatus 'tidak tersedia'.")
+
     port = settings.port or DEFAULT_PORTS[settings.mode]
     data_dir = _resolve_dir(settings.data_dir, DEFAULT_DATA_DIRS[settings.mode])
     frontend_dist = _resolve_dir(settings.frontend_dist, "frontend/apps/web/dist")
@@ -127,9 +142,21 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
         ollama_model=model,
         mock_latency_ms=settings.mock_latency_ms,
         avatar_mode=settings.avatar_mode,
+        stt=stt,
+        whisper_model_dir=whisper_dir,
+        tts=tts,
+        piper_url=settings.piper_url.rstrip("/"),
         cors_origins=DEV_FRONTEND_ORIGINS if is_dev else (),
         serve_frontend=not is_dev,
         frontend_dist=frontend_dist,
         banner=DEV_BANNER if is_dev else None,
         warnings=tuple(warnings),
     )
+
+
+def _voice_choice(choice: SttChoice | TtsChoice, enum: type, real: str, mode: Mode, name: str) -> str:
+    """auto → mock di development, mesin asli di local. Mock tidak boleh di mode local (sama seperti AI)."""
+    value = ("mock" if mode is Mode.DEVELOPMENT else real) if choice is enum.AUTO else choice.value
+    if mode is Mode.LOCAL and value == "mock":
+        raise ConfigError(f"Mode local tidak boleh memakai suara Mock ({name}=mock). Pakai {real} atau none.")
+    return value

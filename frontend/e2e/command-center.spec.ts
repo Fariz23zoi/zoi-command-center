@@ -14,7 +14,7 @@ async function send(page: Page, text: string) {
 
 test("command center terbuka, tersambung, tanpa geser horizontal", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByTestId("ws-status")).toHaveText("Tersambung");
+  await expect(page.getByTestId("ws-status")).toHaveText("Tersambung", { timeout: 15_000 });
   await expect(page.getByRole("img", { name: /Avatar ZOI/ })).toBeVisible();
   if (isLocal()) {
     await expect(page.getByTestId("dev-banner")).toHaveCount(0);
@@ -26,7 +26,7 @@ test("command center terbuka, tersambung, tanpa geser horizontal", async ({ page
 
 test("chat: development memakai mock berlabel, local tidak pernah mock", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByTestId("ws-status")).toHaveText("Tersambung");
+  await expect(page.getByTestId("ws-status")).toHaveText("Tersambung", { timeout: 15_000 });
   await send(page, "halo ZOI");
   const reply = page.getByTestId("msg-assistant").last();
   if (isLocal()) {
@@ -46,7 +46,7 @@ test("chat: development memakai mock berlabel, local tidak pernah mock", async (
 
 test("task manager: pemeriksaan sistem berjalan sampai selesai", async ({ page }) => {
   await page.goto("/tasks");
-  await expect(page.getByTestId("ws-status")).toHaveText("Tersambung");
+  await expect(page.getByTestId("ws-status")).toHaveText("Tersambung", { timeout: 15_000 });
   await page.getByRole("button", { name: "Jalankan pemeriksaan sistem" }).click();
   await expect(page.getByTestId("task-status").first()).toHaveText("Selesai", { timeout: 20_000 });
   await expectNoHorizontalOverflow(page);

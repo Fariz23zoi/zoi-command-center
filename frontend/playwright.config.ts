@@ -7,6 +7,7 @@ const python = process.env.E2E_PYTHON ?? "../backend/.venv/bin/python";
 const chrome = process.env.E2E_CHROME; // browser sistem bila unduhan browser Playwright tidak tersedia
 const LOCAL_PORT = 8080; // port alternatif — port 80 di local server Windows diuji saat migrasi
 const FAKE_OLLAMA_PORT = 11500; // Ollama TIRUAN (backend/tests/fake_ollama.py) — tidak ada model sungguhan
+const FAKE_PIPER_PORT = 5599; // Piper TIRUAN (backend/tests/fake_piper.py) — nada uji, bukan suara
 
 export default defineConfig({
   testDir: "e2e",
@@ -17,7 +18,9 @@ export default defineConfig({
     launchOptions: {
       ...(chrome ? { executablePath: chrome } : {}),
       // WebGL perangkat lunak (SwiftShader) agar avatar 3D bisa diuji di mesin tanpa GPU; audio boleh diputar otomatis.
-      args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--autoplay-policy=no-user-gesture-required"],
+      // Mikrofon palsu Chrome (nada uji) — tanpa izin manual, tanpa perangkat sungguhan.
+      args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--autoplay-policy=no-user-gesture-required",
+        "--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"],
     },
     trace: "off",
   },
@@ -42,6 +45,12 @@ export default defineConfig({
       reuseExistingServer: false,
     },
     {
+      command: `${python} -m tests.fake_piper --port ${FAKE_PIPER_PORT}`,
+      cwd: "../backend",
+      url: `http://127.0.0.1:${FAKE_PIPER_PORT}/voices`,
+      reuseExistingServer: false,
+    },
+    {
       command: `${python} -m tests.fake_ollama --port ${FAKE_OLLAMA_PORT}`,
       cwd: "../backend",
       url: `http://127.0.0.1:${FAKE_OLLAMA_PORT}/api/version`,
@@ -54,6 +63,7 @@ export default defineConfig({
       reuseExistingServer: false,
       env: { ZOI_MODE: "local", ZOI_PORT: String(LOCAL_PORT), ZOI_DATA_DIR: `/tmp/zoi-e2e-local-${stamp}`,
         ZOI_OLLAMA_URL: `http://127.0.0.1:${FAKE_OLLAMA_PORT}`, ZOI_OLLAMA_MODEL: "qwen3:4b",
+        ZOI_PIPER_URL: `http://127.0.0.1:${FAKE_PIPER_PORT}`,
         ZOI_ENV_FILE: "/nonexistent" },
     },
   ],

@@ -32,6 +32,8 @@ Saya bukan pengacara; dokumen ini adalah inventaris lisensi teknis untuk pemakai
 | Llama 3.x / 4 | Llama Community License (kustom, ada ambang komersial) | ⚠️ REFERENCE — tidak dijadikan default |
 | Whisper (bobot untuk faster-whisper) | MIT | ✅ |
 | Suara Piper (`rhasspy/piper-voices`) | **Berbeda per suara** — tiap suara punya MODEL_CARD sendiri | ⚠️ Periksa MODEL_CARD suara bahasa Indonesia sebelum dipakai |
+| Suara Piper `id_ID-news_tts-medium` (dicek 14 Nov 2026) | Repo MIT; MODEL_CARD menunjuk dataset Kaggle "indic-tts-malayalam-speech-corpus" dengan lisensi "See URL"; di-fine-tune dari `en_US-lessac-medium` | ⚠️ **Asal-usul data tidak jelas.** Keputusan pengguna (Phase 4 K-1): boleh untuk pemakaian pribadi setelah catatan diterima di Settings › Suara; **jangan dipakai sebagai suara di video yang dipublikasikan**. Tanpa persetujuan, backend menolak `/api/voice/speak` |
+| faster-whisper 1.2.1 + PyAV 18 + CTranslate2 + onnxruntime | MIT / BSD-3 / MIT / MIT | Paket opsional (`requirements-voice.txt`), tidak ikut paket inti | ✅ |
 | `viseme-model.bin` (talking-avatar) | MIT | ✅ |
 
 ## 3. Aset

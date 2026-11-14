@@ -132,3 +132,11 @@ button.link.active { color: var(--accent); }
 .eval-result p { margin: 2px 0; }
 .notice progress { display: block; width: 100%; margin-top: 6px; }
 .notice ol { padding-left: 18px; margin: 6px 0; }
+.check { display: flex; gap: 8px; align-items: flex-start; min-height: 32px; }
+.check input { margin-top: 3px; }
+button.recording { animation: zoi-pulse 1.2s ease-in-out infinite; }
+@keyframes zoi-pulse { 50% { opacity: 0.65; } }
+@media (prefers-reduced-motion: reduce) { button.recording { animation: none; } }
+.commands { padding-left: 18px; display: grid; gap: 6px; }
+.commands .command { display: inline-block; max-width: 100%; }
+input[type="range"] { width: 100%; max-width: 360px; }

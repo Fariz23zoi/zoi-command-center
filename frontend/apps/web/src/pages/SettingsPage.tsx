@@ -60,6 +60,8 @@ export function SettingsPage() {
       <p className="notice ok">
         <Link to="/settings/ai" data-testid="ai-local-link">AI Lokal</Link> — status Ollama, model terpasang, model aktif,
         dan uji kecocokan model.
+        {" · "}<Link to="/settings/voice" data-testid="voice-link">Suara</Link> — input suara, membacakan jawaban, dan
+        cara memasang model suara.
       </p>
       <h2>Konfigurasi efektif</h2>
       <p className="muted">Hanya-baca. Diubah lewat file <code>.env</code>, lalu restart ZOI.</p>

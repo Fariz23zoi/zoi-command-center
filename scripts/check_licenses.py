@@ -104,6 +104,12 @@ def main(argv: list[str]) -> int:
                   "| `female.glb`, `male.glb` | Microsoft Rocketbox (business female 04 / male 01), dikonversi oleh "
                   "talking-avatar | MIT (Copyright (c) 2020 Microsoft) — `LICENSE-rocketbox.txt` |",
                   "| `viseme-model.bin` | Bobot model lip-sync talking-avatar | MIT — `LICENSE-talking-avatar.txt` |"]
+        lines += ["", "## Program terpisah (TIDAK dibundel dengan ZOI)", "",
+                  "- **Piper** (`piper-tts` 1.8.0, GPL-3.0-or-later) — dipasang & dijalankan pengguna sendiri sebagai server",
+                  "  HTTP lokal. ZOI hanya mengirim teks lewat HTTP dan tidak mengimpor kodenya.",
+                  "- **Suara `id_ID-news_tts-medium`** — repo MIT, tetapi dataset asalnya tidak jelas (lihat",
+                  "  `docs/audit/LICENSE_COMPLIANCE.md`). Hanya untuk pemakaian pribadi.",
+                  "- **faster-whisper dan dependensinya** di atas adalah paket opsional (`requirements-voice.txt`)."]
         lines += ["", "Lisensi lengkap tiap paket tersedia di folder paket masing-masing (site-packages / node_modules).",
                   "", "ZOI sendiri berlisensi MIT — lihat `LICENSE`."]
         target.write_text("\n".join(lines) + "\n", encoding="utf-8")

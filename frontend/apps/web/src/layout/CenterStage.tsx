@@ -6,8 +6,17 @@ import { effectiveAvatarMode } from "../lib/avatarMode";
 import { ChatTranscript } from "../pages/ChatTranscript";
 import { useApp } from "../stores/appStore";
 
+const VOICE_STATE = {
+  recording: { state: "LISTENING", reason: "Mendengarkan — tekan Selesai bila sudah" },
+  transcribing: { state: "THINKING", reason: "Mengenali suara" },
+  speaking: { state: "SPEAKING", reason: "Membacakan jawaban" },
+} as const;
+
 export function CenterStage() {
   const agent = useApp((s) => s.agent);
+  const voicePhase = useApp((s) => s.voicePhase);
+  // Selama merekam/mengenali/berbicara, avatar mengikuti suara (status lokal di browser ini).
+  const shown = voicePhase ? VOICE_STATE[voicePhase] : { state: agent.state, reason: agent.reason };
   const serverMode = useApp((s) => s.config?.avatar_mode);
   const prefs = useApp((s) => s.prefs);
   const setAvatarRenderer = useApp((s) => s.setAvatarRenderer);
@@ -29,7 +38,7 @@ export function CenterStage() {
       <div className="avatar-wrap">
         {loaded ? (
           <Avatar
-            state={isAgentState(agent.state) ? agent.state : "IDLE"}
+            state={isAgentState(shown.state) ? shown.state : "IDLE"}
             mode={effectiveAvatarMode(serverMode, prefs.avatar_mode_preference)}
             character={prefs.avatar_character}
             size={180}
@@ -37,7 +46,7 @@ export function CenterStage() {
             onRendererChange={setAvatarRenderer}
           />
         ) : <div className="avatar-placeholder" aria-hidden="true" />}
-        <p className="agent-reason" data-testid="agent-reason">{agent.reason}</p>
+        <p className="agent-reason" data-testid="agent-reason">{shown.reason}</p>
       </div>
       <div className="stage-chat">
         <ChatTranscript messages={messages.slice(-12)} />

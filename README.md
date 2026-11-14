@@ -3,7 +3,7 @@
 Platform web lokal dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
 **ZERO PAID API · ZERO SUBSCRIPTION · LOCAL FIRST.** Lisensi: MIT.
 
-> Status: **Phase 3 — AI lokal (Ollama)** (di atas Phase 1–2). Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
+> Status: **Phase 4 — suara dua arah** (di atas Phase 1–3). Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
 > ditampilkan sebagai "Belum tersedia — Phase N", tanpa data contoh.
 
 ## Arsitektur singkat
@@ -51,7 +51,7 @@ python -m app.cli data import <file.zip>         # pulihkan (ZOI harus berhenti;
 python -m app.cli db upgrade | db status | backup
 ```
 
-## Yang sudah berfungsi (Phase 1–3)
+## Yang sudah berfungsi (Phase 1–4)
 
 | Fitur | Status |
 |---|---|
@@ -70,7 +70,10 @@ python -m app.cli db upgrade | db status | backup
 | Chat: riwayat dipotong sesuai konteks model, proses berpikir terpisah (dilipat), tombol Berhenti | ✅ |
 | Keluaran JSON tervalidasi (`chat_json`) + 1× percobaan ulang — fondasi agent | ✅ |
 | Uji kecocokan model: 20 prompt Bahasa Indonesia, angka terukur + penilaian 👍/👎 pengguna (`zoi-cli ai eval`) | ✅ (belum dijalankan dengan model sungguhan) |
-| YouTube, ide konten, CLIPPER/Blueprint penuh, memory, automation, voice | Phase 4–8 |
+| Bicara ke ZOI: tekan 🎙 → faster-whisper lokal → teks masuk kotak pesan (rekaman tidak disimpan, tanpa cloud) | ✅ (diuji dengan tiruan; model asli belum) |
+| ZOI membacakan jawaban per kalimat: Piper (program terpisah, lip-sync avatar 3D) atau suara lokal Windows; tombol Berhenti | ✅ (Piper diuji dengan tiruan) |
+| Settings › Suara: status, bahasa, kirim otomatis, mesin suara, kecepatan, catatan lisensi Piper, cara memasang | ✅ |
+| YouTube, ide konten, CLIPPER/Blueprint penuh, memory, automation | Phase 5–8 |
 
 ## Pengujian
 

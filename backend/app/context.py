@@ -19,6 +19,7 @@ from app.integrations.base import ExternalAppAdapter
 from app.providers.base import LLMProvider
 from app.security.cost_guard import CostGuard
 from app.tasks.manager import TaskManager
+from app.voice.service import VoiceService
 
 
 @dataclass
@@ -34,6 +35,7 @@ class AppContext:
     tasks: TaskManager
     chat: ChatService
     local_ai: LocalAIService
+    voice: VoiceService
     migration_backup: str | None = None
     started_monotonic: float = field(default_factory=time.monotonic)
     cache: dict[str, Any] = field(default_factory=dict)

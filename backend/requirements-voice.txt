@@ -1,0 +1,6 @@
+# Opsional (Phase 4): pengenal suara lokal. ZOI tetap berjalan tanpa paket ini.
+# Lisensi: faster-whisper MIT, ctranslate2 MIT, PyAV BSD-3, onnxruntime MIT, tokenizers Apache-2.0.
+# Model TIDAK diunduh otomatis oleh ZOI — lihat Settings › Suara.
+faster-whisper==1.2.1
+# PyAV 19 menghapus argumen `metadata_errors` yang dipakai faster-whisper 1.2.1 → dikunci ke 18 (diuji 14 Nov 2026).
+av==18.0.0

@@ -83,7 +83,8 @@ export type ZoiEvent =
   | { type: "chat.done"; at: string; payload: { conversation_id: string; message: ChatMessageInfo } }
   | { type: "chat.thinking"; at: string; payload: { conversation_id: string; message_id: string; text: string } }
   | { type: "preferences.updated"; at: string; payload: Preferences }
-  | { type: "provider.updated"; at: string; payload: { active_model: string | null; active_source: AiModelSource } };
+  | { type: "provider.updated"; at: string; payload: { active_model: string | null; active_source: AiModelSource } }
+  | { type: "voice.preferences.updated"; at: string; payload: VoicePreferences };
 
 // ── AI lokal (Phase 3) ─────────────────────────────────────────────────────
 export type AiModelSource = "ui" | "env" | "none";
@@ -131,4 +132,33 @@ export interface EvaluationInfo {
   id: string; model: string; machine: string; ollama_version: string | null; prompts_version: number;
   started_at: string; finished_at: string; summary: EvalSummary; ratings: { up: number; down: number };
   results?: EvalPromptResult[]; rating_by_prompt?: Record<string, "up" | "down">;
+}
+
+// ── Suara (Phase 4) ────────────────────────────────────────────────────────
+export interface VoicePreferences {
+  language: "id" | "en" | "auto";
+  speak_replies: boolean;
+  auto_send: boolean;
+  tts_engine: "auto" | "piper" | "browser";
+  browser_voice: string | null;
+  speech_rate: number;
+  piper_license_accepted: boolean;
+}
+
+export interface VoiceEngineStatus { name: string; is_mock: boolean; available: boolean; detail: string; model: string | null }
+
+export interface VoiceCatalog {
+  checked_at: string;
+  whisper: { package: string; note: string; models: { name: string; repo: string; download: string; fit: string }[]; install: string[] };
+  piper: { package: string; voice: string; download: string; license_note: string; install: string[] };
+  browser: { note: string; lip_sync: false };
+}
+
+export interface VoiceStatus {
+  stt: VoiceEngineStatus; tts: VoiceEngineStatus; preferences: VoicePreferences;
+  reply_engine: "piper" | "browser"; catalog: VoiceCatalog; can_download: false; stores_recordings: false;
+}
+
+export interface TranscriptInfo {
+  text: string; language: string | null; audio_seconds: number | null; elapsed_seconds: number; is_mock: boolean;
 }

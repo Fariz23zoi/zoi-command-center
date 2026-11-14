@@ -6,6 +6,8 @@ import { CommandCenter } from "./layout/CommandCenter";
 import { MENU } from "./menu";
 import { AiLocalPage } from "./pages/AiLocalPage";
 import { AssistantPage } from "./pages/AssistantPage";
+import { VoicePage } from "./pages/VoicePage";
+import { useReplyVoice } from "./lib/voice/useReplyVoice";
 import { IntegrationPage } from "./pages/IntegrationPage";
 import { NotYetAvailable } from "./pages/NotYetAvailable";
 import { OverviewPage } from "./pages/OverviewPage";
@@ -28,12 +30,14 @@ export function App() {
   const { setConfig, setConnected, setTasks, setProvider, setAdapters, setPrefs, setBootstrapped, handleEvent } =
     useApp.getState();
 
+  useReplyVoice();
   useEffect(() => {
     // Avatar menunggu konfigurasi + preferensi (atau kegagalan keduanya) agar renderer dipilih sekali saja.
     Promise.allSettled([
       api.config().then(setConfig),
       api.preferences().then(setPrefs, () => setPrefs(DEFAULT_PREFS)),
     ]).then(setBootstrapped);
+    api.voice.status().then(useApp.getState().setVoiceStatus).catch(() => undefined);
     api.tasks().then((r) => setTasks(r.tasks)).catch(() => undefined);
     api.providerStatus().then(setProvider).catch(() => undefined);
     api.adapters().then((r) => setAdapters(r.adapters)).catch(() => undefined);
@@ -52,6 +56,7 @@ export function App() {
           />
         ))}
         <Route path="/settings/ai" element={<AiLocalPage />} />
+        <Route path="/settings/voice" element={<VoicePage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
