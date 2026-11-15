@@ -1,6 +1,6 @@
 """Pencatat & pembatas kuota YouTube Data API. Hitungan ini milik ZOI (bukan angka dari YouTube).
 
-Fakta resmi (dicek 14 Nov 2026): 10.000 unit/hari per project, batas terpisah 100 panggilan search.list/hari,
+Fakta resmi (dicek 15 Nov 2026): 10.000 unit/hari per project; search.list punya ember sendiri, 100 panggilan/hari;
 hampir semua metode baca = 1 unit, reset tengah malam waktu Pasifik. ZOI berhenti di 90% agar tidak pernah
 menyentuh batas (project yang sama bisa dipakai alat lain).
 """
@@ -49,15 +49,17 @@ class QuotaTracker:
         """Dipanggil SEBELUM permintaan dikirim. Menolak bila melewati batas aman."""
         with self.db.session() as s:
             row = self._row(s)
+            if search:  # search.list punya ember kuota sendiri; tidak memotong unit umum
+                if row.search_calls + 1 > SEARCH_LIMIT:
+                    raise QuotaExceeded(f"Batas aman pencarian YouTube hari ini tercapai "
+                                        f"({row.search_calls}/{SEARCH_LIMIT} panggilan). "
+                                        "Kuota direset tengah malam waktu Pasifik.")
+                row.search_calls += 1
+                return
             if row.units + units > UNIT_LIMIT:
                 raise QuotaExceeded(f"Batas aman kuota YouTube hari ini tercapai ({row.units}/{UNIT_LIMIT} unit). "
                                     "Kuota direset tengah malam waktu Pasifik.")
-            if search and row.search_calls + 1 > SEARCH_LIMIT:
-                raise QuotaExceeded(f"Batas aman pencarian YouTube hari ini tercapai "
-                                    f"({row.search_calls}/{SEARCH_LIMIT} panggilan).")
             row.units += units
-            if search:
-                row.search_calls += 1
 
     def count_analytics(self) -> None:
         with self.db.session() as s:

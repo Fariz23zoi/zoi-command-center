@@ -13,6 +13,7 @@ from app.ai.local import LocalAIService
 from app.chat.service import ChatService
 from app.config.modes import RuntimeConfig
 from app.config.settings import Settings
+from app.content.service import ContentService
 from app.core.agent_state import AgentStateTracker
 from app.core.events import EventBus
 from app.db.session import Database
@@ -22,6 +23,7 @@ from app.providers.base import LLMProvider
 from app.security.cost_guard import CostGuard
 from app.tasks.manager import TaskManager
 from app.voice.service import VoiceService
+from app.youtube.public import PublicDataService
 from app.youtube.service import YouTubeService
 
 
@@ -42,6 +44,8 @@ class AppContext:
     memory: MemoryService
     agent_service: AgentService
     youtube: YouTubeService
+    public: PublicDataService
+    content: ContentService
     migration_backup: str | None = None
     started_monotonic: float = field(default_factory=time.monotonic)
     cache: dict[str, Any] = field(default_factory=dict)

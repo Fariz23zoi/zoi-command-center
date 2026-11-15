@@ -9,6 +9,12 @@ import { AssistantPage } from "./pages/AssistantPage";
 import { VoicePage } from "./pages/VoicePage";
 import { MemoryPage } from "./pages/MemoryPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
+import { CompetitorsPage } from "./pages/CompetitorsPage";
+import { IdeasPage } from "./pages/IdeasPage";
+import { PerformancePage } from "./pages/PerformancePage";
+import { ScriptPage } from "./pages/ScriptPage";
+import { TrendsPage } from "./pages/TrendsPage";
+import { ViralPage } from "./pages/ViralPage";
 import { MonetizationPage } from "./pages/MonetizationPage";
 import { YouTubeSettingsPage } from "./pages/YouTubeSettingsPage";
 import { useReplyVoice } from "./lib/voice/useReplyVoice";
@@ -28,6 +34,12 @@ const READY_PAGES: Record<string, ReactElement> = {
   "/memory": <MemoryPage />,
   "/analytics": <AnalyticsPage />,
   "/monetization": <MonetizationPage />,
+  "/competitors": <CompetitorsPage />,
+  "/viral": <ViralPage />,
+  "/trends": <TrendsPage />,
+  "/ideas": <IdeasPage />,
+  "/script": <ScriptPage />,
+  "/performance": <PerformancePage />,
   "/settings": <SettingsPage />,
   "/clipper": <IntegrationPage adapterName="zoi_ai_clipper" />,
   "/blueprint": <IntegrationPage adapterName="blueprint_studio" />,

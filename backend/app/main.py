@@ -23,6 +23,7 @@ from app.api.router import api_router, ws_router
 from app.chat.service import ChatService
 from app.config.modes import RuntimeConfig, resolve_runtime
 from app.config.settings import Settings, load_settings
+from app.content.service import ContentService
 from app.context import AppContext
 from app.core.agent_state import AgentStateTracker
 from app.core.errors import ZoiError, zoi_error_handler
@@ -42,6 +43,7 @@ from app.tasks.manager import TaskManager
 from app.voice.registry import build_voice
 from app.voice.service import VoiceService
 from app.youtube.oauth import endpoints as youtube_endpoints
+from app.youtube.public import PublicDataService
 from app.youtube.service import YouTubeService
 
 log = get_logger("main")
@@ -87,6 +89,8 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
     chat.memory = memory
     youtube = YouTubeService(db=db, bus=bus, guard=guard, endpoints=youtube_endpoints(runtime.youtube_test_url),
                              data_dir=runtime.data_dir)
+    public = PublicDataService(db=db, bus=bus, youtube=youtube)
+    content = ContentService(db=db, bus=bus, provider=provider, memory=memory, youtube=youtube, public=public)
     registry = build_registry(ToolDeps(memory=memory, tasks=tasks, provider=provider, adapters=adapters,
                                        data_dir=runtime.data_dir, is_mock=lambda: provider.is_mock,
                                        youtube=youtube))
@@ -95,7 +99,7 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
     ctx = AppContext(settings=settings, runtime=runtime, db=db, bus=bus, agent=agent, guard=guard,
                      provider=provider, adapters=adapters, tasks=tasks, chat=chat,
                      voice=VoiceService(stt=stt, tts=tts, db=db), memory=memory, agent_service=agent_service,
-                     youtube=youtube,
+                     youtube=youtube, public=public, content=content,
                      local_ai=LocalAIService(provider=provider, runtime=runtime, db=db, bus=bus, tasks=tasks,
                                              source=ai_source),
                      migration_backup=str(backup) if backup else None)
@@ -110,6 +114,9 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
         if isinstance(provider, LocalModelAdmin):
             tasks.register(model_eval_kind(db=db, admin=provider, run_async=make_run_async(loop)))
         tasks.register(agent_service.task_kind(make_run_async(loop)))
+        for kind in content.task_kinds(make_run_async(loop)):
+            tasks.register(kind)
+        public.purge_expired()
         agent_service.recover()
         recovered = tasks.recover_interrupted()
         log.info("zoi_started", version=__version__, mode=runtime.mode.value, provider=provider.name,

@@ -23,6 +23,7 @@ export const METRIC_LABEL: Record<string, string> = {
   averageViewDuration: "Rata-rata durasi tonton (detik)",
   subscribersGained: "Subscriber bertambah",
   subscribersLost: "Subscriber berkurang",
+  averageViewPercentage: "Rata-rata persentase ditonton (hitungan YouTube)",
 };
 
 /** Data YouTube yang tersimpan di komputer ini; dimuat ulang saat backend mengabarkan perubahan. */

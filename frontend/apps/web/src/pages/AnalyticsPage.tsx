@@ -76,7 +76,7 @@ export function AnalyticsPage() {
         <button type="button" disabled={busy} data-testid="youtube-refresh" onClick={() => void refresh()}>
           {busy ? "Mengambil dari YouTube…" : "Ambil data terbaru"}
         </button>{" "}
-        <span className="muted">Memakai 3 unit kuota dan 3 panggilan laporan. Terpakai hari ini:{" "}
+        <span className="muted">Memakai 3 unit kuota dan 4 panggilan laporan. Terpakai hari ini:{" "}
           {exact(data.quota.units_used)} dari {exact(data.quota.unit_limit)} unit.</span>
       </p>
 

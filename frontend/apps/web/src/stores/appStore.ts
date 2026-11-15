@@ -60,6 +60,8 @@ interface AppState {
   memoryRevision: number;
   /** Naik setiap status/data YouTube berubah (Phase 6A). */
   youtubeRevision: number;
+  /** Naik setiap draf konten (ide/naskah) berubah (Phase 6B). */
+  contentRevision: number;
   setAgentRuns(runs: AgentRunInfo[]): void;
   voiceStatus: VoiceStatus | null;
   voicePrefs: VoicePreferences | null;
@@ -102,6 +104,7 @@ export const useApp = create<AppState>((set) => ({
   agentRuns: {},
   memoryRevision: 0,
   youtubeRevision: 0,
+  contentRevision: 0,
   setAgentRuns: (runs) => set((s) => ({ agentRuns: mergeRuns(s.agentRuns, runs) })),
   voiceStatus: null,
   voicePrefs: null,
@@ -175,6 +178,8 @@ export const useApp = create<AppState>((set) => ({
           return { memoryRevision: s.memoryRevision + 1 };
         case "youtube.updated":
           return { youtubeRevision: s.youtubeRevision + 1 };
+        case "content.updated":
+          return { contentRevision: s.contentRevision + 1 };
         case "chat.message": {
           const { message } = event.payload;
           if (event.payload.conversation_id !== s.conversationId || s.messages.some((m) => m.id === message.id)) return {};
