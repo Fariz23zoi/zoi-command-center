@@ -61,7 +61,7 @@ def test_manifest_checksums(client, tmp_path):
         for name, digest in manifest["files"].items():
             assert hashlib.sha256(zf.read(name)).hexdigest() == digest
         assert not any(n.startswith(("files/logs", "files/backups", "files/exports")) for n in zf.namelist())
-    assert manifest["schema_revision"] == "0003_agent_memory" and manifest["format"] == "zoi.backup/v1"
+    assert manifest["schema_revision"] == "0004_youtube" and manifest["format"] == "zoi.backup/v1"
 
 
 def test_exclude_mock(client, tmp_path):

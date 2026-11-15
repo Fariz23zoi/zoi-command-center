@@ -82,7 +82,9 @@ def test_unknown_variable_rejected(tmp_path: Path):
 
 
 def test_reserved_and_foreign_names_ignored():
-    assert find_unknown_env_names({"ZOI_YOUTUBE_CLIENT_ID": "x", "ZOI_TTS": "piper", "PATH": "/bin"}) == []
+    assert find_unknown_env_names({"ZOI_YOUTUBE_TEST_URL": "", "ZOI_TTS": "piper", "PATH": "/bin"}) == []
+    # Kredensial YouTube tidak pernah lewat .env (diimpor lewat UI, disimpan di data/secrets) → nama ini ditolak.
+    assert find_unknown_env_names({"ZOI_YOUTUBE_CLIENT_SECRET": "x"}) == ["ZOI_YOUTUBE_CLIENT_SECRET"]
 
 
 def test_env_file_values_loaded(tmp_path: Path):

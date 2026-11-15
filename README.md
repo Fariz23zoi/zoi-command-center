@@ -3,7 +3,7 @@
 Platform web lokal dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
 **ZERO PAID API · ZERO SUBSCRIPTION · LOCAL FIRST.** Lisensi: MIT.
 
-> Status: **Phase 5 — AI agent & memori** (di atas Phase 1–4). Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
+> Status: **Phase 6A — YouTube: channel sendiri** (di atas Phase 1–5). Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
 > ditampilkan sebagai "Belum tersedia — Phase N", tanpa data contoh.
 
 ## Arsitektur singkat
@@ -51,7 +51,7 @@ python -m app.cli data import <file.zip>         # pulihkan (ZOI harus berhenti;
 python -m app.cli db upgrade | db status | backup
 ```
 
-## Yang sudah berfungsi (Phase 1–5)
+## Yang sudah berfungsi (Phase 1–6A)
 
 | Fitur | Status |
 |---|---|
@@ -76,7 +76,12 @@ python -m app.cli db upgrade | db status | backup
 | Agen atas permintaan (tombol **Rencanakan** / `/agen`): rencana ditampilkan dulu, langkah ubah-data minta izin, hasil per langkah, ringkasan dengan cek angka | ✅ (diuji dengan Mock & Ollama tiruan) |
 | 10 tool nyata (memori, status sistem/AI/aplikasi, tugas, waktu); **tidak ada tool publikasi** | ✅ |
 | Halaman **Memory**: tambah, cari (FTS5), ubah, hapus, hapus semua dengan konfirmasi; izin tool; log izin | ✅ |
-| YouTube, ide konten, CLIPPER/Blueprint penuh, automation | Phase 6–8 |
+| Settings › YouTube: hubungkan channel lewat OAuth resmi (PKCE, hanya-baca), token di Windows Credential Manager, kuota, **Putuskan & hapus data** | ✅ (diuji dengan Google tiruan; koneksi asli belum) |
+| Channel Analytics: statistik channel, laporan 28 hari & harian, video terbaru, riwayat harian — angka persis dari YouTube dengan sumber & waktu ambil | ✅ (diuji dengan Google tiruan) |
+| Monetization: syarat resmi YPP berdampingan dengan angka channel, **tanpa** persentase/perkiraan buatan ZOI | ✅ |
+| Tool agen `youtube_channel_saya`, `youtube_video_saya` (selalu minta izin), `youtube_kuota` | ✅ |
+| Kompetitor, viral, tren (dirancang ulang agar patuh kebijakan YouTube), ide konten | Phase 6B |
+| CLIPPER/Blueprint penuh, automation | Phase 7–8 |
 
 ## Pengujian
 
@@ -90,5 +95,5 @@ backend/.venv/bin/python scripts/check_licenses.py              # lisensi semua 
 ## Dokumen
 
 - `docs/audit/` — audit Phase 0 dan rencana Phase 1
-- `docs/adr/` — keputusan arsitektur
+- `docs/adr/` — keputusan arsitektur (YouTube: `0009-youtube-akun-sendiri.md`)
 - `THIRD_PARTY_NOTICES.md` — lisensi dependensi (dibuat otomatis)

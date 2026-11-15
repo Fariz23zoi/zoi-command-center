@@ -8,6 +8,9 @@ import { AiLocalPage } from "./pages/AiLocalPage";
 import { AssistantPage } from "./pages/AssistantPage";
 import { VoicePage } from "./pages/VoicePage";
 import { MemoryPage } from "./pages/MemoryPage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
+import { MonetizationPage } from "./pages/MonetizationPage";
+import { YouTubeSettingsPage } from "./pages/YouTubeSettingsPage";
 import { useReplyVoice } from "./lib/voice/useReplyVoice";
 import { IntegrationPage } from "./pages/IntegrationPage";
 import { NotYetAvailable } from "./pages/NotYetAvailable";
@@ -23,6 +26,8 @@ const READY_PAGES: Record<string, ReactElement> = {
   "/assistant": <AssistantPage />,
   "/tasks": <TasksPage />,
   "/memory": <MemoryPage />,
+  "/analytics": <AnalyticsPage />,
+  "/monetization": <MonetizationPage />,
   "/settings": <SettingsPage />,
   "/clipper": <IntegrationPage adapterName="zoi_ai_clipper" />,
   "/blueprint": <IntegrationPage adapterName="blueprint_studio" />,
@@ -59,6 +64,7 @@ export function App() {
         ))}
         <Route path="/settings/ai" element={<AiLocalPage />} />
         <Route path="/settings/voice" element={<VoicePage />} />
+        <Route path="/settings/youtube" element={<YouTubeSettingsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

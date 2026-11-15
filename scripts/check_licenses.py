@@ -14,7 +14,7 @@ from importlib import metadata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ALLOWED = {"MIT", "MIT-CMU", "BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "ISC", "PSF-2.0", "Python-2.0", "0BSD",
+ALLOWED = {"MIT", "MIT-0", "MIT-CMU", "BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "ISC", "PSF-2.0", "Python-2.0", "0BSD",
            "MPL-2.0", "Unlicense", "CC0-1.0", "BlueOak-1.0.0", "Zlib", "HPND", "CC-BY-4.0"}
 CLASSIFIER_MAP = {
     "MIT License": "MIT", "BSD License": "BSD-3-Clause", "Apache Software License": "Apache-2.0",

@@ -91,6 +91,25 @@ lokal Windows (Settings Windows › Time & language › Language & region › Ba
    powershell -ExecutionPolicy Bypass -File deploy\windows\voice.ps1
    ```
 
+## 5c. (Opsional) YouTube — channel-mu sendiri
+
+Gratis (kuota harian), tanpa kartu kredit. ZOI hanya **membaca**; tidak bisa mengunggah atau mengubah apa pun.
+
+1. Buka <https://console.cloud.google.com> → buat project (mis. "ZOI"). **Jangan** aktifkan billing.
+2. *APIs & Services › Library* → aktifkan **YouTube Data API v3** dan **YouTube Analytics API**.
+3. *Google Auth Platform* (layar izin OAuth): tipe **External**; isi nama aplikasi dan emailmu;
+   di *Data Access* tambahkan scope `youtube.readonly` dan `yt-analytics.readonly`;
+   di *Audience* tekan **Publish app** agar status menjadi **In production** (status *Testing* membuat izin
+   kedaluwarsa tiap 7 hari). Verifikasi Google tidak diperlukan untuk pemakaian pribadi.
+4. *Clients › Create client* → tipe **Desktop app** → **Download JSON**.
+5. Simpan file itu di komputer ini saja. **Jangan** kirim ke chat, email, atau GitHub.
+6. Di ZOI: *Settings › YouTube* → pilih file itu → **Hubungkan akun YouTube** → login di tab Google.
+   Google menampilkan "Google hasn't verified this app" → *Advanced* → *Go to … (unsafe)* — ini wajar untuk
+   aplikasi buatan sendiri. Centang **kedua** izin, lalu kembali ke tab ZOI.
+
+Nama menu di Google Cloud bisa berubah; bila berbeda, cari padanannya. Bila ada langkah yang meminta pembayaran,
+berhenti dan laporkan — tidak ada bagian ZOI yang memerlukannya.
+
 ## 6. Impor data (jika ada)
 
 ```powershell
@@ -126,6 +145,13 @@ Buka `http://127.0.0.1` lalu:
       di memori") → periksa rencana → Jalankan → setujui langkah simpan memori. Ini pertama kalinya perencana
       memakai model sungguhan; bila rencananya buruk, jalankan **Uji model** dan lihat skor tool
 - [ ] Halaman Memory: tambah satu memori, cari, ubah, hapus
+- [ ] (Bila YouTube disiapkan) Settings › YouTube: **tidak ada** pita "ENDPOINT UJI"; "Penyimpanan token" menyebut
+      Windows Credential Manager (bukan peringatan file biasa). Hubungkan akun → nama channel-mu tampil.
+      Ini pertama kalinya ZOI berbicara dengan Google sungguhan — semua tes sebelumnya memakai Google tiruan
+- [ ] (Bila YouTube disiapkan) Channel Analytics → "Ambil data terbaru" → bandingkan subscriber, total tayangan,
+      dan tayangan 28 hari dengan YouTube Studio. Laporkan bila ada angka yang berbeda atau pesan error
+- [ ] (Bila YouTube disiapkan) Buka *Control Panel › Credential Manager › Windows Credentials* → ada entri
+      `zoi-youtube-intelligence`. Folder `data\secrets` hanya berisi `youtube_client.json`
 - [ ] (Opsional) Jalankan tes roundtrip suara: `ZOI_TEST_WHISPER_DIR=… ZOI_TEST_PIPER_URL=http://127.0.0.1:5000
       python -m pytest tests/test_voice.py -k real`
 
@@ -136,3 +162,5 @@ Opsional: `deploy\windows\autostart.ps1` agar ZOI berjalan otomatis saat login.
 - Skrip PowerShell belum pernah dijalankan di Windows sungguhan (lingkungan pengembangan tidak memiliki
   PowerShell). Laporkan baris error apa pun saat migrasi; perbaikan dilakukan sebelum Phase 2 dianggap selesai.
 - Kode backend dan frontend sudah diuji otomatis di Linux, termasuk E2E dalam mode local pada satu port.
+- Integrasi YouTube diuji terhadap server Google **tiruan**. Bentuk respons mengikuti dokumentasi resmi, tetapi
+  belum pernah dibandingkan dengan respons Google sungguhan, dan `keyring` belum pernah dijalankan di Windows.

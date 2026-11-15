@@ -16,6 +16,7 @@ from app.memory.service import MemoryService
 from app.providers.base import LLMProvider
 from app.system import detectors
 from app.tasks.manager import TaskManager
+from app.youtube.service import YouTubeService
 
 
 @dataclass
@@ -26,6 +27,7 @@ class ToolDeps:
     adapters: list[ExternalAppAdapter]
     data_dir: Any
     is_mock: Callable[[], bool]
+    youtube: YouTubeService | None = None
 
 
 class SearchArgs(BaseModel):
@@ -127,4 +129,36 @@ def build_registry(deps: ToolDeps) -> ToolRegistry:
         return {"tugas": [{k: t[k] for k in ("id", "name", "status", "progress", "message")}
                           for t in deps.tasks.list(limit=args.jumlah)]}
 
+    if deps.youtube is not None:
+        _youtube_tools(add, deps.youtube)
     return registry
+
+
+def _youtube_tools(add: Any, yt: YouTubeService) -> None:
+    """Tool YouTube: hanya membaca channel milik pengguna. Angka diteruskan persis seperti dari YouTube."""
+
+    def source() -> str:
+        return "SERVER UJI (bukan YouTube)" if yt.ep.is_test else "YouTube Data API v3 (channel milik pengguna)"
+
+    @add("youtube_channel_saya", "Mengambil statistik terbaru channel YouTube milik pengguna (memakai 1 unit kuota "
+         "YouTube API). Hanya membaca.", Permission.EXTERNAL)
+    async def _channel(_: NoArgs) -> dict[str, Any]:
+        channel = await yt.refresh_channel()
+        cached = yt.cached("channel") or {}
+        return {"sumber": source(), "diambil_pada": cached.get("fetched_at"),
+                "channel": {k: channel[k] for k in ("title", "custom_url", "view_count", "subscriber_count",
+                                                    "hidden_subscribers", "video_count")}}
+
+    @add("youtube_video_saya", "Mengambil daftar video terbaru channel YouTube milik pengguna beserta angkanya "
+         "(memakai 2 unit kuota YouTube API). Hanya membaca.", Permission.EXTERNAL, TaskListArgs)
+    async def _videos(args: TaskListArgs) -> dict[str, Any]:
+        videos = await yt.refresh_videos()
+        cached = yt.cached("videos") or {}
+        return {"sumber": source(), "diambil_pada": cached.get("fetched_at"), "jumlah_diambil": len(videos),
+                "video": [{k: v[k] for k in ("title", "published_at", "privacy", "view_count", "like_count",
+                                             "comment_count")} for v in videos[:args.jumlah]]}
+
+    @add("youtube_kuota", "Pemakaian kuota YouTube API hari ini menurut hitungan ZOI (tidak memakai kuota).",
+         Permission.READ)
+    async def _quota(_: NoArgs) -> dict[str, Any]:
+        return {"terhubung": yt.account() is not None, "kuota": yt.quota.status()}

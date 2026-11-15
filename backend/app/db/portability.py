@@ -31,7 +31,8 @@ from app.db.migrations import (
 from app.db.session import DB_FILENAME
 
 FORMAT = "zoi.backup/v1"
-EXCLUDED_TOP_LEVEL = {"backups", "logs", "exports"}
+# "secrets" (file client OAuth, token cadangan) TIDAK PERNAH ikut ekspor — hubungkan ulang akun di mesin baru.
+EXCLUDED_TOP_LEVEL = {"backups", "logs", "exports", "secrets"}
 EXCLUDED_DB_FILES = {DB_FILENAME, f"{DB_FILENAME}-wal", f"{DB_FILENAME}-shm", f"{DB_FILENAME}-journal"}
 USER_TABLES_SQL = (
     "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"

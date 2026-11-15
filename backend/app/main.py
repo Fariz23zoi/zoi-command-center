@@ -41,6 +41,8 @@ from app.tasks.builtin import make_run_async, system_check_kind
 from app.tasks.manager import TaskManager
 from app.voice.registry import build_voice
 from app.voice.service import VoiceService
+from app.youtube.oauth import endpoints as youtube_endpoints
+from app.youtube.service import YouTubeService
 
 log = get_logger("main")
 
@@ -83,13 +85,17 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
     chat = ChatService(db, bus, agent, provider)
     memory = MemoryService(db)
     chat.memory = memory
+    youtube = YouTubeService(db=db, bus=bus, guard=guard, endpoints=youtube_endpoints(runtime.youtube_test_url),
+                             data_dir=runtime.data_dir)
     registry = build_registry(ToolDeps(memory=memory, tasks=tasks, provider=provider, adapters=adapters,
-                                       data_dir=runtime.data_dir, is_mock=lambda: provider.is_mock))
+                                       data_dir=runtime.data_dir, is_mock=lambda: provider.is_mock,
+                                       youtube=youtube))
     agent_service = AgentService(db=db, bus=bus, agent=agent, provider=provider, registry=registry, memory=memory,
                                  tasks=tasks, chat=chat, approval_timeout_s=approval_timeout_s)
     ctx = AppContext(settings=settings, runtime=runtime, db=db, bus=bus, agent=agent, guard=guard,
                      provider=provider, adapters=adapters, tasks=tasks, chat=chat,
                      voice=VoiceService(stt=stt, tts=tts, db=db), memory=memory, agent_service=agent_service,
+                     youtube=youtube,
                      local_ai=LocalAIService(provider=provider, runtime=runtime, db=db, bus=bus, tasks=tasks,
                                              source=ai_source),
                      migration_backup=str(backup) if backup else None)
@@ -111,6 +117,7 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
         try:
             yield
         finally:
+            await youtube.cancel_connect()
             await chat.wait_idle()
             tasks.shutdown()
             db.dispose()

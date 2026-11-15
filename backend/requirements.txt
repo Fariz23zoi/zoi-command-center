@@ -10,3 +10,5 @@ httpx==0.28.1             # BSD-3-Clause
 psutil==7.2.2             # BSD-3-Clause
 structlog==26.1.0         # MIT OR Apache-2.0
 python-dotenv==1.2.4      # BSD-3-Clause (membaca file .env)
+keyring==25.7.0           # MIT (token YouTube di Windows Credential Manager)
+tzdata==2026.6            # Apache-2.0 (zona waktu Pasifik untuk reset kuota YouTube; Windows tidak membawanya)

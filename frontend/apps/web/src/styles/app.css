@@ -156,3 +156,10 @@ input[type="range"] { width: 100%; max-width: 360px; }
 .agent-errors { color: var(--bad); padding-left: 18px; }
 .agent-approval p { margin: 4px 0; overflow-wrap: anywhere; }
 textarea { width: 100%; max-width: 100%; font: inherit; color: inherit; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 8px; box-sizing: border-box; }
+
+/* Tabel data (Phase 6A) */
+.table-wrap { overflow-x: auto; margin: .5rem 0; }
+.data-table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+.data-table th, .data-table td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.data-table td:first-child { white-space: normal; }
+.data-table th { font-weight: 600; }
