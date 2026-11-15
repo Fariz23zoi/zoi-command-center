@@ -31,7 +31,14 @@ class ProviderChoice(StrEnum):
     AUTO = "auto"
     MOCK = "mock"
     OLLAMA = "ollama"
+    NVIDIA = "nvidia"
+    OPENROUTER = "openrouter"
     NONE = "none"
+
+
+class FallbackChoice(StrEnum):
+    NONE = "none"
+    OPENROUTER = "openrouter"
 
 
 class SttChoice(StrEnum):
@@ -80,6 +87,14 @@ class Settings(BaseSettings):
     ollama_model: str = ""
     mock_latency_ms: int = Field(default=300, ge=0, le=10_000)
 
+    # AI cloud GRATIS (keputusan pengguna 15 Nov 2026, ADR 0011). Penyedia & model HANYA lewat .env; API key TIDAK
+    # di .env — dimasukkan lewat Settings › AI Cloud dan disimpan di penyimpanan kunci sistem.
+    nvidia_model: str = ""
+    openrouter_model: str = ""
+    ai_fallback: FallbackChoice = FallbackChoice.NONE
+    # HANYA untuk tes: arahkan NVIDIA & OpenRouter ke server tiruan di komputer ini.
+    cloud_test_url: str = ""
+
     avatar_mode: AvatarMode = AvatarMode.AUTO
 
     # Suara (Phase 4). ZOI tidak mengunduh model: folder Whisper & server Piper disiapkan pengguna sendiri.
@@ -106,7 +121,7 @@ class Settings(BaseSettings):
     def _upper_log_level(cls, value: object) -> object:
         return value.upper() if isinstance(value, str) else value
 
-    @field_validator("ollama_model")
+    @field_validator("ollama_model", "nvidia_model", "openrouter_model")
     @classmethod
     def _strip_model(cls, value: str) -> str:
         return value.strip()

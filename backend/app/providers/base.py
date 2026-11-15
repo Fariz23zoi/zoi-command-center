@@ -66,6 +66,12 @@ class ChatChunk:
     tool_call: ToolCall | None = None
     error: str | None = None
     stats: ChatStats | None = None
+    # Jenis kegagalan (penyedia cloud): rate_limit|server|unreachable|timeout|auth|payment|model|request|config.
+    error_kind: str | None = None
+    # Diisi pada potongan "done" bila yang menjawab BUKAN penyedia utama (cadangan), beserta alasannya.
+    served_by: str | None = None
+    served_model: str | None = None
+    note: str | None = None
 
 
 @dataclass(frozen=True)
@@ -146,6 +152,16 @@ class LocalModelAdmin(Protocol):
     def with_model(self, model: str) -> LLMProvider:
         """Instance baru dengan koneksi yang sama tetapi model berbeda (untuk uji model)."""
         ...
+
+
+@runtime_checkable
+class CloudAdmin(Protocol):
+    """Penyedia AI cloud (NVIDIA NIM / OpenRouter). `cloud_parts()` → penyedia utama lalu cadangan (bila ada)."""
+
+    is_cloud: bool
+    is_test: bool
+
+    def cloud_parts(self) -> list[Any]: ...
 
 
 class NoneProvider:

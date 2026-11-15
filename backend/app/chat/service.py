@@ -168,6 +168,7 @@ class ChatService:
         error: str | None = None
         stopped = False
         speaking = False
+        served: tuple[str | None, str | None, str | None] | None = None
         try:
             history = self._history(conversation_id, message_id, await self.provider.context_tokens())
             async for chunk in self.provider.chat(history):
@@ -189,6 +190,8 @@ class ChatService:
                     error = chunk.error or "Kesalahan tidak diketahui dari penyedia AI."
                     break
                 elif chunk.type == "done":
+                    if chunk.served_by:
+                        served = (chunk.served_by, chunk.served_model, chunk.note)
                     break
         except asyncio.CancelledError:
             stopped = True
@@ -203,6 +206,8 @@ class ChatService:
             message.thinking = "".join(thinking) or None
             message.status = "stopped" if stopped else "error" if error else "complete"
             message.error = None if stopped else error
+            if served:  # yang menjawab bukan penyedia utama → label pesan mengikuti yang sebenarnya
+                message.provider, message.model, message.note = served[0], served[1], (served[2] or "")[:600]
             final = message_dict(message)
         self.bus.publish("chat.done", {"conversation_id": conversation_id, "message": final})
         if stopped:
@@ -217,6 +222,7 @@ def message_dict(m: Message) -> dict[str, Any]:
     return {
         "id": m.id, "conversation_id": m.conversation_id, "role": m.role, "content": m.content,
         "provider": m.provider, "model": m.model, "is_mock": m.is_mock, "status": m.status, "error": m.error,
+        "note": m.note,
         "thinking": m.thinking, "agent_run_id": m.agent_run_id,
         "created_at": m.created_at.isoformat() if m.created_at else None,
     }

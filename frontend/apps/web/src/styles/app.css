@@ -167,3 +167,5 @@ textarea { width: 100%; max-width: 100%; font: inherit; color: inherit; backgrou
 .page input[type="text"], .page input:not([type]), .page textarea { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
 .panel h3 { margin: 0 0 6px; font-size: 16px; }
 .panel h4 { margin: 12px 0 4px; font-size: 14px; }
+.badge.cloud { border-color: var(--warn, #d9a441); }
+.msg-note { margin: 4px 0 0; font-size: 12px; color: var(--muted); }

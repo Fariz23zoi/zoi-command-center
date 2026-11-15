@@ -6,8 +6,11 @@ export interface PublicConfig {
   version: string;
   mode: "development" | "local";
   banner: string | null;
-  provider: "mock" | "ollama" | "none";
+  provider: "mock" | "ollama" | "nvidia" | "openrouter" | "none";
   is_mock: boolean;
+  /** AI cloud gratis aktif (data dikirim ke penyedia di `cloud_providers`). */
+  is_cloud?: boolean;
+  cloud_providers?: string[];
   ollama_url: string | null;
   ollama_model: string | null;
   avatar_mode: "auto" | "2d" | "3d";
@@ -59,6 +62,8 @@ export interface ChatMessageInfo {
   id: string; conversation_id: string; role: "user" | "assistant" | "system"; content: string;
   provider: string | null; model: string | null; is_mock: boolean;
   status: "streaming" | "complete" | "error" | "stopped"; error: string | null; created_at: string | null;
+  /** Keterangan tentang jawaban, mis. dijawab penyedia cadangan dan alasannya. */
+  note?: string | null;
   /** Proses berpikir model (bila model mendukung), terpisah dari jawaban. */
   thinking?: string | null;
   /** Pesan yang terkait permintaan agen (Phase 5). */
@@ -316,3 +321,26 @@ export interface IdeaRequest { topik: string; format: ContentFormat; jumlah: num
 export interface ScriptRequest { judul: string; catatan: string; format: ContentFormat; durasi: string }
 export type IdeaSet = ContentItemInfo<{ ide: IdeaInfo[] }, IdeaRequest>;
 export type ScriptItem = ContentItemInfo<ScriptInfo, ScriptRequest>;
+
+// ── AI cloud gratis (NVIDIA NIM + cadangan OpenRouter) ─────────────────────
+export interface CloudLimits {
+  source: string; minute_used: number; minute_limit: number; minute_official: number;
+  day_used: number; day_limit: number | null; day_official: number | null;
+}
+
+export interface CloudProviderInfo {
+  name: "nvidia" | "openrouter"; label: string; signup_url: string; key_prefix: string; has_key: boolean;
+  role: "utama" | "cadangan" | null; model: string | null; model_problem: string | null; free_only: boolean;
+  limits: CloudLimits | null;
+}
+
+export interface CloudStatus {
+  enabled: boolean; provider: string; test_endpoint: boolean; token_storage: "keyring" | "file";
+  storage_warning: string | null; providers: CloudProviderInfo[]; data_sent: string[]; never_sent: string[];
+  how_to_enable: string[]; selection: string;
+}
+
+export interface CloudModels { name: string; models: string[]; current: string | null; current_listed: boolean; note: string }
+export interface CloudTestResult {
+  name: string; model: string | null; ok: boolean; reply: string; error: string | null; limits: CloudLimits;
+}

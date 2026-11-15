@@ -57,21 +57,35 @@ class CostGuardBlocked(Exception):
         self.reason = reason
 
 
+# AI cloud GRATIS yang diizinkan pengguna (ADR 0011). Host ini HANYA dibuka bila penyedianya dipilih di .env;
+# selain itu tetap diblokir. Tidak bisa ditambah lewat ZOI_EXTRA_ALLOWED_HOSTS.
+CLOUD_AI_HOSTS = {"integrate.api.nvidia.com", "openrouter.ai"}
+
+
 @dataclass(frozen=True)
 class CostGuard:
     extra_hosts: frozenset[str] = frozenset()
+    cloud_hosts: frozenset[str] = frozenset()
     recorder: AuditRecorder | None = None
 
     @classmethod
-    def build(cls, *, ollama_url: str, extra_hosts: list[str], recorder: AuditRecorder | None) -> CostGuard:
+    def build(cls, *, ollama_url: str, extra_hosts: list[str], recorder: AuditRecorder | None,
+              cloud_hosts: list[str] | None = None) -> CostGuard:
         hosts = set(extra_hosts)
         ollama_host = urlparse(ollama_url).hostname
         if ollama_host:
             hosts.add(ollama_host.lower())
-        return cls(extra_hosts=frozenset(hosts), recorder=recorder)
+        unknown = set(cloud_hosts or []) - CLOUD_AI_HOSTS
+        if unknown:
+            raise ValueError(f"Host AI cloud tidak dikenal: {sorted(unknown)}")
+        return cls(extra_hosts=frozenset(hosts), cloud_hosts=frozenset(cloud_hosts or []), recorder=recorder)
 
     def check(self, host: str) -> tuple[bool, str]:
         host = host.lower().strip("[]")
+        if host in self.cloud_hosts:
+            return True, "AI cloud gratis yang dipilih pengguna di .env (ADR 0011)"
+        if host in CLOUD_AI_HOSTS:
+            return False, "AI cloud tidak diaktifkan di .env (ZOI_AI_PROVIDER / ZOI_AI_FALLBACK)"
         if host in BLOCKED_HOSTS or host.endswith(BLOCKED_SUFFIXES):
             return False, "layanan berbayar/cloud dilarang (COST_CONTROL.md: NOT ALLOWED)"
         if host in LOCAL_HOSTS:

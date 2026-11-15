@@ -3,7 +3,7 @@
 Platform web lokal dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
 **ZERO PAID API · ZERO SUBSCRIPTION · LOCAL FIRST.** Lisensi: MIT.
 
-> Status: **Phase 6B — data publik YouTube & draf konten** (di atas Phase 1–6A). Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
+> Status: **AI cloud gratis opsional** (di atas Phase 1–6B). Bawaan tetap lokal. Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
 > ditampilkan sebagai "Belum tersedia — Phase N", tanpa data contoh.
 
 ## Arsitektur singkat
@@ -86,6 +86,7 @@ python -m app.cli db upgrade | db status | backup
 | Content Ideas dan Script & Storyboard: draf AI lokal berlabel penyedia/model, unduh Markdown; **tidak ada publikasi** | ✅ (diuji dengan Mock & Ollama tiruan) |
 | Performance: laporan per video channel sendiri dari YouTube Analytics | ✅ (diuji dengan Google tiruan) |
 | Skor viral, riwayat kompetitor, "waktu upload terbaik" | sengaja tidak dibuat (ADR 0010) |
+| **AI cloud gratis (opsional, bawaan mati):** NVIDIA NIM sebagai penyedia utama, OpenRouter (`:free` saja) sebagai cadangan otomatis; dipilih lewat `.env`; API key di Windows Credential Manager; label "AI cloud" di tiap jawaban | ✅ (diuji dengan server tiruan; layanan asli belum) |
 | CLIPPER/Blueprint penuh, automation | Phase 7–8 |
 
 ## Pengujian
@@ -100,5 +101,5 @@ backend/.venv/bin/python scripts/check_licenses.py              # lisensi semua 
 ## Dokumen
 
 - `docs/audit/` — audit Phase 0 dan rencana Phase 1
-- `docs/adr/` — keputusan arsitektur (YouTube: `0009-youtube-akun-sendiri.md`, `0010-data-publik-dan-draf-konten.md`)
+- `docs/adr/` — keputusan arsitektur (YouTube: `0009-youtube-akun-sendiri.md`, `0010-data-publik-dan-draf-konten.md`; AI cloud: `0011-ai-cloud-gratis.md`)
 - `THIRD_PARTY_NOTICES.md` — lisensi dependensi (dibuat otomatis)

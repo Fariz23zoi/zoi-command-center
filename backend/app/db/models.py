@@ -90,6 +90,8 @@ class Message(Base):
     provider: Mapped[str | None] = mapped_column(String(32), nullable=True)
     model: Mapped[str | None] = mapped_column(String(120), nullable=True)
     is_mock: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    # Keterangan jujur tentang jawaban, mis. dijawab penyedia cadangan dan alasannya.
+    note: Mapped[str | None] = mapped_column(String(600), nullable=True)
     status: Mapped[str] = mapped_column(String(16), default="complete")  # streaming complete error stopped
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     thinking: Mapped[str | None] = mapped_column(Text, nullable=True)  # proses berpikir model (Phase 3), terpisah

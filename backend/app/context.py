@@ -9,6 +9,7 @@ from typing import Any
 from fastapi import Request
 
 from app.agent.service import AgentService
+from app.ai.cloud import CloudAIService
 from app.ai.local import LocalAIService
 from app.chat.service import ChatService
 from app.config.modes import RuntimeConfig
@@ -46,6 +47,7 @@ class AppContext:
     youtube: YouTubeService
     public: PublicDataService
     content: ContentService
+    cloud_ai: CloudAIService
     migration_backup: str | None = None
     started_monotonic: float = field(default_factory=time.monotonic)
     cache: dict[str, Any] = field(default_factory=dict)

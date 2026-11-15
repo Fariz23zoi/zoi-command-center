@@ -17,11 +17,12 @@ from app import __version__
 from app.agent.builtin import ToolDeps, build_registry
 from app.agent.service import AgentService
 from app.ai import selection
+from app.ai.cloud import CloudAIService
 from app.ai.local import LocalAIService
 from app.ai.tasks import model_eval_kind
 from app.api.router import api_router, ws_router
 from app.chat.service import ChatService
-from app.config.modes import RuntimeConfig, resolve_runtime
+from app.config.modes import CLOUD_HOSTS, RuntimeConfig, resolve_runtime
 from app.config.settings import Settings, load_settings
 from app.content.service import ContentService
 from app.context import AppContext
@@ -44,6 +45,7 @@ from app.voice.registry import build_voice
 from app.voice.service import VoiceService
 from app.youtube.oauth import endpoints as youtube_endpoints
 from app.youtube.public import PublicDataService
+from app.youtube.secrets_store import SecretStore
 from app.youtube.service import YouTubeService
 
 log = get_logger("main")
@@ -74,8 +76,10 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
     piper_host = urlparse(runtime.piper_url).hostname
     guard = CostGuard.build(ollama_url=runtime.ollama_url,
                             extra_hosts=[*settings.extra_hosts, *([piper_host.lower()] if piper_host else [])],
+                            cloud_hosts=[] if runtime.cloud_test_url else [CLOUD_HOSTS[n] for n in runtime.cloud_names],
                             recorder=record)
-    provider = build_provider(runtime, guard)
+    secrets = SecretStore(runtime.data_dir)
+    provider = build_provider(runtime, guard, db=db, key_getter=secrets.get)
     stt, tts = build_voice(runtime, guard)
     ai_source = "none"
     if isinstance(provider, LocalModelAdmin):
@@ -88,7 +92,7 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
     memory = MemoryService(db)
     chat.memory = memory
     youtube = YouTubeService(db=db, bus=bus, guard=guard, endpoints=youtube_endpoints(runtime.youtube_test_url),
-                             data_dir=runtime.data_dir)
+                             data_dir=runtime.data_dir, store=secrets)
     public = PublicDataService(db=db, bus=bus, youtube=youtube)
     content = ContentService(db=db, bus=bus, provider=provider, memory=memory, youtube=youtube, public=public)
     registry = build_registry(ToolDeps(memory=memory, tasks=tasks, provider=provider, adapters=adapters,
@@ -100,6 +104,7 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
                      provider=provider, adapters=adapters, tasks=tasks, chat=chat,
                      voice=VoiceService(stt=stt, tts=tts, db=db), memory=memory, agent_service=agent_service,
                      youtube=youtube, public=public, content=content,
+                     cloud_ai=CloudAIService(provider=provider, store=secrets, bus=bus),
                      local_ai=LocalAIService(provider=provider, runtime=runtime, db=db, bus=bus, tasks=tasks,
                                              source=ai_source),
                      migration_backup=str(backup) if backup else None)

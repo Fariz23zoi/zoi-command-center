@@ -26,6 +26,8 @@ class StructuredResult[T: BaseModel]:
     attempts: int
     raw: str
     stats: ChatStats | None
+    served_by: str | None = None      # diisi bila penyedia cadangan yang menjawab
+    served_model: str | None = None
 
 
 def extract_json(text: str) -> str | None:
@@ -50,6 +52,7 @@ async def chat_json[T: BaseModel](
     for attempt in range(1, MAX_ATTEMPTS + 1):
         parts: list[str] = []
         stats: ChatStats | None = None
+        served: tuple[str | None, str | None] = (None, None)
         async for chunk in provider.chat(conversation, timeout_s=timeout_s, options=options):
             if chunk.type == "text":
                 parts.append(chunk.text)
@@ -57,6 +60,7 @@ async def chat_json[T: BaseModel](
                 raise StructuredOutputError(chunk.error or "Penyedia AI gagal.")
             elif chunk.type == "done":
                 stats = chunk.stats
+                served = (chunk.served_by, chunk.served_model)
                 break
         raw = "".join(parts)
         candidate = extract_json(raw)
@@ -64,7 +68,7 @@ async def chat_json[T: BaseModel](
             last_error = "jawaban tidak berisi JSON"
         else:
             try:
-                return StructuredResult(schema.model_validate_json(candidate), attempt, raw, stats)
+                return StructuredResult(schema.model_validate_json(candidate), attempt, raw, stats, *served)
             except ValidationError as exc:
                 last_error = "; ".join(
                     f"{'.'.join(map(str, e['loc'])) or '(akar)'}: {e['msg']}" for e in exc.errors()[:5])
