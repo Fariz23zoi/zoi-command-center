@@ -2,14 +2,18 @@ export type AgentStateName =
   | "IDLE" | "LISTENING" | "THINKING" | "RESEARCHING" | "ANALYZING" | "PLANNING" | "CREATING"
   | "EXECUTING" | "WAITING_APPROVAL" | "SPEAKING" | "COMPLETED" | "FAILED";
 
+export interface AuthStatus { enabled: boolean; ready: boolean; logged_in: boolean }
+
 export interface PublicConfig {
   version: string;
-  mode: "development" | "local";
+  mode: "development" | "local" | "online";
   banner: string | null;
   provider: "mock" | "ollama" | "nvidia" | "openrouter" | "none";
   is_mock: boolean;
   /** AI cloud gratis aktif (data dikirim ke penyedia di `cloud_providers`). */
   is_cloud?: boolean;
+  /** Mode online (Render): login aktif; fitur laptop dimatikan. */
+  online?: boolean;
   cloud_providers?: string[];
   ollama_url: string | null;
   ollama_model: string | null;

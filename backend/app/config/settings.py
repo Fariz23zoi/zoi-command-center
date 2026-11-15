@@ -25,6 +25,7 @@ META_VARS = {"ZOI_ENV_FILE"}
 class Mode(StrEnum):
     DEVELOPMENT = "development"
     LOCAL = "local"
+    ONLINE = "online"  # di server hosting (Render) dengan login, database Postgres, dan AI cloud
 
 
 class ProviderChoice(StrEnum):
@@ -112,6 +113,16 @@ class Settings(BaseSettings):
     blueprint_file: Path | None = None
 
     extra_allowed_hosts: str = ""
+
+    # ── Mode online (ADR 0012). Semua nilai di bawah ini RAHASIA: hanya di pengaturan layanan hosting. ──
+    # Alamat Postgres (Neon): postgresql://user:sandi@host/db
+    database_url: str = ""
+    # Kunci induk (≥32 karakter) untuk mengenkripsi rahasia yang disimpan di database.
+    secret_key: str = ""
+    # Kode sekali pakai (≥16 karakter) untuk membuat atau mengganti kata sandi login.
+    setup_token: str = ""
+    # Alamat publik ZOI, mis. https://zoi-saya.onrender.com (di Render terisi otomatis dari RENDER_EXTERNAL_URL).
+    public_url: str = ""
 
     # Lokasi frontend hasil build (mode local). Bisa dioverride untuk keperluan tes.
     frontend_dist: Path | None = None

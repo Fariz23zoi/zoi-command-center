@@ -1,3 +1,4 @@
+import { OnlineNotice } from "./OnlineNotice";
 import { api, ApiError, type VoicePreferences, type VoiceStatus } from "@zoi/api-client";
 import { type FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -53,6 +54,7 @@ export function VoicePage() {
     <section className="page" data-testid="voice-page">
       <p className="muted"><Link to="/settings">Settings</Link> › Suara</p>
       <h1>Suara</h1>
+      <OnlineNotice feature="Fitur suara (Whisper/Piper)" />
       <p className="muted">
         Rekaman suaramu hanya dikirim ke ZOI di komputer ini, diproses, lalu <strong>dibuang — tidak disimpan</strong>.
         Tidak ada layanan suara cloud. ZOI tidak mengunduh model suara; pemasangan dilakukan sendiri lewat perintah.

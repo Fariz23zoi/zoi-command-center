@@ -43,8 +43,12 @@ def upgrade() -> None:
         sa.Column("updated_at", TS, nullable=False),
     )
     op.create_index("ix_memories_updated_at", "memories", ["updated_at"])
-    for statement in FTS:
-        op.execute(statement)
+    if op.get_bind().dialect.name == "postgresql":
+        # Postgres: indeks teks penuh bawaan (GIN) — tanpa tabel bayangan dan tanpa trigger.
+        op.execute("CREATE INDEX ix_memories_fts ON memories USING GIN (to_tsvector('simple', content))")
+    else:
+        for statement in FTS:
+            op.execute(statement)
 
     op.create_table(
         "agent_runs",
@@ -93,8 +97,11 @@ def downgrade() -> None:
         for index in [i["name"] for i in sa.inspect(op.get_bind()).get_indexes(name)]:
             op.drop_index(index, table_name=name)
         op.drop_table(name)
-    for trigger in ("memories_au", "memories_ad", "memories_ai"):
-        op.execute(f"DROP TRIGGER IF EXISTS {trigger}")
-    op.execute("DROP TABLE IF EXISTS memories_fts")
+    if op.get_bind().dialect.name == "postgresql":
+        op.execute("DROP INDEX IF EXISTS ix_memories_fts")
+    else:
+        for trigger in ("memories_au", "memories_ad", "memories_ai"):
+            op.execute(f"DROP TRIGGER IF EXISTS {trigger}")
+        op.execute("DROP TABLE IF EXISTS memories_fts")
     op.drop_index("ix_memories_updated_at", table_name="memories")
     op.drop_table("memories")

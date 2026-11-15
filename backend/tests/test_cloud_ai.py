@@ -50,8 +50,6 @@ async def collect(provider, text: str, **kwargs):
 
 # ── konfigurasi ───────────────────────────────────────────────────────────
 @pytest.mark.parametrize(("overrides", "message"), [
-    ({"ai_provider": "nvidia"}, "ZOI_NVIDIA_MODEL"),
-    ({"ai_provider": "nvidia", "nvidia_model": "m", "ai_fallback": "openrouter"}, "ZOI_OPENROUTER_MODEL"),
     ({"ai_provider": "nvidia", "nvidia_model": "m", "ai_fallback": "openrouter", "openrouter_model": "x/berbayar"},
      "bukan model gratis"),
     ({"ai_provider": "openrouter", "openrouter_model": "openai/gpt-5"}, "bukan model gratis"),
@@ -62,6 +60,15 @@ async def collect(provider, text: str, **kwargs):
 def test_config_rules(tmp_path, overrides, message):
     with pytest.raises(ConfigError, match=message):
         resolve_runtime(make_settings(tmp_path, **overrides))
+
+
+def test_missing_cloud_model_is_warning_not_error(tmp_path):
+    # Model belum diisi → aplikasi tetap jalan (AI "tidak tersedia"), bukan gagal start. Dipakai mode online.
+    runtime = resolve_runtime(make_settings(tmp_path, ai_provider="nvidia"))
+    assert any("ZOI_NVIDIA_MODEL" in w for w in runtime.warnings)
+    runtime = resolve_runtime(make_settings(tmp_path, ai_provider="nvidia", nvidia_model="m",
+                                            ai_fallback="openrouter"))
+    assert any("ZOI_OPENROUTER_MODEL" in w for w in runtime.warnings)
 
 
 def test_default_stays_local_and_cloud_hosts_stay_blocked(tmp_path, client):

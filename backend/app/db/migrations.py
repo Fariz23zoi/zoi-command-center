@@ -10,7 +10,7 @@ from pathlib import Path
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
-from sqlalchemy import create_engine, pool
+from sqlalchemy import Engine, create_engine, pool
 
 from alembic import command
 
@@ -92,6 +92,25 @@ def upgrade_database(db_file: Path) -> Path | None:
     db_file.parent.mkdir(parents=True, exist_ok=True)
     command.upgrade(_config(db_file), "head")
     return backup
+
+
+def upgrade_engine(engine: Engine) -> bool:
+    """Naikkan skema database server (Postgres) ke head. Tanpa backup file: cadangan dibuat lewat unduhan data."""
+    head = head_revision()
+    with engine.connect() as conn:
+        current = MigrationContext.configure(conn).get_current_revision()
+    if current == head:
+        return False
+    if current is not None and current not in known_revisions():
+        raise RuntimeError(
+            f"Database memakai revisi skema '{current}' yang lebih baru dari aplikasi ini. "
+            "Perbarui aplikasi ZOI sebelum membuka data ini."
+        )
+    cfg = _config(Path("unused.db"))
+    with engine.begin() as conn:
+        cfg.attributes["connection"] = conn
+        command.upgrade(cfg, "head")
+    return True
 
 
 def downgrade_database(db_file: Path, target: str = "base") -> None:

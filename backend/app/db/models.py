@@ -231,3 +231,22 @@ class YouTubeQuota(Base):
     units: Mapped[int] = mapped_column(Integer, default=0)
     search_calls: Mapped[int] = mapped_column(Integer, default=0)
     analytics_calls: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class AuthSession(Base):
+    """Sesi login mode online. Hanya hash SHA-256 token yang disimpan."""
+
+    __tablename__ = "auth_sessions"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime)
+
+
+class Secret(Base):
+    """Rahasia terenkripsi (mode online): API key cloud, token YouTube. Nilai = token Fernet."""
+
+    __tablename__ = "secrets"
+    name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value_encrypted: Mapped[str] = mapped_column(Text, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)

@@ -18,6 +18,9 @@ async def events(websocket: WebSocket) -> None:
     if origin is not None and origin not in allowed:
         await websocket.close(code=1008, reason="Origin tidak diizinkan")
         return
+    if not ctx.auth.check(websocket.cookies.get("zoi_session")):
+        await websocket.close(code=1008, reason="Belum login")
+        return
     await websocket.accept()
     queue = ctx.bus.subscribe()
     try:

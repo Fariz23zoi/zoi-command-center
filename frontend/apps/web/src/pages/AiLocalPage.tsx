@@ -1,3 +1,4 @@
+import { OnlineNotice } from "./OnlineNotice";
 import {
   type AiStatus, api, ApiError, type EvaluationInfo, type InstalledModel, type ModelDetails,
 } from "@zoi/api-client";
@@ -96,6 +97,7 @@ export function AiLocalPage() {
     <section className="page" data-testid="ai-local-page">
       <p className="muted"><Link to="/settings">Settings</Link> › AI Lokal</p>
       <h1>AI Lokal</h1>
+      <OnlineNotice feature="AI lokal (Ollama)" />
       <p className="muted">
         Semua angka di halaman ini dibaca langsung dari Ollama. <strong>ZOI tidak pernah mengunduh atau menghapus
         model</strong> — pemasangan model dilakukan sendiri lewat perintah <code>ollama</code>.
