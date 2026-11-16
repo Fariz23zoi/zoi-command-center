@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 
+from app.content.package import PackageError, build_package, package_bytes, package_filename
 from app.content.service import IdeaRequest, ScriptRequest
 from app.context import AppContext, get_ctx
 from app.core.errors import ZoiError
@@ -27,6 +28,20 @@ async def ideas(body: IdeaRequest, ctx: AppContext = Depends(get_ctx)) -> dict[s
 @router.post("/scripts")
 async def scripts(body: ScriptRequest, ctx: AppContext = Depends(get_ctx)) -> dict[str, Any]:
     return ctx.tasks.submit("content_script", body.model_dump())
+
+
+@router.get("/items/{item_id}/package")
+async def download_package(item_id: str, ctx: AppContext = Depends(get_ctx)) -> Response:
+    """Unduh paket produksi (zoi.paket/v1) dari sebuah naskah — untuk Blueprint Studio di laptop."""
+    item = ctx.content.item(item_id)
+    if item is None:
+        raise ZoiError("Draf tidak ditemukan.", status_code=404, code="not_found")
+    try:
+        package = build_package(item)
+    except PackageError as exc:
+        raise ZoiError(str(exc)) from exc
+    return Response(package_bytes(package), media_type="application/json", headers={
+        "Content-Disposition": f'attachment; filename="{package_filename(package)}"'})
 
 
 @router.delete("/items/{item_id}", status_code=204)

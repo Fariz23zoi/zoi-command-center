@@ -70,4 +70,23 @@ pembayaran pada langkah mana pun — BERHENTI** dan jangan lanjutkan; laporkan d
   ±0,5 GB (lebih dari cukup untuk ZOI).
 - **Fitur "hanya di laptop"**: AI lokal (Ollama), suara (Whisper/Piper), CLIPPER, Blueprint Studio.
   Halaman-halamannya tetap ada dan menjelaskan hal ini dengan jujur.
-- **Hubungkan YouTube** belum tersedia di mode online (alur OAuth web menyusul di Bagian B).
+
+## 5. Hubungkan YouTube (opsional)
+
+1. Buka https://console.cloud.google.com → pilih/buat project → **APIs & Services › Library** → aktifkan
+   **YouTube Data API v3** dan **YouTube Analytics API** (gratis, berkuota harian).
+2. **APIs & Services › OAuth consent screen**: tipe **External**, isi nama aplikasi & email, tambahkan
+   scope `youtube.readonly` dan `yt-analytics.readonly`. Status publikasi boleh **In production** tanpa
+   verifikasi (hanya kamu yang memakai; Google menampilkan peringatan "aplikasi belum diverifikasi" — klik
+   **Advanced › Go to …** untuk lanjut).
+3. **APIs & Services › Credentials › Create credentials › OAuth client ID** → tipe **Web application**.
+   Pada **Authorized redirect URIs** isi persis alamat yang tertulis di ZOI **Settings › YouTube**
+   (bentuknya `https://zoi-XXXX.onrender.com/api/youtube/callback`).
+4. Klik **Download JSON**, lalu di ZOI **Settings › YouTube** pilih file itu → **Hubungkan akun YouTube**.
+   File dan token disimpan terenkripsi di database. ZOI hanya meminta izin **baca**.
+
+## 6. Cadangan data
+
+**Settings › Cadangan data › Unduh cadangan** menghasilkan satu file `.zip` (chat, memori, tugas, draf,
+data YouTube). API key, akun YouTube, dan kata sandi **tidak pernah** ikut. Unduh berkala — layanan gratis
+bisa berubah sepihak. Pulihkan dari file yang sama di ZOI versi yang sama (online atau laptop).

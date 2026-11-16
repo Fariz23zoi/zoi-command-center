@@ -7,7 +7,8 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, ConfigDict
 
 from app.context import AppContext, get_ctx
@@ -48,6 +49,13 @@ async def connect(ctx: AppContext = Depends(get_ctx)) -> dict[str, Any]:
 @router.post("/connect/cancel", status_code=204)
 async def cancel(ctx: AppContext = Depends(get_ctx)) -> None:
     await ctx.youtube.cancel_connect()
+
+
+@router.get("/callback", include_in_schema=False)
+async def oauth_callback(request: Request, ctx: AppContext = Depends(get_ctx)) -> RedirectResponse:
+    """Alamat balik Google di mode online. Hasil (sukses/galat) terlihat di Settings › YouTube."""
+    await ctx.youtube.handle_web_callback({k: v for k, v in request.query_params.items()})
+    return RedirectResponse("/settings/youtube", status_code=303)
 
 
 @router.post("/disconnect")

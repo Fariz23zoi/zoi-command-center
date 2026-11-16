@@ -100,7 +100,9 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
     memory = MemoryService(db)
     chat.memory = memory
     youtube = YouTubeService(db=db, bus=bus, guard=guard, endpoints=youtube_endpoints(runtime.youtube_test_url),
-                             data_dir=runtime.data_dir, store=secrets)
+                             data_dir=runtime.data_dir, store=secrets,
+                             web_callback_url=f"{runtime.public_url}/api/youtube/callback"
+                             if runtime.is_online else "")
     public = PublicDataService(db=db, bus=bus, youtube=youtube)
     content = ContentService(db=db, bus=bus, provider=provider, memory=memory, youtube=youtube, public=public)
     registry = build_registry(ToolDeps(memory=memory, tasks=tasks, provider=provider, adapters=adapters,

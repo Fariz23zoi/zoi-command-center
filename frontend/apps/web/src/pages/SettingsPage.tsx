@@ -127,6 +127,8 @@ export function SettingsPage() {
       <p className="muted">File diputar di browser ini saja dan tidak dikirim ke server. Suara ZOI sendiri dibuat di Phase 4.</p>
       {lipsync && <p role="status" data-testid="lipsync-status">{lipsync}</p>}
 
+      <BackupBlock />
+
       {config?.online && (
         <div className="settings-block">
           <h2>Sesi</h2>
@@ -141,5 +143,52 @@ export function SettingsPage() {
         </div>
       )}
     </section>
+  );
+}
+
+/** Unduh/pulihkan cadangan data (zoi.backup/v2). Rahasia & kata sandi tidak pernah ikut. */
+function BackupBlock() {
+  const [file, setFile] = useState<File | null>(null);
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const restore = () => {
+    if (!file) return;
+    setBusy(true);
+    setMessage(null);
+    api.backup.restore(file).then(
+      (r) => { setMessage({ ok: true, text: r.note }); setConfirm(false); setFile(null); },
+      (e: unknown) => setMessage({ ok: false, text: e instanceof Error ? e.message : "Gagal memulihkan." }),
+    ).finally(() => setBusy(false));
+  };
+
+  return (
+    <div className="settings-block" data-testid="backup-block">
+      <h2>Cadangan data</h2>
+      <p className="muted">
+        Satu file .zip berisi seluruh data ZOI (chat, memori, tugas, draf, data YouTube). API key, akun YouTube, dan
+        kata sandi <strong>tidak pernah</strong> ikut — setelah memulihkan, hubungkan ulang bila perlu.
+      </p>
+      <a className="button" href={api.backup.downloadUrl} download data-testid="backup-download">Unduh cadangan</a>
+      <label className="form">
+        <span>Pulihkan dari file cadangan (.zip)</span>
+        <input type="file" accept=".zip,application/zip" data-testid="backup-file"
+               onChange={(e) => { setFile(e.target.files?.[0] ?? null); setConfirm(false); }} />
+      </label>
+      {file && !confirm && (
+        <button type="button" onClick={() => setConfirm(true)}>Pulihkan dari {file.name}</button>
+      )}
+      {file && confirm && (
+        <div className="notice warn">
+          Semua data saat ini akan <strong>diganti</strong> isi file ini.{" "}
+          <button type="button" disabled={busy} data-testid="backup-restore" onClick={restore}>
+            {busy ? "Memulihkan…" : "Ya, ganti data"}
+          </button>{" "}
+          <button type="button" onClick={() => setConfirm(false)}>Batal</button>
+        </div>
+      )}
+      {message && <p className={`notice ${message.ok ? "ok" : "bad"}`} role="status">{message.text}</p>}
+    </div>
   );
 }

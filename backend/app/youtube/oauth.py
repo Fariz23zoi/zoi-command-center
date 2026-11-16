@@ -49,28 +49,39 @@ def endpoints(test_url: str = "") -> Endpoints:
 class ClientConfig:
     client_id: str
     client_secret: str
+    kind: str = "installed"  # "installed" (Desktop app) | "web" (Web application)
 
     @property
     def hint(self) -> str:
         return f"…{self.client_id[-28:]}" if len(self.client_id) > 28 else self.client_id
 
 
-def parse_client_config(data: Any) -> ClientConfig:
-    """Menerima isi file JSON client OAuth bertipe **Desktop app**. Alamat endpoint di file DIABAIKAN."""
+def parse_client_config(data: Any, *, expect: str = "installed") -> ClientConfig:
+    """Menerima isi file JSON client OAuth. Mode local: tipe **Desktop app** (`installed`); mode online:
+    tipe **Web application** (`web`). Alamat endpoint di dalam file DIABAIKAN."""
     if not isinstance(data, dict):
         raise YouTubeError("File client OAuth tidak valid (bukan JSON objek).")
-    if "web" in data and "installed" not in data:
-        raise YouTubeError("Ini client OAuth bertipe 'Web application'. Buat client bertipe 'Desktop app' "
-                           "di Google Cloud, lalu unduh file JSON-nya.")
-    installed = data.get("installed")
-    if not isinstance(installed, dict):
-        raise YouTubeError("File ini bukan file client OAuth 'Desktop app' (tidak ada bagian 'installed').")
-    client_id, client_secret = installed.get("client_id"), installed.get("client_secret")
+    if expect == "web":
+        if "installed" in data and "web" not in data:
+            raise YouTubeError("Ini client OAuth bertipe 'Desktop app'. Untuk ZOI online, buat client bertipe "
+                               "'Web application' di Google Cloud (dengan redirect URI alamat ZOI-mu), lalu "
+                               "unduh file JSON-nya.")
+        section = data.get("web")
+        missing = "File ini bukan file client OAuth 'Web application' (tidak ada bagian 'web')."
+    else:
+        if "web" in data and "installed" not in data:
+            raise YouTubeError("Ini client OAuth bertipe 'Web application'. Buat client bertipe 'Desktop app' "
+                               "di Google Cloud, lalu unduh file JSON-nya.")
+        section = data.get("installed")
+        missing = "File ini bukan file client OAuth 'Desktop app' (tidak ada bagian 'installed')."
+    if not isinstance(section, dict):
+        raise YouTubeError(missing)
+    client_id, client_secret = section.get("client_id"), section.get("client_secret")
     if not isinstance(client_id, str) or not isinstance(client_secret, str) or not client_id or not client_secret:
         raise YouTubeError("File client OAuth tidak lengkap (client_id / client_secret tidak ada).")
     if len(client_id) > 200 or len(client_secret) > 200:
         raise YouTubeError("File client OAuth tidak valid.")
-    return ClientConfig(client_id=client_id, client_secret=client_secret)
+    return ClientConfig(client_id=client_id, client_secret=client_secret, kind=expect)
 
 
 def new_pkce() -> tuple[str, str]:

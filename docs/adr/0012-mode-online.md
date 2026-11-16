@@ -36,9 +36,22 @@ yang meminta pembayaran, proses berhenti dan dilaporkan.
 
 - Fitur yang butuh laptop (AI lokal Ollama, suara, CLIPPER, Blueprint) di mode online dilaporkan jujur
   "hanya di laptop" — tidak disembunyikan, tidak dipalsukan.
-- Hubungkan YouTube (OAuth loopback desktop) belum bisa di mode online; alur OAuth web menyusul di Bagian B.
+- Hubungkan YouTube memakai alur OAuth web (lihat Tambahan Bagian B).
 - Render free tertidur setelah 15 menit tanpa lalu lintas masuk; frontend mengirim detak WebSocket berkala
   selagi tab terbuka agar sesi aktif tidak terputus. Saat benar-benar tidur, permintaan pertama menunggu
   ±1 menit — keterbatasan paket gratis, ditulis di panduan deploy.
 - Backup berbasis file SQLite tidak berlaku di Postgres; unduh/pulihkan data dari Settings menyusul di
   Bagian B. Sampai saat itu, data online bersandar pada retensi Neon.
+
+## Tambahan Bagian B (16 November 2026)
+
+- **YouTube di mode online** memakai OAuth client bertipe *Web application* (PKCE + state, 5 menit) dengan
+  redirect `https://<alamat publik>/api/youtube/callback`. Callback dilindungi sesi login (cookie ikut karena
+  navigasi top-level, SameSite=Lax); galat ditampilkan di Settings › YouTube. File client dan token disimpan
+  terenkripsi di tabel `secrets`. Mode local tetap memakai *Desktop app* + loopback.
+- **Cadangan `zoi.backup/v2`**: ZIP berisi manifest (revisi skema, jumlah baris, SHA-256 per file) + JSON per
+  tabel; bekerja di SQLite dan Postgres. Tidak pernah membawa `secrets`, `auth_sessions`, atau baris
+  `app_meta` berawalan `auth:` (hash kata sandi). Pulih = satu transaksi; checksum, revisi skema, dan jumlah
+  baris diverifikasi; arsip versi lain ditolak dengan pesan jujur.
+- **Paket produksi `zoi.paket/v1`** dari naskah: `beats [{k, n, v}]` — bentuk yang sama dengan struktur cerita
+  Blueprint Studio — plus `naskah_tts`, rasio, durasi. Draf mock ditandai `mock: true`.

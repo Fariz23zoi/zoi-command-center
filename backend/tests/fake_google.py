@@ -101,7 +101,7 @@ class FakeGoogle:
                 "response_type": query.get("response_type") == "code",
                 "code_challenge_method": query.get("code_challenge_method") == "S256",
                 "code_challenge": len(query.get("code_challenge", "")) >= 43,
-                "redirect_uri": redirect.startswith("http://127.0.0.1:"),
+                "redirect_uri": redirect.startswith(("http://127.0.0.1:", "https://")),
                 "access_type": query.get("access_type") == "offline",
                 "scope": "youtube.readonly" in query.get("scope", ""),
                 "state": bool(query.get("state")),

@@ -47,14 +47,21 @@ export function YouTubeSettingsPage() {
       setNotice({ kind: "bad", text: "File itu bukan JSON yang valid." });
       return;
     }
-    await run(() => api.youtube.putClient(parsed), "File client OAuth tersimpan di komputer ini.");
+    await run(() => api.youtube.putClient(parsed), status?.web_flow
+      ? "File client OAuth tersimpan terenkripsi di database ZOI."
+      : "File client OAuth tersimpan di komputer ini.");
   }
 
   async function connect() {
     await run(async () => {
       const started = await api.youtube.connect();
       setAuthUrl(started.auth_url);
-      window.open(started.auth_url, "_blank", "noopener,noreferrer");
+      if (status?.web_flow) {
+        // Mode online: pindah di tab yang sama — Google mengembalikanmu ke halaman ini sesudah memberi izin.
+        window.location.assign(started.auth_url);
+      } else {
+        window.open(started.auth_url, "_blank", "noopener,noreferrer");
+      }
     });
   }
 
@@ -106,11 +113,20 @@ export function YouTubeSettingsPage() {
                 onClick={() => void run(() => api.youtube.deleteClient(), "File client dihapus.")}>Hapus file client</button>
             </p>
           ) : (
+            status.web_flow ? (
+              <p className="muted" data-testid="youtube-web-howto">
+                Buat <strong>OAuth client ID</strong> bertipe <strong>Web application</strong> di Google Cloud.
+                Pada <em>Authorized redirect URIs</em>, isi persis: <code>{status.callback_url}</code>.
+                Unduh file JSON-nya lalu pilih di sini — isinya disimpan <strong>terenkripsi di database</strong>
+                dan tidak pernah dikembalikan ke browser. Jangan unggah file itu ke chat atau GitHub.
+              </p>
+            ) : (
             <p className="muted">
               Buat <strong>OAuth client ID</strong> bertipe <strong>Desktop app</strong> di Google Cloud, unduh file
               JSON-nya, lalu pilih di sini. Langkah lengkap ada di <code>docs/MIGRATION_TO_LOCAL_SERVER.md</code>.
               File ini hanya dikirim ke backend ZOI di komputer ini — jangan unggah ke chat atau GitHub.
             </p>
+            )
           )}
           <label className="form">
             <span>{status.client_configured ? "Ganti file client (.json)" : "Pilih file client (.json)"}</span>
@@ -178,6 +194,9 @@ export function YouTubeSettingsPage() {
           {status.token_storage === "keyring" ? (
             <p data-testid="youtube-storage">Token disimpan di penyimpanan kunci sistem (Windows Credential Manager),
               bukan di database, file ekspor, atau browser.</p>
+          ) : status.token_storage === "database" ? (
+            <p data-testid="youtube-storage">Token disimpan <strong>terenkripsi</strong> di database ZOI online; kunci
+              enkripsinya hanya ada di pengaturan Render. Token tidak pernah ikut file cadangan atau dikirim ke browser.</p>
           ) : (
             <p className="notice warn" data-testid="youtube-storage">{status.storage_warning}</p>
           )}

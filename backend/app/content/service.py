@@ -258,6 +258,11 @@ class ContentService:
                              .order_by(ContentItem.created_at.desc()).limit(limit)).all()
             return [self._dict(r, full=True) for r in rows]
 
+    def item(self, item_id: str) -> dict[str, Any] | None:
+        with self.db.session() as s:
+            row = s.get(ContentItem, item_id)
+            return self._dict(row, full=True) if row else None
+
     def delete(self, item_id: str) -> bool:
         with self.db.session() as s:
             row = s.get(ContentItem, item_id)

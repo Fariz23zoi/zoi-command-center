@@ -110,6 +110,10 @@ export function ScriptPage() {
           {item.payload.cta && <p><strong>CTA:</strong> {item.payload.cta}</p>}
           <AiStamp item={item} />
           <button type="button" onClick={() => download(item)}>Unduh Markdown</button>{" "}
+          <a className="button" href={api.content.packageUrl(item.id)} download data-testid="script-package"
+             title="File JSON untuk tombol 'Muat paket ZOI' di Blueprint Studio (laptop)">
+            Unduh paket produksi
+          </a>{" "}
           <button type="button" onClick={() => void api.content.remove(item.id).catch((err) => setError(errorText(err, "Gagal menghapus.")))}>
             Hapus draf
           </button>
