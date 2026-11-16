@@ -12,6 +12,7 @@ from app.api import (
     content,
     health,
     memory,
+    production,
     system,
     tasks,
     voice,
@@ -22,7 +23,7 @@ from app.api import (
 
 api_router = APIRouter(prefix="/api")
 for module in (health, auth, backup, system, tasks, chat, ai, voice, memory, agent_api, youtube,
-               youtube_public, content, ai_cloud):
+               youtube_public, content, ai_cloud, production):
     api_router.include_router(module.router)
 
 ws_router = ws.router

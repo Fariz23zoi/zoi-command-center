@@ -20,6 +20,7 @@ from app.core.events import EventBus
 from app.db.session import Database
 from app.integrations.base import ExternalAppAdapter
 from app.memory.service import MemoryService
+from app.production.service import ProductionService
 from app.providers.base import LLMProvider
 from app.security.auth import AuthService
 from app.security.cost_guard import CostGuard
@@ -50,6 +51,7 @@ class AppContext:
     content: ContentService
     cloud_ai: CloudAIService
     auth: AuthService
+    production: ProductionService
     migration_backup: str | None = None
     started_monotonic: float = field(default_factory=time.monotonic)
     cache: dict[str, Any] = field(default_factory=dict)

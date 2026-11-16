@@ -13,6 +13,7 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       "/api": { target: backend },
+      "/blueprint-studio": { target: backend },
       "/ws": { target: backend.replace(/^http/, "ws"), ws: true },
     },
   },

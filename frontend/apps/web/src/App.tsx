@@ -13,6 +13,7 @@ import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { CompetitorsPage } from "./pages/CompetitorsPage";
 import { IdeasPage } from "./pages/IdeasPage";
 import { PerformancePage } from "./pages/PerformancePage";
+import { ProductionPage } from "./pages/ProductionPage";
 import { ScriptPage } from "./pages/ScriptPage";
 import { TrendsPage } from "./pages/TrendsPage";
 import { ViralPage } from "./pages/ViralPage";
@@ -40,6 +41,7 @@ const READY_PAGES: Record<string, ReactElement> = {
   "/trends": <TrendsPage />,
   "/ideas": <IdeasPage />,
   "/script": <ScriptPage />,
+  "/production": <ProductionPage />,
   "/performance": <PerformancePage />,
   "/settings": <SettingsPage />,
   "/clipper": <IntegrationPage adapterName="zoi_ai_clipper" />,

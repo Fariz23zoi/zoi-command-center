@@ -36,6 +36,7 @@ from app.integrations.blueprint.adapter import BlueprintAdapter
 from app.integrations.clipper.adapter import ClipperAdapter
 from app.logging_setup import configure_logging, get_logger
 from app.memory.service import MemoryService
+from app.production.service import ProductionService
 from app.providers.base import LocalModelAdmin
 from app.providers.registry import build_provider
 from app.security.auth import SESSION_COOKIE, AuthService
@@ -105,6 +106,10 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
                              if runtime.is_online else "")
     public = PublicDataService(db=db, bus=bus, youtube=youtube)
     content = ContentService(db=db, bus=bus, provider=provider, memory=memory, youtube=youtube, public=public)
+    voice = VoiceService(stt=stt, tts=tts, db=db)
+    production = ProductionService(data_dir=runtime.data_dir, blueprint_file=settings.blueprint_file,
+                                   hyperframes_dir=settings.hyperframes_dir, voice=voice, content=content,
+                                   available=not runtime.is_online, bus=bus)
     registry = build_registry(ToolDeps(memory=memory, tasks=tasks, provider=provider, adapters=adapters,
                                        data_dir=runtime.data_dir, is_mock=lambda: provider.is_mock,
                                        youtube=youtube))
@@ -112,7 +117,7 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
                                  tasks=tasks, chat=chat, approval_timeout_s=approval_timeout_s)
     ctx = AppContext(settings=settings, runtime=runtime, db=db, bus=bus, agent=agent, guard=guard,
                      provider=provider, adapters=adapters, tasks=tasks, chat=chat,
-                     voice=VoiceService(stt=stt, tts=tts, db=db), memory=memory, agent_service=agent_service,
+                     voice=voice, memory=memory, agent_service=agent_service, production=production,
                      youtube=youtube, public=public, content=content,
                      cloud_ai=CloudAIService(provider=provider, store=secrets, bus=bus), auth=auth,
                      local_ai=LocalAIService(provider=provider, runtime=runtime, db=db, bus=bus, tasks=tasks,
@@ -130,6 +135,8 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
             tasks.register(model_eval_kind(db=db, admin=provider, run_async=make_run_async(loop)))
         tasks.register(agent_service.task_kind(make_run_async(loop)))
         for kind in content.task_kinds(make_run_async(loop)):
+            tasks.register(kind)
+        for kind in production.task_kinds(make_run_async(loop)):
             tasks.register(kind)
         public.purge_expired()
         agent_service.recover()
@@ -184,6 +191,7 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
         return JSONResponse(status_code=404, content={"error": {"code": "not_found",
                                                                 "message": f"Endpoint /api/{rest} tidak ada."}})
 
+    _mount_blueprint(app, production)
     _mount_frontend(app, runtime)
     return app
 
@@ -192,6 +200,27 @@ def _ws_sources(runtime: RuntimeConfig) -> str:
     if runtime.is_online and runtime.public_host:
         return f"wss://{runtime.public_host}"
     return f"ws://127.0.0.1:{runtime.port} ws://localhost:{runtime.port}"
+
+
+# Salinan Blueprint Studio (Phase 7, ADR 0013): skrip inline milik file asli dan font Google yang memang dipakai
+# file asli diizinkan HANYA di halaman ini; fetch hanya ke ZOI sendiri.
+BLUEPRINT_CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' "
+                 "https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; "
+                 "connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'")
+
+
+def _mount_blueprint(app: FastAPI, production: ProductionService) -> None:
+    @app.get("/blueprint-studio/", include_in_schema=False)
+    def blueprint_copy() -> Response:
+        path = production.blueprint.copy_path
+        if not production.available or not path.is_file():
+            return HTMLResponse(status_code=404, content=(
+                "<h1>Salinan Blueprint Studio belum dibuat</h1><p>Buka ZOI › Blueprint Studio lalu klik "
+                "<b>Buat salinan</b>. Fitur ini hanya di laptop (mode local).</p>"))
+        response = FileResponse(path, media_type="text/html")
+        response.headers["Content-Security-Policy"] = BLUEPRINT_CSP
+        response.headers["Cache-Control"] = "no-store"
+        return response
 
 
 def _mount_frontend(app: FastAPI, runtime: RuntimeConfig) -> None:

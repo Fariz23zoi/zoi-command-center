@@ -52,12 +52,25 @@ test("task manager: pemeriksaan sistem berjalan sampai selesai", async ({ page }
   await expectNoHorizontalOverflow(page);
 });
 
-test("halaman fitur mendatang jujur dan tanpa angka", async ({ page }) => {
-  await page.goto("/production");
+test("CLIPPER yang ditunda dijelaskan jujur, tanpa angka", async ({ page }) => {
+  await page.goto("/clipper");
   const box = page.getByTestId("not-yet-available");
-  await expect(box).toContainText("Belum tersedia — dijadwalkan Phase 7");
-  const text = (await box.textContent())!.replace(/Phase \d+/g, "");
-  expect(text).not.toMatch(/\d/);
+  await expect(box).toContainText("Ditunda");
+  await expect(box).toContainText("yt-dlp");
+  expect((await box.textContent())!.replace(/Phase \d+/g, "")).not.toMatch(/\d/);
+});
+
+test("content production: impor paket lalu tampil dengan tautan Blueprint", async ({ page }) => {
+  await page.goto("/production");
+  await expect(page.getByTestId("production-readiness")).toBeVisible();
+  const paket = { format: "zoi.paket/v1", judul: "Paket uji E2E", topik: "Uji", durasi: "30 detik",
+    bahasa: "Indonesia", rasio: "9:16", mock: true, beats: [{ k: "Hook", n: "Halo dari uji.", v: "" }] };
+  await page.getByTestId("production-import").setInputFiles({ name: "paket-zoi-uji.json",
+    mimeType: "application/json", buffer: Buffer.from(JSON.stringify(paket)) });
+  const item = page.getByTestId("production-item").filter({ hasText: "Paket uji E2E" }).first();
+  await expect(item).toBeVisible();
+  await expect(item.getByTestId("production-blueprint")).toHaveAttribute("href", /\/blueprint-studio\/\?paket=/);
+  await expectNoHorizontalOverflow(page);
 });
 
 test("navigasi mobile lewat drawer", async ({ page }) => {

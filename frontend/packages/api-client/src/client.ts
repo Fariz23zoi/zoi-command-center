@@ -1,5 +1,5 @@
 import type {
-  AdapterStatus, AuthStatus, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
+  AdapterStatus, AuthStatus, ProductionPackage, ProductionStatus, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
   ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, TranscriptInfo,
   VoicePreferences, VoiceStatus, YouTubeData, YouTubeStatus, ZoiEvent,
   CloudModels, CloudStatus, CloudTestResult, CompetitorsData, IdeaRequest, IdeaSet, ScriptItem, ScriptRequest, ViralData,
@@ -104,6 +104,18 @@ export const api = {
     login: (password: string) => request<{ ok: boolean }>("POST", "/api/auth/login", { password }),
     logout: () => request<{ ok: boolean }>("POST", "/api/auth/logout", {}),
     logoutAll: () => request<{ ok: boolean }>("POST", "/api/auth/logout-all", {}),
+  },
+  production: {
+    status: () => request<ProductionStatus>("GET", "/api/production/status"),
+    packages: () => request<{ items: ProductionPackage[] }>("GET", "/api/production/packages"),
+    importPackage: (pkg: unknown) => request<ProductionPackage>("POST", "/api/production/packages", { package: pkg }),
+    fromScript: (scriptId: string) =>
+      request<ProductionPackage>("POST", "/api/production/packages", { script_id: scriptId }),
+    remove: (id: string) => request<void>("DELETE", `/api/production/packages/${id}`),
+    narrate: (id: string) => request<TaskInfo>("POST", `/api/production/packages/${id}/narrate`),
+    render: (id: string) => request<TaskInfo>("POST", `/api/production/packages/${id}/render`),
+    fileUrl: (id: string, name: string) => `/api/production/packages/${id}/files/${name}`,
+    buildBlueprint: () => request<NonNullable<ProductionStatus["blueprint"]>>("POST", "/api/production/blueprint/build"),
   },
   backup: {
     downloadUrl: "/api/backup/download",
