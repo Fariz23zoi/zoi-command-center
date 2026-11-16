@@ -13,7 +13,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from sqlalchemy import delete, select
@@ -33,7 +33,8 @@ MAX_WATCHLIST = 20
 MAX_SEARCHES = 20
 REGION = "ID"
 LIST_SIZE = 25
-COMPETITOR_VIDEOS = 10
+COMPETITOR_VIDEOS = 25
+REFRESH_TTL = timedelta(hours=1)  # hemat kuota: refresh ulang <1 jam memakai cache
 CHANNEL_ID = re.compile(r"UC[A-Za-z0-9_-]{22}")
 HANDLE = re.compile(r"@[A-Za-z0-9._-]{3,30}")
 
@@ -134,12 +135,23 @@ class PublicDataService:
                 "quota": self.yt.quota.status()}
 
     # ── channel pantauan ──────────────────────────────────────────────────
+    def _snapshot(self, channel: dict[str, Any]) -> None:
+        """Satu titik histori per channel per hari, dikumpulkan ZOI saat refresh. Ikut aturan ≤30 hari."""
+        day = utcnow().date().isoformat()
+        self.put(f"snapshot:{channel['id']}:{day}", "competitor_snapshot",
+                 {"day": day, "view_count": channel["view_count"], "subscriber_count": channel["subscriber_count"],
+                  "hidden_subscribers": channel["hidden_subscribers"], "video_count": channel["video_count"]})
+
     def competitors(self) -> dict[str, Any]:
         self.purge_expired()
         with self.db.session() as s:
             watch = [(w.channel_id, w.note, w.added_at.isoformat())
                      for w in s.scalars(select(YouTubeWatch).order_by(YouTubeWatch.added_at)).all()]
-        items = [{"channel_id": cid, "note": note, "added_at": added, "data": self.get(f"competitor:{cid}")}
+        history: dict[str, list[dict[str, Any]]] = {}
+        for entry in self.entries("competitor_snapshot"):
+            history.setdefault(entry["key"].split(":")[1], []).append(entry["payload"])
+        items = [{"channel_id": cid, "note": note, "added_at": added, "data": self.get(f"competitor:{cid}"),
+                  "history": sorted(history.get(cid, []), key=lambda h: h["day"])}
                  for cid, note, added in watch]
         return {**self.info(), "max": MAX_WATCHLIST, "items": items}
 
@@ -159,13 +171,18 @@ class PublicDataService:
             if s.get(YouTubeWatch, channel["id"]) is None:
                 s.add(YouTubeWatch(channel_id=channel["id"], note=note.strip()[:200]))
         self.put(f"competitor:{channel['id']}", "competitor", {"channel": channel, "videos": None})
+        self._snapshot(channel)
         self._changed()
         return self.competitors()
 
-    async def refresh_competitor(self, channel_id: str) -> dict[str, Any]:
+    async def refresh_competitor(self, channel_id: str, *, force: bool = False) -> dict[str, Any]:
         with self.db.session() as s:
             if s.get(YouTubeWatch, channel_id) is None:
                 raise YouTubeError("Channel itu tidak ada di daftar pantauan.", status_code=404)
+        current = self.get(f"competitor:{channel_id}")
+        if (not force and current and current["payload"].get("videos") is not None
+                and utcnow() - datetime.fromisoformat(current["fetched_at"]) < REFRESH_TTL):
+            return self.competitors()
         data = await self.yt.api_get("channels", {"part": "snippet,statistics,contentDetails", "id": channel_id})
         found = data.get("items") or []
         if not found:
@@ -184,8 +201,24 @@ class PublicDataService:
                                                            "id": ",".join(ids)})
                 videos = [_video(i) for i in details.get("items", [])]
         self.put(f"competitor:{channel_id}", "competitor", {"channel": channel, "videos": videos})
+        self._snapshot(channel)
         self._changed()
         return self.competitors()
+
+    async def search_channels(self, query: str) -> dict[str, Any]:
+        """Cari channel berdasarkan nama (search.list = 100 unit kuota). Hasil tidak disimpan."""
+        query = " ".join(query.split())
+        if not 2 <= len(query) <= 100:
+            raise YouTubeError("Kata kunci harus 2–100 karakter.")
+        found = await self.yt.api_get("search", {"part": "snippet", "type": "channel", "q": query, "maxResults": "8"},
+                                      search=True)
+        ids = [i.get("id", {}).get("channelId") for i in found.get("items", [])]
+        ids = [i for i in ids if i]
+        if not ids:
+            return {"query": query, "items": []}
+        data = await self.yt.api_get("channels", {"part": "snippet,statistics,contentDetails", "id": ",".join(ids)})
+        by_id = {c["id"]: c for c in (_channel(i) for i in data.get("items", []))}
+        return {"query": query, "items": [by_id[i] for i in ids if i in by_id]}
 
     def remove_competitor(self, channel_id: str) -> dict[str, Any]:
         with self.db.session() as s:
@@ -194,6 +227,8 @@ class PublicDataService:
                 raise YouTubeError("Channel itu tidak ada di daftar pantauan.", status_code=404)
             s.delete(row)
         self._drop(f"competitor:{channel_id}")
+        with self.db.session() as s:
+            s.execute(delete(YouTubePublicCache).where(YouTubePublicCache.key.like(f"snapshot:{channel_id}:%")))
         self._changed()
         return self.competitors()
 

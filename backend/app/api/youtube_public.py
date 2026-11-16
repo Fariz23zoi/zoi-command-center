@@ -44,8 +44,14 @@ async def add_competitor(body: CompetitorIn, ctx: AppContext = Depends(get_ctx))
 
 
 @router.post("/competitors/{channel_id}/refresh")
-async def refresh_competitor(channel_id: str, ctx: AppContext = Depends(get_ctx)) -> dict[str, Any]:
-    return await ctx.public.refresh_competitor(channel_id)
+async def refresh_competitor(channel_id: str, force: bool = False,
+                             ctx: AppContext = Depends(get_ctx)) -> dict[str, Any]:
+    return await ctx.public.refresh_competitor(channel_id, force=force)
+
+
+@router.post("/channels/search")
+async def search_channels(body: SearchIn, ctx: AppContext = Depends(get_ctx)) -> dict[str, Any]:
+    return await ctx.public.search_channels(body.query)
 
 
 @router.delete("/competitors/{channel_id}")

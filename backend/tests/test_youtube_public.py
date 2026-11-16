@@ -9,6 +9,7 @@ import json
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from sqlalchemy import select
 
 from app.content.service import IdeaRequest, RangkumanTema, Tema
 from app.db.models import YouTubePublicCache, YouTubeQuota
@@ -98,6 +99,25 @@ def test_competitor_add_refresh_remove(yt, google):
     assert yt.delete(f"{P}/competitors/{OTHER_ID}").status_code == 404
     with yt.app.state.zoi.db.session() as s:
         assert s.get(YouTubePublicCache, f"competitor:{OTHER_ID}") is None
+
+
+def test_competitor_history_cache_and_channel_search(yt, google):
+    found = yt.post(f"{P}/channels/search", json={"query": "kopi"}).json()["items"]
+    assert [c["id"] for c in found] == [OTHER_ID] and found[0]["subscriber_count"] == 12400
+    assert yt.post(f"{P}/channels/search", json={"query": "tidakada"}).json()["items"] == []
+
+    yt.post(f"{P}/competitors", json={"ref": OTHER_ID})
+    yt.post(f"{P}/competitors/{OTHER_ID}/refresh")
+    calls = google.count("/youtube/v3/playlistItems")
+    data = yt.post(f"{P}/competitors/{OTHER_ID}/refresh").json()  # <1 jam → cache, tanpa panggilan API
+    assert google.count("/youtube/v3/playlistItems") == calls
+    yt.post(f"{P}/competitors/{OTHER_ID}/refresh?force=true")
+    assert google.count("/youtube/v3/playlistItems") == calls + 1
+    history = data["items"][0]["history"]
+    assert len(history) == 1 and history[0]["subscriber_count"] == 12400  # satu titik per hari, tidak dikarang
+    yt.delete(f"{P}/competitors/{OTHER_ID}")
+    with yt.app.state.zoi.db.session() as s:
+        assert not s.scalars(select(YouTubePublicCache).where(YouTubePublicCache.kind == "competitor_snapshot")).all()
 
 
 def test_competitor_not_found_and_bad_input(yt):

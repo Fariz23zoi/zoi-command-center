@@ -30,7 +30,7 @@
 .uv-top-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 .uv-open-ai { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 14px; border-radius: 999px;
   background: var(--gradient); color: #fff; text-decoration: none; font-weight: 600; font-size: var(--fs-sm); }
-.uv-content { padding: 24px; min-width: 0; }
+.uv-content { padding: 24px; min-width: 0; overflow-wrap: anywhere; }
 .uv-content > .page { max-width: 1200px; }
 
 @media (max-width: 1024px) {
@@ -46,3 +46,4 @@
   .uv-top-right .pill.mode-local, .uv-top-right .pill.mode-online, .uv-top-right [data-testid="ws-status"] { display: none; }
   .uv-content { padding: 16px 12px; }
 }
+.uv-content pre { white-space: pre-wrap; max-width: 100%; }

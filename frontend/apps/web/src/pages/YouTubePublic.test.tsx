@@ -42,7 +42,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("Competitor Intelligence", () => {
   const competitors = (overrides: Partial<CompetitorsData> = {}): CompetitorsData => ({ ...info, max: 20, items: [{
-    channel_id: "UCother", note: "pesaing", added_at: "",
+    channel_id: "UCother", note: "pesaing", added_at: "", history: [],
     data: { key: "competitor:UCother", ...stamp, payload: { videos: [video("Review grinder", 15800)], channel: {
       id: "UCother", title: "Kopi Lain", custom_url: "@kopilain", published_at: null, country: "ID", view_count: 880000,
       subscriber_count: 12400, hidden_subscribers: false, video_count: 140, uploads_playlist: "UU" } } } }],

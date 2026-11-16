@@ -304,6 +304,17 @@ def test_dashboard_breakdowns(yt, google):
     assert prev["end"] < payload["last_28_days"]["start"] and "breakdown_error" not in payload
 
 
+def test_video_retention_cached(yt, google):
+    connect(yt)
+    first = yt.post("/api/youtube/videos/vidAAAAAAA1/retention").json()
+    assert first["payload"]["rows"][1] == {"elapsedVideoTimeRatio": 0.5, "audienceWatchRatio": 0.42,
+                                           "relativeRetentionPerformance": 0.6}
+    calls = google.count("/v2/reports")
+    yt.post("/api/youtube/videos/vidAAAAAAA1/retention")
+    assert google.count("/v2/reports") == calls
+    assert yt.post("/api/youtube/videos/bad!/retention").status_code == 400
+
+
 def test_analytics_failure_does_not_hide_channel_data(yt, google):
     connect(yt)
     google.analytics_forbidden = True

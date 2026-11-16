@@ -297,6 +297,13 @@ export interface PublicInfo {
 export interface CompetitorItem {
   channel_id: string; note: string; added_at: string;
   data: PublicEntry<{ channel: YouTubeChannel; videos: PublicVideo[] | null }> | null;
+  /** Titik histori yang DIKUMPULKAN ZOI (satu per hari saat refresh), maksimal 30 hari. */
+  history: CompetitorSnapshot[];
+}
+
+export interface CompetitorSnapshot {
+  day: string; view_count: number | null; subscriber_count: number | null; hidden_subscribers: boolean;
+  video_count: number | null;
 }
 
 export interface CompetitorsData extends PublicInfo { max: number; items: CompetitorItem[] }

@@ -77,6 +77,11 @@ async def refresh(body: RefreshIn, ctx: AppContext = Depends(get_ctx)) -> dict[s
     return yt.data()
 
 
+@router.post("/videos/{video_id}/retention")
+async def video_retention(video_id: str, force: bool = False, ctx: AppContext = Depends(get_ctx)) -> dict[str, Any]:
+    return await ctx.youtube.video_retention(video_id, force=force)
+
+
 @router.get("/data")
 async def data(ctx: AppContext = Depends(get_ctx)) -> dict[str, Any]:
     return ctx.youtube.data()

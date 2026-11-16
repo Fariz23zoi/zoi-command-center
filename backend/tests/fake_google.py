@@ -190,6 +190,9 @@ class FakeGoogle:
                 return js(200, {"items": [{"id": cid, "snippet": {"title": title, "assignable": ok}}
                                           for cid, title, ok in CATEGORIES]})
             if path == "/youtube/v3/search":
+                if query.get("type") == "channel" and query.get("q"):
+                    hits = [OTHER_ID] if "kopi" in query["q"].lower() else []
+                    return js(200, {"items": [{"id": {"kind": "youtube#channel", "channelId": c}} for c in hits]})
                 if query.get("type") != "video" or not query.get("q"):
                     return js(400, {"error": {"code": 400, "message": "bad search", "errors": []}})
                 return js(200, {"items": [{
@@ -230,6 +233,13 @@ class FakeGoogle:
                     return js(200, {"columnHeaders": columns,
                                     "rows": [["vidAAAAAAA1", 900, 2700, 180, 42.5], ["vidAAAAAAA2", 210, 120, 34, 76.1],
                                              ["vidHAPUS0001", 12, 9, 45, 20.0]]})
+                if query.get("dimensions") == "elapsedVideoTimeRatio":
+                    if not query.get("filters", "").startswith("video=="):
+                        return js(400, {"error": {"code": 400, "message": "filter", "errors": []}})
+                    return js(200, {"columnHeaders": [{"name": "elapsedVideoTimeRatio", "columnType": "DIMENSION"},
+                                                      {"name": "audienceWatchRatio", "columnType": "METRIC"},
+                                                      {"name": "relativeRetentionPerformance", "columnType": "METRIC"}],
+                                    "rows": [[0.01, 1.0, 0.5], [0.5, 0.42, 0.6], [1.0, 0.1, 0.4]]})
                 if query.get("dimensions") in ("insightTrafficSourceType", "deviceType"):
                     if query.get("metrics") != "views" or query.get("sort") != "-views":
                         return js(400, {"error": {"code": 400, "message": "bad breakdown", "errors": []}})

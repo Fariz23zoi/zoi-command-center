@@ -3,11 +3,13 @@ import {
   BarChart3, Clapperboard, Clock, Eye, Inbox, Lightbulb, ListChecks, MonitorSmartphone, PlaySquare, Search, Sparkles,
   Users,
 } from "lucide-react";
+import { api } from "@zoi/api-client";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { formatTime } from "../lib/format";
-import { useYouTubeData } from "../lib/youtube";
+import { CompetitorsTab, DataKind } from "./CompetitorsTab";
+import { errorText, useYouTubeData } from "../lib/youtube";
 import { useApp } from "../stores/appStore";
 import { Badge, Card, EmptyState, StatCard } from "../ui";
 import "./dashboard.css";
@@ -41,11 +43,18 @@ function delta(now: number | null, before: number | null) {
 export function DashboardPage() {
   const { data } = useYouTubeData();
   const connected = Boolean(data?.connected);
+  const [tab, setTab] = useState<"mine" | "competitors">("mine");
 
   return (
     <section className="page dash" data-testid="dashboard-page">
       <Welcome />
-      {!data ? (
+      <div className="dash-maintabs" role="tablist" aria-label="Mode analitik">
+        <button type="button" role="tab" aria-selected={tab === "mine"} className={tab === "mine" ? "on" : undefined}
+          onClick={() => setTab("mine")}>My Channel</button>
+        <button type="button" role="tab" aria-selected={tab === "competitors"}
+          className={tab === "competitors" ? "on" : undefined} onClick={() => setTab("competitors")}>Competitors</button>
+      </div>
+      {tab === "competitors" ? <CompetitorsTab mine={data} /> : !data ? (
         <p className="muted">Memuat data channel…</p>
       ) : connected ? (
         <ChannelPanels data={data} />
@@ -57,6 +66,10 @@ export function DashboardPage() {
             ZOI tidak menampilkan angka contoh.
           </EmptyState>
         </Card>
+      )}
+      {tab === "mine" && connected && (
+        <p className="dash-legend"><DataKind kind="actual" /> <span className="muted">Semua angka di tab ini dari YouTube Analytics
+          channel-mu (OAuth). Putuskan / hubungkan ulang di <Link to="/settings/youtube">Settings › YouTube</Link>.</span></p>
       )}
       <div className="dash-row dash-row-2">
         <RecentActivity />
@@ -268,6 +281,7 @@ function TopVideos({ data }: { data: YouTubeData }) {
                 <b>{v.views === null ? "—" : nf.format(v.views)}</b> views
                 {v.pct !== null && <small> · ditonton {pf.format(v.pct)}%</small>}
               </span>
+              <Retention videoId={v.id} />
             </li>
           ))}
         </ol>
@@ -314,5 +328,44 @@ function QuickAccess() {
         ))}
       </div>
     </Card>
+  );
+}
+
+/** Kurva audience retention dari YouTube Analytics — dimuat saat diminta (hemat kuota, cache 12 jam di backend). */
+function Retention({ videoId }: { videoId: string }) {
+  const [rows, setRows] = useState<{ x: number; y: number }[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function load() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await api.youtube.retention(videoId);
+      setRows(res.payload.rows.map((r) => ({ x: Number(r.elapsedVideoTimeRatio), y: Number(r.audienceWatchRatio) }))
+        .filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y)));
+    } catch (err) {
+      setError(errorText(err, "Retensi tidak dapat dimuat."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!rows) {
+    return (
+      <span className="dash-ret">
+        <button type="button" className="link" onClick={load} disabled={busy}>{busy ? "Memuat…" : "Retensi"}</button>
+        {error && <small className="bad-text">{error}</small>}
+      </span>
+    );
+  }
+  if (rows.length < 2) return <small className="dash-ret muted">YouTube belum punya data retensi.</small>;
+  const W = 200, H = 48, max = Math.max(1, ...rows.map((r) => r.y));
+  const d = rows.map((r, i) => `${i ? "L" : "M"}${(r.x * W).toFixed(1)},${(H - (r.y / max) * (H - 4)).toFixed(1)}`).join("");
+  return (
+    <figure className="dash-ret dash-ret-chart">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Audience retention dari YouTube"><path d={d} /></svg>
+      <figcaption>Retensi penonton (YouTube) · akhir video: {pf.format((rows.at(-1)?.y ?? 0) * 100)}%</figcaption>
+    </figure>
   );
 }

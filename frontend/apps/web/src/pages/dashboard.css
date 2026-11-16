@@ -78,3 +78,45 @@
   .dash-break.dash-donut ul { width: 100%; }
   .dash-bars li { grid-template-columns: 10px 70px minmax(0, 1fr) auto; }
 }
+
+.dash-maintabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: var(--radius); background: var(--bg-2);
+  border: 1px solid var(--border); justify-self: start; }
+.dash-maintabs button { min-height: 40px; padding: 6px 20px; border: 0; background: none; color: var(--muted); font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase; font-size: var(--fs-sm); }
+.dash-maintabs button.on { background: var(--gradient); color: #fff; box-shadow: var(--glow); }
+.dash-tabpanel { display: grid; gap: 16px; }
+.dash-legend { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 12px; font-size: var(--fs-sm); }
+.dash-note { font-size: var(--fs-xs); margin: 12px 0 0; }
+.dash-search { display: flex; gap: 8px; flex-wrap: wrap; }
+.dash-search input { flex: 1; min-width: 0; min-height: 44px; padding: 10px 12px; border-radius: var(--radius-sm);
+  background: var(--bg-2); border: 1px solid var(--border); color: var(--text); }
+.dash-search button svg, .zui-card-head button svg { vertical-align: -3px; }
+.dash-results { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.dash-results li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center;
+  padding: 10px 12px; border-radius: var(--radius-sm); background: var(--bg-2); }
+.data-table tr.mine th, .data-table tr.mine td { background: rgb(139 92 246 / .08); }
+.data-table td.actions { white-space: nowrap; }
+.dash-compare, .dash-growth, .dash-timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; font-size: var(--fs-sm); }
+.dash-compare li { display: grid; grid-template-columns: minmax(0, 140px) minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.dash-compare li span, .dash-growth .name, .dash-timeline .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dash-compare meter { width: 100%; height: 10px; }
+.dash-growth li { display: grid; grid-template-columns: minmax(0, 140px) auto minmax(0, 1fr); gap: 12px; align-items: center; }
+.dash-spark { width: 120px; height: 32px; }
+.dash-spark path, .dash-ret-chart path { fill: none; stroke: var(--accent); stroke-width: 2; }
+.dash-timeline li { display: grid; grid-template-columns: minmax(0, 140px) minmax(0, 1fr); gap: 12px; align-items: center; }
+.dash-timeline .track { position: relative; height: 18px; border-radius: 99px; background: var(--bg-2); }
+.dash-timeline .track i { position: absolute; top: 4px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 6px var(--primary); }
+.dash-videos li { grid-template-columns: 32px minmax(0, 1fr) auto; }
+.dash-ret { grid-column: 2 / -1; font-size: var(--fs-xs); }
+.dash-ret-chart { margin: 4px 0 0; }
+.dash-ret-chart svg { width: 100%; max-width: 320px; height: 48px; }
+.dash-ret-chart figcaption { color: var(--muted); }
+.bad-text { color: var(--bad); margin-left: 8px; }
+@media (max-width: 640px) {
+  .dash-compare li, .dash-growth li, .dash-timeline li { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .dash-results li { grid-template-columns: minmax(0, 1fr) auto; }
+  .dash-results li small { grid-column: 1; }
+  .dash-maintabs { justify-self: stretch; }
+  .dash-maintabs button { flex: 1; padding: 6px 8px; }
+}

@@ -2,7 +2,7 @@ import type {
   AdapterStatus, AuthStatus, AutomationInfo, AutomationOverview, AutomationSchedule, NotificationInfo,
   ProductionPackage, ProductionStatus, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
   ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, TranscriptInfo,
-  VoicePreferences, VoiceStatus, YouTubeData, YouTubeStatus, ZoiEvent,
+  VoicePreferences, VoiceStatus, YouTubeCached, YouTubeChannel, YouTubeData, YouTubeReport, YouTubeStatus, ZoiEvent,
   CloudModels, CloudStatus, CloudTestResult, CompetitorsData, IdeaRequest, IdeaSet, ScriptItem, ScriptRequest, ViralData,
 } from "./types";
 
@@ -98,6 +98,9 @@ export const api = {
     refresh: (what: "all" | "channel" | "videos" | "analytics" = "all") =>
       request<YouTubeData>("POST", "/api/youtube/refresh", { what }),
     data: () => request<YouTubeData>("GET", "/api/youtube/data"),
+    retention: (videoId: string) =>
+      request<YouTubeCached<YouTubeReport & { video_id: string }>>("POST",
+        `/api/youtube/videos/${encodeURIComponent(videoId)}/retention`),
   },
   auth: {
     status: () => request<AuthStatus>("GET", "/api/auth/status"),
@@ -156,8 +159,12 @@ export const api = {
     competitors: () => request<CompetitorsData>("GET", "/api/youtube/public/competitors"),
     addCompetitor: (ref: string, note: string) =>
       request<CompetitorsData>("POST", "/api/youtube/public/competitors", { ref, note }),
-    refreshCompetitor: (id: string) =>
-      request<CompetitorsData>("POST", `/api/youtube/public/competitors/${encodeURIComponent(id)}/refresh`),
+    refreshCompetitor: (id: string, force = false) =>
+      request<CompetitorsData>("POST",
+        `/api/youtube/public/competitors/${encodeURIComponent(id)}/refresh${force ? "?force=true" : ""}`),
+    /** Cari channel berdasarkan nama — 100 unit kuota per pencarian. */
+    searchChannels: (query: string) =>
+      request<{ query: string; items: YouTubeChannel[] }>("POST", "/api/youtube/public/channels/search", { query }),
     removeCompetitor: (id: string) =>
       request<CompetitorsData>("DELETE", `/api/youtube/public/competitors/${encodeURIComponent(id)}`),
     viral: () => request<ViralData>("GET", "/api/youtube/public/viral"),

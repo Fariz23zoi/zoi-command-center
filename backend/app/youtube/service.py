@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import secrets
 import time
 from collections.abc import Callable
@@ -53,6 +54,7 @@ RECENT_VIDEOS = 25
 ANALYTICS_METRICS = "views,estimatedMinutesWatched,averageViewDuration,subscribersGained,subscribersLost"
 # Laporan per video: persentase tonton dihitung YOUTUBE (averageViewPercentage), bukan ZOI.
 VIDEO_METRICS = "views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage"
+RETENTION_TTL = timedelta(hours=12)
 # Rincian 28 hari (dimensi resmi YouTube Analytics API), metrik views.
 BREAKDOWNS = {"traffic_sources": "insightTrafficSourceType", "devices": "deviceType"}
 TIMEOUT = httpx.Timeout(connect=10.0, read=30.0, write=10.0, pool=10.0)
@@ -585,6 +587,27 @@ class YouTubeService:
             self._store("analytics", result)
         self._changed()
         return result
+
+    async def video_retention(self, video_id: str, *, force: bool = False) -> dict[str, Any]:
+        """Kurva audience retention satu video MILIK SENDIRI (YouTube Analytics, data berizin). Di-cache 12 jam."""
+        if not re.fullmatch(r"[A-Za-z0-9_-]{11}", video_id):
+            raise YouTubeError("ID video tidak valid.")
+        key = f"retention:{video_id}"
+        cached = self.cached(key)
+        if cached and not force and utcnow() - datetime.fromisoformat(cached["fetched_at"]) < RETENTION_TTL:
+            return cached
+        client = self._require()
+        end = date.today() - timedelta(days=1)
+        params = {"ids": "channel==MINE", "startDate": "2005-02-14", "endDate": end.isoformat(),
+                  "metrics": "audienceWatchRatio,relativeRetentionPerformance",
+                  "dimensions": "elapsedVideoTimeRatio", "filters": f"video=={video_id}",
+                  "sort": "elapsedVideoTimeRatio"}
+        async with self._lock:
+            data = await self._api_get(client, f"{self.ep.analytics_api}/reports", params, analytics=True)
+        headers = [h.get("name") for h in data.get("columnHeaders", [])]
+        rows = [dict(zip(headers, row, strict=False)) for row in data.get("rows", []) or []]
+        self._store(key, {"video_id": video_id, "columns": headers, "rows": rows})
+        return self.cached(key) or {}
 
     async def refresh_all(self) -> dict[str, Any]:
         await self.refresh_channel()
