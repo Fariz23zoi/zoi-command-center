@@ -16,6 +16,8 @@ export interface MenuItem {
 
 export const MENU: MenuItem[] = [
   { path: "/dashboard", group: "main", label: "Dashboard", phase: 3, ready: true, description: "Ringkasan channel YouTube-mu, aktivitas terbaru, dan akses cepat." },
+  { path: "/projects", group: "main", label: "Projects", phase: 3, ready: true, description: "Paket produksi video yang tersimpan di ZOI." },
+  { path: "/account", group: "system", label: "Account", phase: 3, ready: true, description: "Akses, login, dan akun terhubung." },
   { path: "/diagnostics", group: "system", label: "Diagnostics", phase: 1, ready: true, description: "Status sistem, penyedia AI, dan aplikasi terintegrasi." },
   { path: "/ai", group: "main", label: "AI Assistant", phase: 1, ready: true, description: "Percakapan dengan ZOI, dan agen yang menyusun rencana memakai tool (dengan izinmu)." },
   { path: "/analytics", group: "analytics", label: "Channel Analytics", phase: 6, ready: true, description: "Statistik channel-mu sendiri dari YouTube Data & Analytics API (OAuth resmi, hanya-baca)." },

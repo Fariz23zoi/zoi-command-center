@@ -1,5 +1,5 @@
 import {
-  Activity, BarChart3, Bot, Brain, ChevronRight, Clapperboard, Compass, Flame, Gauge, Home, LayoutDashboard,
+  Activity, BarChart3, FolderKanban, UserRound, Bot, Brain, ChevronRight, Clapperboard, Compass, Flame, Gauge, Home, LayoutDashboard,
   Lightbulb, ListChecks, type LucideIcon, Menu, PenLine, Scissors, Settings, Sparkles, Stethoscope, TrendingUp, Users,
   Wallet, Workflow, X,
 } from "lucide-react";
@@ -12,7 +12,7 @@ import { StatusDot } from "../ui";
 import "./universe.css";
 
 const ICONS: Record<string, LucideIcon> = {
-  "/dashboard": LayoutDashboard, "/ai": Bot, "/tasks": ListChecks, "/memory": Brain,
+  "/dashboard": LayoutDashboard, "/projects": FolderKanban, "/account": UserRound, "/ai": Bot, "/tasks": ListChecks, "/memory": Brain,
   "/analytics": BarChart3, "/competitors": Users, "/viral": Flame, "/trends": TrendingUp, "/performance": Gauge,
   "/monetization": Wallet, "/ideas": Lightbulb, "/script": PenLine, "/production": Clapperboard,
   "/automation": Workflow, "/clipper": Scissors, "/blueprint": Compass, "/diagnostics": Stethoscope,

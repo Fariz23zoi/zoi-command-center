@@ -6,7 +6,7 @@ import { MENU } from "../apps/web/src/menu";
 test.describe("sapu halaman di HP", () => {
   test.skip(() => !test.info().project.name.endsWith("mobile"), "khusus viewport HP");
 
-  for (const item of [...MENU, { path: "/settings/ai-cloud", label: "AI Cloud" }, { path: "/settings/youtube", label: "YouTube" }]) {
+  for (const item of [...MENU, { path: "/settings/ai-cloud", label: "AI Cloud" }, { path: "/settings/youtube", label: "YouTube" }, { path: "/", label: "Landing" }, { path: "/products", label: "Products" }, { path: "/about", label: "About" }]) {
     test(`${item.label} (${item.path})`, async ({ page }) => {
       const errors: string[] = [];
       page.on("pageerror", (e) => errors.push(String(e)));

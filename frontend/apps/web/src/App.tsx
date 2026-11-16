@@ -1,10 +1,15 @@
 import { api, connectEvents, type Preferences } from "@zoi/api-client";
 import { type ReactElement, useEffect } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 import { CommandCenter } from "./layout/CommandCenter";
 import { UniverseShell } from "./layout/UniverseShell";
+import { AccountPage } from "./pages/AccountPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { ProjectsPage } from "./pages/ProjectsPage";
+import {
+  AboutPage, ContactPage, LandingPage, ProductDetailPage, ProductsPage, PublicLayout, TechnologyPage,
+} from "./pages/public/PublicPages";
 import { MENU } from "./menu";
 import { AiLocalPage } from "./pages/AiLocalPage";
 import { AssistantPage } from "./pages/AssistantPage";
@@ -34,6 +39,8 @@ const DEFAULT_PREFS: Preferences = { ui_language: "id", avatar_mode_preference: 
 
 const READY_PAGES: Record<string, ReactElement> = {
   "/dashboard": <DashboardPage />,
+  "/projects": <ProjectsPage />,
+  "/account": <AccountPage />,
   "/diagnostics": <OverviewPage />,
   "/tasks": <TasksPage />,
   "/memory": <MemoryPage />,
@@ -74,7 +81,14 @@ export function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/products" element={<ProductsPage />} />
+        <Route path="/products/:id" element={<ProductDetailPage />} />
+        <Route path="/technology" element={<TechnologyPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+      </Route>
       {/* Workspace ZOI AI (chat + avatar). Phase 4 menggantinya dengan workspace khusus. */}
       <Route element={<CommandCenter />}>
         <Route path="/ai" element={<AssistantPage />} />
