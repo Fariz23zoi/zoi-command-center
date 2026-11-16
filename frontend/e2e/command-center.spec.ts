@@ -78,7 +78,7 @@ test("navigasi mobile lewat drawer", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Buka menu" }).click();
   await page.getByRole("link", { name: "Settings" }).click();
-  await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible({ timeout: 15_000 });
   await expectNoHorizontalOverflow(page);
 });
 

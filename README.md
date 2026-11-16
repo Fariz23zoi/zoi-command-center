@@ -1,10 +1,21 @@
 # ZOI — Command Center (YouTube Intelligence)
 
-Platform web lokal dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
-**ZERO PAID API · ZERO SUBSCRIPTION · LOCAL FIRST.** Lisensi: MIT.
+Platform web dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
+**ZERO PAID API · ZERO SUBSCRIPTION.** Lisensi: MIT. Versi **1.0.0** (Phase 1–10 selesai).
 
-> Status: **AI cloud gratis opsional** (di atas Phase 1–6B). Bawaan tetap lokal. Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
-> ditampilkan sebagai "Belum tersedia — Phase N", tanpa data contoh.
+> Bentuk akhir: **ZOI online** (Render + Neon, gratis) untuk dibuka dari HP — chat, analitik, kompetitor, tren,
+> ide, naskah, otomatisasi — dan **ZOI laptop** (mode local) untuk produksi konten: narasi, Blueprint Studio,
+> render. CLIPPER **ditunda** (yt-dlp bertentangan dengan ketentuan YouTube). Fitur yang tidak bisa berjalan
+> tanpa layanan berbayar ditandai "tidak tersedia", tidak pernah disimulasikan.
+
+## Mulai di sini
+
+1. **Online**: [`docs/DEPLOY_ONLINE.md`](docs/DEPLOY_ONLINE.md) — Neon → Render → kata sandi → API key AI →
+   (opsional) YouTube, otomatisasi, cadangan.
+2. **Laptop**: [`docs/MIGRATION_TO_LOCAL_SERVER.md`](docs/MIGRATION_TO_LOCAL_SERVER.md) — paket rilis ZIP,
+   `install.ps1`, `start.ps1`, lalu bagian 5e untuk produksi konten.
+3. Masalah: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md). Pemeriksaan keamanan:
+   [`docs/SECURITY_CHECKS.md`](docs/SECURITY_CHECKS.md). Keputusan desain: `docs/adr/`.
 
 ## Arsitektur singkat
 
@@ -12,9 +23,9 @@ Platform web lokal dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
 |---|---|---|
 | Frontend | `frontend/apps/web` | React + TypeScript + Vite. Di mode local disajikan backend sebagai file statis |
 | Avatar | `frontend/packages/avatar` | Paket terpisah. 2D (SVG) dan 3D (talking-avatar + three.js, aset lokal); renderer dipilih otomatis — lihat ADR 0005 |
-| Backend | `backend/app` | FastAPI, satu proses, bind `127.0.0.1` saja |
-| Database | `backend/app/db` | SQLite satu file di `ZOI_DATA_DIR`, migrasi Alembic, ekspor/impor ZIP berverifikasi |
-| Penyedia AI | `backend/app/providers` | `mock` (development, selalu berlabel MOCK) · `ollama` (local) · `none` |
+| Backend | `backend/app` | FastAPI, satu proses; `127.0.0.1` di laptop, `0.0.0.0` + login di mode online |
+| Database | `backend/app/db` | SQLite (laptop) atau Postgres/Neon (online), migrasi Alembic, cadangan ZIP berverifikasi |
+| Penyedia AI | `backend/app/providers` | `mock` (development, berlabel MOCK) · `ollama` (local) · `nvidia` + cadangan `openrouter` (gratis) · `none` |
 | Integrasi | `backend/app/integrations` | Adapter ZOI AI CLIPPER & Blueprint Studio — **read-only**, aplikasi asli tidak diubah |
 
 ## Tiga mode
@@ -66,11 +77,11 @@ python -m app.cli data import <file.zip>         # pulihkan (ZOI harus berhenti;
 python -m app.cli db upgrade | db status | backup
 ```
 
-## Yang sudah berfungsi (Phase 1–6B)
+## Yang sudah berfungsi (Phase 1–10)
 
 | Fitur | Status |
 |---|---|
-| Layout command center 5 zona, 16 menu, responsif 375–1440 px | ✅ |
+| Layout command center 5 zona, 17 menu, responsif 375–1440 px | ✅ |
 | Avatar 2D mengikuti 12 status nyata dari backend | ✅ |
 | Chat minimal (Mock di development, Ollama di local) dengan streaming | ✅ |
 | Task Manager: progress langsung, riwayat, pembatalan; tugas nyata "Pemeriksaan sistem" | ✅ |
@@ -102,19 +113,9 @@ python -m app.cli db upgrade | db status | backup
 | Performance: laporan per video channel sendiri dari YouTube Analytics | ✅ (diuji dengan Google tiruan) |
 | Skor viral, riwayat kompetitor, "waktu upload terbaik" | sengaja tidak dibuat (ADR 0010) |
 | **AI cloud gratis (opsional, bawaan mati):** NVIDIA NIM sebagai penyedia utama, OpenRouter (`:free` saja) sebagai cadangan otomatis; dipilih lewat `.env`; API key di Windows Credential Manager; label "AI cloud" di tiap jawaban | ✅ (diuji dengan server tiruan; layanan asli belum) |
-| CLIPPER/Blueprint penuh, automation | Phase 7–8 |
-
-## Pengujian
-
-```bash
-cd backend && .venv/bin/python -m pytest          # backend
-cd frontend && npm run lint && npm run typecheck && npm test
-cd frontend && E2E_CHROME=/path/ke/chrome npx playwright test   # E2E development + local
-backend/.venv/bin/python scripts/check_licenses.py              # lisensi semua dependensi
-```
-
-## Dokumen
-
-- `docs/audit/` — audit Phase 0 dan rencana Phase 1
-- `docs/adr/` — keputusan arsitektur (YouTube: `0009-youtube-akun-sendiri.md`, `0010-data-publik-dan-draf-konten.md`; AI cloud: `0011-ai-cloud-gratis.md`)
-- `THIRD_PARTY_NOTICES.md` — lisensi dependensi (dibuat otomatis)
+| **Mode online** (Render + Neon): login satu kata sandi, rahasia terenkripsi di database, PWA, tetap terjaga saat dipakai | ✅ (diuji dengan Postgres lokal; Render/Neon asli belum) |
+| YouTube versi web (OAuth *Web application*), unduh/pulihkan cadangan dari Settings, paket produksi dari naskah | ✅ (diuji dengan Google tiruan) |
+| **Content Production** (laptop): narasi Piper → WAV + SRT, salinan Blueprint Studio dengan tombol *Muat paket ZOI*, render kartu teks HyperFrames opsional | ✅ (Blueprint & HyperFrames diuji sungguhan; Piper dengan tiruan) |
+| **Automation**: laporan channel, pantau kompetitor/Trending, pengingat; jadwal WIB, susulan saat bangun, pembangun GitHub Actions, notifikasi di ZOI | ✅ (workflow belum diuji terhadap Render asli) |
+| Keamanan: pip-audit & npm audit 0 kerentanan, pemindai rahasia riwayat Git, HSTS/no-store, cakupan tes 93% | ✅ |
+| ZOI AI CLIPPER | ditunda — yt-dlp bertentangan dengan ketentuan YouTube; aplikasi tidak diubah |

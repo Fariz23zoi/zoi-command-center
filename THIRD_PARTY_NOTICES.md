@@ -9,6 +9,7 @@ Python: seluruh paket di venv backend (termasuk alat pengembangan). npm: depende
 | python | annotated-doc | 0.0.6 | MIT |
 | python | annotated-types | 0.8.0 | MIT |
 | python | anyio | 4.16.0 | MIT |
+| python | asn1crypto | 1.5.1 | MIT |
 | python | av | 18.0.0 | BSD-3-Clause |
 | python | boolean.py | 5.0 | BSD-2-Clause |
 | python | CacheControl | 0.14.4 | Apache-2.0 |
@@ -16,6 +17,7 @@ Python: seluruh paket di venv backend (termasuk alat pengembangan). npm: depende
 | python | cffi | 2.1.1 | MIT-0 |
 | python | charset-normalizer | 3.5.2 | MIT |
 | python | click | 8.5.1 | BSD-3-Clause |
+| python | coverage | 7.17.3 | Apache-2.0 |
 | python | cryptography | 50.0.2 | Apache-2.0 OR BSD-3-Clause |
 | python | ctranslate2 | 4.9.0 | MIT |
 | python | cyclonedx-python-lib | 11.12.0 | Apache-2.0 |
@@ -51,6 +53,7 @@ Python: seluruh paket di venv backend (termasuk alat pengembangan). npm: depende
 | python | opentelemetry-api | 1.45.2 | Apache-2.0 |
 | python | packageurl-python | 0.17.6 | MIT |
 | python | packaging | 26.3 | Apache-2.0 OR BSD-2-Clause |
+| python | pg8000 | 1.31.5 | BSD-3-Clause |
 | python | pip | 26.3 | MIT |
 | python | pip-requirements-parser | 32.0.1 | MIT |
 | python | pip_api | 0.0.35 | Apache-2.0 |
@@ -68,11 +71,13 @@ Python: seluruh paket di venv backend (termasuk alat pengembangan). npm: depende
 | python | pyparsing | 3.3.3 | MIT |
 | python | pytest | 9.2.0 | MIT |
 | python | pytest-asyncio | 1.5.0 | Apache-2.0 |
+| python | python-dateutil | 4.0.0 | BSD-3-Clause |
 | python | python-dotenv | 1.2.4 | BSD-3-Clause |
 | python | PyYAML | 6.0.3 | MIT |
 | python | requests | 2.34.2 | Apache-2.0 |
 | python | rich | 15.0.0 | MIT |
 | python | ruff | 0.17.5 | MIT |
+| python | scramp | 1.5.0 | MIT-0 |
 | python | SecretStorage | 3.5.0 | BSD-3-Clause |
 | python | sortedcontainers | 2.4.0 | Apache-2.0 |
 | python | SQLAlchemy | 2.1.8 | MIT |
