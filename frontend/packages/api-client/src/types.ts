@@ -101,7 +101,8 @@ export type ZoiEvent =
   | { type: "memory.updated"; at: string; payload: { id: string | null } }
   | { type: "youtube.updated"; at: string; payload: Record<string, never> }
   | { type: "content.updated"; at: string; payload: { id: string; kind: string | null } }
-  | { type: "production.updated"; at: string; payload: Record<string, never> };
+  | { type: "production.updated"; at: string; payload: Record<string, never> }
+  | { type: "automation.updated"; at: string; payload: { unread: number } };
 
 // ── AI lokal (Phase 3) ─────────────────────────────────────────────────────
 export type AiModelSource = "ui" | "env" | "none";
@@ -364,4 +365,27 @@ export interface ProductionStatus {
   hyperframes: { enabled: boolean; problems: string[]; node: string | null; ffmpeg: boolean; version: string | null;
     tested_version: string; browser: string | null; folder: string | null } | null;
   narration: { available: boolean; problem: string | null; mock: boolean; engine: string } | null;
+}
+
+export interface AutomationSchedule { frequency: "daily" | "weekly"; hour: number; minute: number; weekday: number }
+
+export interface AutomationRunInfo {
+  id: string; automation_id: string; task_id: string | null; trigger: "jadwal" | "susulan" | "manual" | "bangun";
+  late: boolean; status: "RUNNING" | "COMPLETED" | "FAILED" | "CANCELLED"; summary: string;
+  started_at: string; finished_at: string | null;
+}
+
+export interface AutomationInfo {
+  id: string; kind: string; kind_label: string; name: string; enabled: boolean; schedule: AutomationSchedule;
+  schedule_text: string; params: { text?: string }; next_due_at: string | null; last_run_at: string | null;
+  last_run: AutomationRunInfo | null;
+}
+
+export interface AutomationOverview {
+  items: AutomationInfo[]; kinds: Record<string, string>; runs: AutomationRunInfo[]; wake_enabled: boolean;
+  online: boolean; timezone: string;
+}
+
+export interface NotificationInfo {
+  id: string; kind: string; title: string; body: string; link: string | null; created_at: string; read: boolean;
 }

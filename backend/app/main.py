@@ -21,6 +21,7 @@ from app.ai.cloud import CloudAIService
 from app.ai.local import LocalAIService
 from app.ai.tasks import model_eval_kind
 from app.api.router import api_router, ws_router
+from app.automation.service import AutomationService
 from app.chat.service import ChatService
 from app.config.modes import CLOUD_HOSTS, RuntimeConfig, resolve_runtime
 from app.config.settings import Settings, load_settings
@@ -59,7 +60,7 @@ CLIENT_HEADER = "x-zoi-client"
 
 
 def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.5,
-               approval_timeout_s: float = 600.0) -> FastAPI:
+               approval_timeout_s: float = 600.0, scheduler_interval_s: float = 60.0) -> FastAPI:
     settings = settings or load_settings()
     runtime = resolve_runtime(settings)
 
@@ -110,14 +111,16 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
     production = ProductionService(data_dir=runtime.data_dir, blueprint_file=settings.blueprint_file,
                                    hyperframes_dir=settings.hyperframes_dir, voice=voice, content=content,
                                    available=not runtime.is_online, bus=bus)
+    automation = AutomationService(db=db, bus=bus, tasks=tasks, youtube=youtube, public=public)
     registry = build_registry(ToolDeps(memory=memory, tasks=tasks, provider=provider, adapters=adapters,
                                        data_dir=runtime.data_dir, is_mock=lambda: provider.is_mock,
-                                       youtube=youtube))
+                                       youtube=youtube, automation=automation))
     agent_service = AgentService(db=db, bus=bus, agent=agent, provider=provider, registry=registry, memory=memory,
                                  tasks=tasks, chat=chat, approval_timeout_s=approval_timeout_s)
     ctx = AppContext(settings=settings, runtime=runtime, db=db, bus=bus, agent=agent, guard=guard,
                      provider=provider, adapters=adapters, tasks=tasks, chat=chat,
                      voice=voice, memory=memory, agent_service=agent_service, production=production,
+                     automation=automation,
                      youtube=youtube, public=public, content=content,
                      cloud_ai=CloudAIService(provider=provider, store=secrets, bus=bus), auth=auth,
                      local_ai=LocalAIService(provider=provider, runtime=runtime, db=db, bus=bus, tasks=tasks,
@@ -138,14 +141,18 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
             tasks.register(kind)
         for kind in production.task_kinds(make_run_async(loop)):
             tasks.register(kind)
+        tasks.register(automation.task_kind(make_run_async(loop)))
         public.purge_expired()
         agent_service.recover()
+        automation.recover()
         recovered = tasks.recover_interrupted()
         log.info("zoi_started", version=__version__, mode=runtime.mode.value, provider=provider.name,
                  url=runtime.base_url, recovered_tasks=recovered, warnings=list(runtime.warnings))
+        scheduler = asyncio.create_task(_automation_loop(automation, scheduler_interval_s))
         try:
             yield
         finally:
+            scheduler.cancel()
             await youtube.cancel_connect()
             await chat.wait_idle()
             tasks.shutdown()
@@ -166,7 +173,8 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
             return JSONResponse(status_code=403, content={"error": {
                 "code": "missing_client_header", "message": "Permintaan ditolak: header X-ZOI-Client tidak ada."}})
         path = request.url.path
-        if auth.enabled and path.startswith("/api/") and not path.startswith(("/api/auth/", "/api/health")) \
+        if auth.enabled and path.startswith("/api/") \
+                and not path.startswith(("/api/auth/", "/api/health", "/api/automation/wake")) \
                 and not auth.check(request.cookies.get(SESSION_COOKIE)):
             return JSONResponse(status_code=401, content={"error": {
                 "code": "belum_login", "message": "Sesi tidak ada atau kedaluwarsa. Masuk dahulu."}})
@@ -194,6 +202,16 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
     _mount_blueprint(app, production)
     _mount_frontend(app, runtime)
     return app
+
+
+async def _automation_loop(automation: AutomationService, interval_s: float) -> None:
+    """Penjadwal Phase 8: cek jadwal jatuh tempo selagi ZOI bangun. Saat pertama jalan = susulan."""
+    while True:
+        try:
+            await asyncio.to_thread(automation.check_due, "jadwal")
+        except Exception:  # noqa: BLE001 — penjadwal tidak boleh mati karena satu kegagalan
+            log.exception("automation_check_failed")
+        await asyncio.sleep(interval_s)
 
 
 def _ws_sources(runtime: RuntimeConfig) -> str:

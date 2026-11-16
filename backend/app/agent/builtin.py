@@ -28,6 +28,7 @@ class ToolDeps:
     data_dir: Any
     is_mock: Callable[[], bool]
     youtube: YouTubeService | None = None
+    automation: Any = None
 
 
 class SearchArgs(BaseModel):
@@ -131,6 +132,17 @@ def build_registry(deps: ToolDeps) -> ToolRegistry:
 
     if deps.youtube is not None:
         _youtube_tools(add, deps.youtube)
+    if deps.automation is not None:
+        auto = deps.automation
+
+        @add("otomasi_daftar", "Daftar otomatisasi terjadwal (laporan, pantauan, pengingat) beserta jadwal dan hasil "
+             "terakhir. Hanya membaca.", Permission.READ)
+        async def _automations(_: NoArgs) -> dict[str, Any]:
+            return {"zona_waktu": "WIB", "otomatisasi": [
+                {"nama": a["name"], "jenis": a["kind_label"], "aktif": a["enabled"], "jadwal": a["schedule_text"],
+                 "berikutnya": a["next_due_at"],
+                 "terakhir": ({"status": a["last_run"]["status"], "ringkasan": a["last_run"]["summary"][:600]}
+                              if a["last_run"] else None)} for a in auto.list()]}
     return registry
 
 

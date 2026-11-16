@@ -195,6 +195,9 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
         warnings.append("ZOI_CLOUD_TEST_URL aktif — jawaban 'AI cloud' berasal dari SERVER UJI, bukan "
                         "NVIDIA/OpenRouter.")
 
+    if settings.wake_token and len(settings.wake_token) < 24:
+        raise ConfigError("ZOI_WAKE_TOKEN terlalu pendek — pakai teks acak minimal 24 karakter, atau kosongkan.")
+
     database_url = settings.database_url.strip()
     public_url = (settings.public_url.strip() or (os.environ.get("RENDER_EXTERNAL_URL", "") if online else "")
                   ).rstrip("/")

@@ -63,6 +63,8 @@ interface AppState {
   /** Naik setiap draf konten (ide/naskah) berubah (Phase 6B). */
   contentRevision: number;
   productionRevision: number;
+  automationRevision: number;
+  unreadNotifications: number;
   setAgentRuns(runs: AgentRunInfo[]): void;
   voiceStatus: VoiceStatus | null;
   voicePrefs: VoicePreferences | null;
@@ -107,6 +109,8 @@ export const useApp = create<AppState>((set) => ({
   youtubeRevision: 0,
   contentRevision: 0,
   productionRevision: 0,
+  automationRevision: 0,
+  unreadNotifications: 0,
   setAgentRuns: (runs) => set((s) => ({ agentRuns: mergeRuns(s.agentRuns, runs) })),
   voiceStatus: null,
   voicePrefs: null,
@@ -184,6 +188,8 @@ export const useApp = create<AppState>((set) => ({
           return { contentRevision: s.contentRevision + 1 };
         case "production.updated":
           return { productionRevision: s.productionRevision + 1 };
+        case "automation.updated":
+          return { automationRevision: s.automationRevision + 1, unreadNotifications: event.payload.unread };
         case "chat.message": {
           const { message } = event.payload;
           if (event.payload.conversation_id !== s.conversationId || s.messages.some((m) => m.id === message.id)) return {};

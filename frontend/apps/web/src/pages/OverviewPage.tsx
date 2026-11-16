@@ -1,5 +1,6 @@
 import { api, type SystemStatus } from "@zoi/api-client";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { formatBytes, formatTime } from "../lib/format";
 import { useApp } from "../stores/appStore";
@@ -10,6 +11,7 @@ export function OverviewPage() {
   const provider = useApp((s) => s.provider);
   const adapters = useApp((s) => s.adapters);
   const config = useApp((s) => s.config);
+  const unread = useApp((s) => s.unreadNotifications);
 
   useEffect(() => {
     api.systemStatus().then(setStatus).catch(() => setError("Status sistem tidak dapat dibaca dari backend."));
@@ -19,6 +21,11 @@ export function OverviewPage() {
     <section className="page">
       <h1>Overview</h1>
       {config?.warnings.map((w) => <p key={w} className="notice warn">{w}</p>)}
+      {unread > 0 && (
+        <p className="notice ok" data-testid="overview-notifications">
+          {unread} notifikasi otomatisasi belum dibaca — <Link to="/automation">buka Automation</Link>.
+        </p>
+      )}
 
       <h2>Sistem</h2>
       {error && <p className="notice bad">{error}</p>}

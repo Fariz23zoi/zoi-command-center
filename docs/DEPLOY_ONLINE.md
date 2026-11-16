@@ -85,7 +85,28 @@ pembayaran pada langkah mana pun — BERHENTI** dan jangan lanjutkan; laporkan d
 4. Klik **Download JSON**, lalu di ZOI **Settings › YouTube** pilih file itu → **Hubungkan akun YouTube**.
    File dan token disimpan terenkripsi di database. ZOI hanya meminta izin **baca**.
 
-## 6. Cadangan data
+## 6. Otomatisasi terjadwal (opsional)
+
+Render free tertidur saat sepi, jadi ZOI **selalu** menjalankan jadwal yang terlewat sekali saat bangun
+(label "terlambat"). Agar jadwal berjalan tepat waktu tanpa membuka ZOI, pasang workflow pembangun:
+
+1. Di Render › service ZOI › **Environment**, tambahkan `ZOI_WAKE_TOKEN` (klik **Generate**), lalu
+   **Save Changes**. Salin nilainya.
+2. Di GitHub, repo `zoi-command-center` › **Settings › Secrets and variables › Actions › New repository
+   secret**: buat `ZOI_URL` (alamat ZOI-mu, tanpa `/` di akhir) dan `ZOI_WAKE_TOKEN` (nilai dari langkah 1).
+3. Buka tab **Actions › ZOI bangun › Run workflow** untuk uji. Hasil sukses berisi `{"ok":true,...}`.
+4. Workflow berjalan 07.05, 12.05, dan 19.05 WIB (ubah jam di `.github/workflows/zoi-wake.yml`). Atur jam
+   otomatisasi di ZOI **sedikit sebelum** jam bangun itu (mis. laporan 07.00).
+
+Catatan jujur:
+- Jadwal GitHub bisa terlambat beberapa menit. Setiap jalan memakai ±1–2 menit kuota Actions.
+- Ada laporan (tidak resmi, belum terverifikasi) bahwa jadwal `schedule` tidak berjalan di repo **privat**
+  akun gratis. Bila tombol **Run workflow** berhasil tetapi jadwal tidak pernah jalan sendiri: buat repo
+  **publik** kecil terpisah berisi file workflow ini saja, isi dua Secrets yang sama di repo itu (Secrets tetap
+  rahasia walau repo publik). Repo publik yang tidak ada aktivitas 60 hari akan dimatikan jadwalnya oleh GitHub —
+  buka tab Actions dan aktifkan lagi bila itu terjadi.
+
+## 7. Cadangan data
 
 **Settings › Cadangan data › Unduh cadangan** menghasilkan satu file `.zip` (chat, memori, tugas, draf,
 data YouTube). API key, akun YouTube, dan kata sandi **tidak pernah** ikut. Unduh berkala — layanan gratis

@@ -14,6 +14,8 @@ services:
         generateValue: true        # kunci enkripsi rahasia di database — dibuat otomatis oleh Render
       - key: ZOI_SETUP_TOKEN
         generateValue: true        # token sekali pakai untuk membuat kata sandi login pertama
+      - key: ZOI_WAKE_TOKEN
+        generateValue: true        # untuk workflow GitHub Actions "ZOI bangun" (salin ke Secrets repo)
       - key: ZOI_DATABASE_URL
         sync: false                # diisi manual: connection string Neon (postgresql://...)
       - key: ZOI_AI_PROVIDER

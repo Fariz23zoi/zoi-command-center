@@ -189,3 +189,10 @@ textarea { width: 100%; max-width: 100%; font: inherit; color: inherit; backgrou
 .auth-card h1 { margin: 0; }
 .auth-card label { display: grid; gap: 0.3rem; font-size: 0.9rem; }
 .auth-card input { font-size: 1rem; }
+
+/* ── Notifikasi otomatisasi (Phase 8) ───────────────────────────────────── */
+.notifications { list-style: none; padding: 0; margin: 0.5rem 0 1rem; display: grid; gap: 0.4rem; }
+.notifications li { border: 1px solid var(--border, #2a2f3a); border-radius: 8px; padding: 0.5rem 0.75rem; }
+.notifications li.unread { border-color: var(--accent, #4f8cff); }
+.notifications summary { cursor: pointer; }
+.note-body { white-space: pre-wrap; font: inherit; margin: 0.5rem 0; overflow-wrap: anywhere; }

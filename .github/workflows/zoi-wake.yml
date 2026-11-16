@@ -1,0 +1,42 @@
+# Membangunkan ZOI online (Render free tertidur saat sepi) agar otomatisasi terjadwal berjalan (Phase 8, ADR 0014).
+# Butuh dua Secrets di repo ini (Settings › Secrets and variables › Actions):
+#   ZOI_URL         alamat ZOI, mis. https://zoi-xxxx.onrender.com (tanpa garis miring di akhir)
+#   ZOI_WAKE_TOKEN  nilai ZOI_WAKE_TOKEN dari Environment di Render
+# Jadwal GitHub memakai UTC dan bisa terlambat beberapa menit. Ubah jam di bawah sesuai jadwal otomatisasimu.
+name: ZOI bangun
+on:
+  schedule:
+    - cron: "5 0 * * *"    # 07.05 WIB
+    - cron: "5 5 * * *"    # 12.05 WIB
+    - cron: "5 12 * * *"   # 19.05 WIB
+  workflow_dispatch: {}
+permissions: {}
+concurrency:
+  group: zoi-wake
+  cancel-in-progress: false
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Bangunkan ZOI dan jalankan jadwal yang jatuh tempo
+        env:
+          ZOI_URL: ${{ secrets.ZOI_URL }}
+          ZOI_WAKE_TOKEN: ${{ secrets.ZOI_WAKE_TOKEN }}
+        run: |
+          if [ -z "$ZOI_URL" ] || [ -z "$ZOI_WAKE_TOKEN" ]; then
+            echo "::error::Secrets ZOI_URL dan ZOI_WAKE_TOKEN belum diisi."
+            exit 1
+          fi
+          for attempt in 1 2 3 4 5 6; do
+            code=$(curl -sS -o response.json -w '%{http_code}' --max-time 90 -X POST "${ZOI_URL%/}/api/automation/wake" \
+              -H "Authorization: Bearer ${ZOI_WAKE_TOKEN}" -H "X-ZOI-Client: web" || echo 000)
+            if [ "$code" = "200" ]; then
+              cat response.json; echo
+              exit 0
+            fi
+            echo "Percobaan ${attempt}: HTTP ${code} — menunggu ZOI bangun (Render free butuh ±1 menit)…"
+            sleep 20
+          done
+          echo "::error::ZOI tidak menjawab. Periksa alamat, token, dan status layanan di Render."
+          exit 1
