@@ -205,13 +205,33 @@ Buka `http://127.0.0.1` lalu:
 - [ ] (Opsional) Jalankan tes roundtrip suara: `ZOI_TEST_WHISPER_DIR=… ZOI_TEST_PIPER_URL=http://127.0.0.1:5000
       python -m pytest tests/test_voice.py -k real`
 
+- [ ] (Bila Blueprint diisi) Content Production → **Buat salinan** → impor paket dari halaman Naskah →
+      **Buka di Blueprint Studio** → topik, durasi, rasio, beat terisi. File asli Blueprint tidak berubah
+- [ ] (Bila Piper dipasang) Content Production → **Buat narasi** → unduh WAV dan SRT; putar WAV-nya
+- [ ] (Bila HyperFrames dipasang) **Render kartu teks** → catat lamanya di laptop ini → putar `video.mp4`
+- [ ] Automation → buat **Pengingat produksi** → **Jalankan sekarang** → notifikasi muncul
+- [ ] Settings › **Unduh cadangan** → simpan file .zip di tempat aman
+
 Opsional: `deploy\windows\autostart.ps1` agar ZOI berjalan otomatis saat login.
+
+## 8. Memperbarui ke versi baru
+
+1. Unduh cadangan dari Settings (atau `python -m app.cli data export`).
+2. Hentikan ZOI: `deploy\windows\stop.ps1`.
+3. Ekstrak paket baru ke folder **baru** (mis. `C:\ZOI\zoi-command-center-1.0.0`), salin `.env` dan folder
+   `data` dari folder lama.
+4. Jalankan `install.ps1` lalu `start.ps1`. Database dinaikkan otomatis ke skema baru; salinan database lama
+   disimpan dulu di `data\backups`. Bila gagal, folder lama masih utuh — jalankan dari sana.
+
+Masalah umum: lihat [`docs/TROUBLESHOOTING.md`](TROUBLESHOOTING.md).
 
 ## Catatan jujur
 
 - Skrip PowerShell belum pernah dijalankan di Windows sungguhan (lingkungan pengembangan tidak memiliki
   PowerShell). Laporkan baris error apa pun saat migrasi; perbaikan dilakukan sebelum Phase 2 dianggap selesai.
 - Kode backend dan frontend sudah diuji otomatis di Linux, termasuk E2E dalam mode local pada satu port.
+- Paket rilis 1.0.0 diuji dengan instalasi bersih di Linux (venv baru, mode local, SQLite): halaman terbuka,
+  salinan Blueprint dari file aslimu dibuat, dan render HyperFrames menghasilkan video.
 - AI cloud (NVIDIA NIM, OpenRouter) diuji terhadap server **tiruan** bergaya OpenAI; belum pernah dipanggil sungguhan.
 - Integrasi YouTube diuji terhadap server Google **tiruan**. Bentuk respons mengikuti dokumentasi resmi, tetapi
   belum pernah dibandingkan dengan respons Google sungguhan, dan `keyring` belum pernah dijalankan di Windows.
