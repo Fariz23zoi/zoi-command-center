@@ -137,6 +137,18 @@ class Settings(BaseSettings):
     def _upper_log_level(cls, value: object) -> object:
         return value.upper() if isinstance(value, str) else value
 
+    # Hosting yang mewajibkan setiap variabel terisi (mis. SnapDeploy): "-" berarti "tidak diisi".
+    @field_validator("clipper_dir", "clipper_python", "blueprint_file", "hyperframes_dir", "whisper_model_dir",
+                     mode="before")
+    @classmethod
+    def _dash_path(cls, value: object) -> object:
+        return None if isinstance(value, str) and value.strip() in {"", "-"} else value
+
+    @field_validator("ollama_model", "extra_allowed_hosts", mode="before")
+    @classmethod
+    def _dash_text(cls, value: object) -> object:
+        return "" if isinstance(value, str) and value.strip() == "-" else value
+
     @field_validator("ollama_model", "nvidia_model", "openrouter_model")
     @classmethod
     def _strip_model(cls, value: str) -> str:

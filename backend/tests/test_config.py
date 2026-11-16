@@ -98,3 +98,15 @@ def test_example_env_files_are_valid():
     for name in (".env.development.example", ".env.local.example"):
         settings = load_settings(REPO_ROOT / name, use_process_env=False)
         resolve_runtime(settings)
+
+
+def test_dash_means_unset_for_optional_variables(monkeypatch):
+    # SnapDeploy mewajibkan semua variabel yang ditemukan di repo terisi; "-" = tidak diisi.
+    from app.config.settings import Settings
+    for name in ("ZOI_CLIPPER_DIR", "ZOI_CLIPPER_PYTHON", "ZOI_BLUEPRINT_FILE", "ZOI_HYPERFRAMES_DIR",
+                 "ZOI_WHISPER_MODEL_DIR", "ZOI_OLLAMA_MODEL", "ZOI_EXTRA_ALLOWED_HOSTS"):
+        monkeypatch.setenv(name, "-")
+    s = Settings(_env_file=None)
+    assert s.clipper_dir is None and s.clipper_python is None and s.blueprint_file is None
+    assert s.hyperframes_dir is None and s.whisper_model_dir is None
+    assert s.ollama_model == "" and s.extra_hosts == []
