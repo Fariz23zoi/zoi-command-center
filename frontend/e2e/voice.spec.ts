@@ -33,7 +33,7 @@ test("development: bicara → transkrip MOCK masuk kotak pesan, tidak langsung d
   test.skip(isLocal(), "khusus development");
   const external = watchExternal(page);
   await setAvatar(page, "2d");
-  await page.goto("/");
+  await page.goto("/ai");
   const mic = page.getByTestId("mic-button");
   await expect(mic).toBeEnabled();
   await mic.click();
@@ -49,7 +49,7 @@ test("development: jawaban dibacakan, Berhenti menghentikan suara", async ({ pag
   test.skip(isLocal(), "khusus development");
   await setAvatar(page, "2d");
   await setVoice(page, { speak_replies: true });
-  await page.goto("/");
+  await page.goto("/ai");
   await expect(page.getByTestId("ws-status")).toHaveText("Tersambung", { timeout: 15_000 });
   await page.getByLabel("Pesan untuk ZOI").fill("halo ZOI");
   await page.getByRole("button", { name: "Kirim" }).click();
@@ -61,7 +61,7 @@ test("development: jawaban dibacakan, Berhenti menghentikan suara", async ({ pag
 
 test("local: tanpa model Whisper tombol mikrofon mati dengan alasan", async ({ page }) => {
   test.skip(!isLocal(), "khusus local");
-  await page.goto("/");
+  await page.goto("/ai");
   const mic = page.getByTestId("mic-button");
   await expect(mic).toBeDisabled();
   await expect(mic).toHaveAttribute("title", /ZOI_WHISPER_MODEL_DIR/);

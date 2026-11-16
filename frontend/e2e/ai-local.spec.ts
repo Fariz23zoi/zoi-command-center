@@ -49,7 +49,7 @@ test("AI Lokal di local: model dari Ollama, pilih model aktif, model cloud ditol
 
 test("tombol Berhenti menghentikan jawaban yang sedang ditulis", async ({ page }) => {
   test.skip(!isLocal(), "khusus local (Ollama tiruan yang lambat)");
-  await page.goto("/");
+  await page.goto("/ai");
   await expect(page.getByTestId("ws-status")).toHaveText("Tersambung", { timeout: 15_000 });
   await page.getByLabel("Pesan untuk ZOI").fill("ceritakan panjang /uji-lambat");
   await page.getByRole("button", { name: "Kirim" }).click();

@@ -70,7 +70,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("input suara", () => {
   it("rekam → transkrip masuk kotak pesan (tidak langsung dikirim), avatar mendengarkan", async () => {
-    const fetchFn = renderApp("/", voiceStatus(), {
+    const fetchFn = renderApp("/ai", voiceStatus(), {
       "/api/voice/transcribe": { text: "[MOCK] transkrip suara tiruan", language: "id", audio_seconds: 1,
         elapsed_seconds: 0.1, is_mock: true },
     });
@@ -89,7 +89,7 @@ describe("input suara", () => {
   });
 
   it("pengenal suara tidak tersedia → tombol mati dengan alasan", async () => {
-    renderApp("/", voiceStatus({ stt: { name: "whisper", is_mock: false, available: false,
+    renderApp("/ai", voiceStatus({ stt: { name: "whisper", is_mock: false, available: false,
       detail: "ZOI_WHISPER_MODEL_DIR belum diisi.", model: null } }));
     const mic = await screen.findByTestId("mic-button");
     await waitFor(() => expect(mic).toHaveAttribute("title", "ZOI_WHISPER_MODEL_DIR belum diisi."));
@@ -99,7 +99,7 @@ describe("input suara", () => {
   it("izin mikrofon ditolak → pesan jelas", async () => {
     Object.defineProperty(navigator, "mediaDevices", { configurable: true,
       value: { getUserMedia: vi.fn(async () => { throw new DOMException("no", "NotAllowedError"); }) } });
-    renderApp("/", voiceStatus());
+    renderApp("/ai", voiceStatus());
     const mic = await screen.findByTestId("mic-button");
     await waitFor(() => expect(mic).toBeEnabled());
     fireEvent.click(mic);

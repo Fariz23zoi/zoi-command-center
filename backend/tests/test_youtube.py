@@ -191,7 +191,7 @@ def test_connect_refresh_and_read(yt, google):
     assert analytics["last_365_days"]["rows"][0]["estimatedMinutesWatched"] == 365 * 330
     assert len(data["history"]) == 1 and data["history"][0]["subscriber_count"] == 1530
     # 1 unit saat menghubungkan + channel/playlistItems/videos; laporan Analytics dihitung terpisah.
-    assert data["quota"]["units_used"] == 4 and data["quota"]["analytics_calls"] == 4
+    assert data["quota"]["units_used"] == 4 and data["quota"]["analytics_calls"] == 7
     by_video = analytics["by_video"]
     assert by_video["columns"] == ["video", "views", "estimatedMinutesWatched", "averageViewDuration",
                                    "averageViewPercentage"]
@@ -293,6 +293,15 @@ def test_analytics_scope_not_granted_is_reported(yt, google):
     data = yt.post("/api/youtube/refresh", json={}).json()
     assert "Izin YouTube Analytics tidak diberikan" in data["analytics"]["payload"]["error"]
     assert google.count("/v2/reports") == 0 and data["channel"]["payload"]["subscriber_count"] == 1530
+
+
+def test_dashboard_breakdowns(yt, google):
+    connect(yt)
+    payload = yt.post("/api/youtube/refresh", json={}).json()["analytics"]["payload"]
+    assert payload["traffic_sources"]["rows"][0] == {"insightTrafficSourceType": "YT_SEARCH", "views": 500}
+    assert payload["devices"]["rows"][0] == {"deviceType": "MOBILE", "views": 700}
+    prev = payload["previous_28_days"]
+    assert prev["end"] < payload["last_28_days"]["start"] and "breakdown_error" not in payload
 
 
 def test_analytics_failure_does_not_hide_channel_data(yt, google):

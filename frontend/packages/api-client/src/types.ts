@@ -258,6 +258,7 @@ export interface YouTubeReport {
 export interface YouTubeAnalytics {
   error?: string; last_28_days?: YouTubeReport; daily?: YouTubeReport; last_365_days?: YouTubeReport;
   by_video?: YouTubeReport; by_video_error?: string;
+  previous_28_days?: YouTubeReport; traffic_sources?: YouTubeReport; devices?: YouTubeReport; breakdown_error?: string;
 }
 
 export interface YouTubeCached<T> { payload: T; fetched_at: string }

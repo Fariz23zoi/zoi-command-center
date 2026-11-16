@@ -9,7 +9,7 @@ async function noHorizontalOverflow(page: Page) {
 }
 
 async function plan(page: Page, text: string) {
-  await page.goto("/");
+  await page.goto("/ai");
   await expect(page.getByTestId("ws-status")).toHaveText("Tersambung", { timeout: 15_000 });
   await page.getByLabel("Pesan untuk ZOI").fill(text);
   await page.getByTestId("plan-button").click();
@@ -69,7 +69,7 @@ test("development: rencana MOCK → jalankan → izin → memori tersimpan", asy
 
 test("development: /agen dengan tool terlarang ditolak jujur, tidak bisa dijalankan", async ({ page }) => {
   test.skip(isLocal(), "khusus development");
-  await page.goto("/");
+  await page.goto("/ai");
   await expect(page.getByTestId("ws-status")).toHaveText("Tersambung", { timeout: 15_000 });
   await page.getByLabel("Pesan untuk ZOI").fill("/agen unggah video /uji-rencana-rusak");
   await page.getByRole("button", { name: "Kirim" }).click();

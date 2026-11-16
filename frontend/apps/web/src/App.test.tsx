@@ -10,7 +10,7 @@ import { config, FakeWebSocket, mockFetch } from "./test/helpers";
 const provider = { name: "mock", available: true, is_mock: true, model: "mock-scripted", detail: "Mock", models: [],
   checked_at: "2026-11-14T00:00:00Z" };
 
-function renderApp(path = "/", cfg = config()) {
+function renderApp(path = "/ai", cfg = config()) {
   mockFetch({
     "/api/config": cfg, "/api/tasks": { tasks: [] }, "/api/provider/status": provider,
     "/api/adapters": { adapters: [] }, "/api/conversations": { conversations: [] },
@@ -28,11 +28,11 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Command Center", () => {
-  it("menampilkan 17 menu", async () => {
+  it("menampilkan 18 menu", async () => {
     renderApp();
     const nav = screen.getByRole("navigation", { name: "Menu utama" });
-    expect(within(nav).getAllByRole("link")).toHaveLength(17);
-    expect(MENU).toHaveLength(17);
+    expect(within(nav).getAllByRole("link")).toHaveLength(18);
+    expect(MENU).toHaveLength(18);
   });
 
   it("banner development tampil di mode development", async () => {
@@ -41,7 +41,7 @@ describe("Command Center", () => {
   });
 
   it("banner tidak tampil di mode local", async () => {
-    renderApp("/", config({ mode: "local", banner: null, provider: "ollama", is_mock: false }));
+    renderApp("/ai", config({ mode: "local", banner: null, provider: "ollama", is_mock: false }));
     await waitFor(() => expect(useApp.getState().config?.mode).toBe("local"));
     expect(screen.queryByTestId("dev-banner")).not.toBeInTheDocument();
   });
@@ -74,7 +74,7 @@ describe("Command Center", () => {
     mockFetch({ "/api/chat": { conversation_id: "c1", user_message: user, assistant_message: assistant } });
     fireEvent.change(screen.getByLabelText("Pesan untuk ZOI"), { target: { value: "halo" } });
     fireEvent.click(screen.getByRole("button", { name: "Kirim" }));
-    await screen.findByTestId("mock-badge");
+    expect((await screen.findAllByTestId("mock-badge")).length).toBeGreaterThan(0);
     const ws = FakeWebSocket.instances[0];
     act(() => ws.emit({ type: "chat.delta", at: "", payload: { conversation_id: "c1", message_id: "a1", text: "[MOCK] Halo" } }));
     expect(screen.getAllByText("[MOCK] Halo").length).toBeGreaterThan(0);
@@ -86,7 +86,7 @@ describe("Command Center", () => {
   });
 
   it("Settings: server memaksa 2D → pilihan avatar dikunci dan dijelaskan", async () => {
-    renderApp("/settings", config({ avatar_mode: "2d" }));
+    renderApp("/ai/settings", config({ avatar_mode: "2d" }));
     expect(await screen.findByLabelText("Avatar")).toBeDisabled();
     expect(screen.getByText(/Server memaksa 2D/)).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId("avatar-renderer")).toHaveTextContent("2d"));
@@ -94,7 +94,7 @@ describe("Command Center", () => {
   });
 
   it("Settings: tanpa WebGL 2 avatar memakai 2D dengan catatan jujur", async () => {
-    renderApp("/settings");
+    renderApp("/ai/settings");
     await waitFor(() => expect(screen.getByTestId("avatar-renderer")).toHaveTextContent("2d"));
     expect(screen.getAllByText(/tidak mendukung WebGL 2/).length).toBeGreaterThan(0);
     expect(screen.getByLabelText("Karakter 3D")).toHaveValue("female");

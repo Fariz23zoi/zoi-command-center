@@ -13,7 +13,7 @@ async function send(page: Page, text: string) {
 }
 
 test("command center terbuka, tersambung, tanpa geser horizontal", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/ai");
   await expect(page.getByTestId("ws-status")).toHaveText("Tersambung", { timeout: 15_000 });
   await expect(page.getByRole("img", { name: /Avatar ZOI/ })).toBeVisible();
   if (isLocal()) {
@@ -25,7 +25,7 @@ test("command center terbuka, tersambung, tanpa geser horizontal", async ({ page
 });
 
 test("chat: development memakai mock berlabel, local tidak pernah mock", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/ai");
   await expect(page.getByTestId("ws-status")).toHaveText("Tersambung", { timeout: 15_000 });
   await send(page, "halo ZOI");
   const reply = page.getByTestId("msg-assistant").last();
@@ -75,7 +75,7 @@ test("content production: impor paket lalu tampil dengan tautan Blueprint", asyn
 
 test("navigasi mobile lewat drawer", async ({ page }) => {
   test.skip(!test.info().project.name.endsWith("mobile"), "khusus viewport HP");
-  await page.goto("/");
+  await page.goto("/ai");
   await page.getByRole("button", { name: "Buka menu" }).click();
   await page.getByRole("link", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible({ timeout: 15_000 });

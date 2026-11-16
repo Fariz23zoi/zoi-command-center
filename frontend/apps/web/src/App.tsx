@@ -1,8 +1,10 @@
 import { api, connectEvents, type Preferences } from "@zoi/api-client";
 import { type ReactElement, useEffect } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import { CommandCenter } from "./layout/CommandCenter";
+import { UniverseShell } from "./layout/UniverseShell";
+import { DashboardPage } from "./pages/DashboardPage";
 import { MENU } from "./menu";
 import { AiLocalPage } from "./pages/AiLocalPage";
 import { AssistantPage } from "./pages/AssistantPage";
@@ -31,8 +33,8 @@ import { useApp } from "./stores/appStore";
 const DEFAULT_PREFS: Preferences = { ui_language: "id", avatar_mode_preference: "auto", avatar_character: "female" };
 
 const READY_PAGES: Record<string, ReactElement> = {
-  "/": <OverviewPage />,
-  "/assistant": <AssistantPage />,
+  "/dashboard": <DashboardPage />,
+  "/diagnostics": <OverviewPage />,
   "/tasks": <TasksPage />,
   "/memory": <MemoryPage />,
   "/analytics": <AnalyticsPage />,
@@ -72,8 +74,15 @@ export function App() {
 
   return (
     <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      {/* Workspace ZOI AI (chat + avatar). Phase 4 menggantinya dengan workspace khusus. */}
       <Route element={<CommandCenter />}>
-        {MENU.map((item) => (
+        <Route path="/ai" element={<AssistantPage />} />
+        <Route path="/assistant" element={<AssistantPage />} />
+        <Route path="/ai/settings" element={<SettingsPage />} />
+      </Route>
+      <Route element={<UniverseShell />}>
+        {MENU.filter((item) => item.path !== "/ai").map((item) => (
           <Route
             key={item.path}
             path={item.path}

@@ -40,7 +40,7 @@ test("avatar 3D: aset lokal, tanpa permintaan keluar, lip-sync dari file perangk
   page.on("console", (msg) => { if (msg.type() === "error") consoleErrors.push(msg.text()); });
 
   await setAvatarPref(page, "3d", "male");
-  await page.goto("/settings");
+  await page.goto("/ai/settings");
   await expect(page.getByTestId("avatar-renderer")).toHaveText("3d");
   const canvas = page.getByTestId("avatar-3d-canvas").locator("canvas");
   // SwiftShader (WebGL lewat CPU) bisa membekukan halaman beberapa detik saat model dimuat di mesin 2 core.
@@ -58,7 +58,7 @@ test("avatar 3D: aset lokal, tanpa permintaan keluar, lip-sync dari file perangk
 
 test("preferensi 2D: tidak ada kanvas WebGL sama sekali", async ({ page }) => {
   await setAvatarPref(page, "2d");
-  await page.goto("/settings");
+  await page.goto("/ai/settings");
   await expect(page.getByTestId("avatar-renderer")).toHaveText("2d");
   await expect(page.locator("canvas")).toHaveCount(0);
 });

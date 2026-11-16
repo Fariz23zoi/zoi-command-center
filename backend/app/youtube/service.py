@@ -53,6 +53,8 @@ RECENT_VIDEOS = 25
 ANALYTICS_METRICS = "views,estimatedMinutesWatched,averageViewDuration,subscribersGained,subscribersLost"
 # Laporan per video: persentase tonton dihitung YOUTUBE (averageViewPercentage), bukan ZOI.
 VIDEO_METRICS = "views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage"
+# Rincian 28 hari (dimensi resmi YouTube Analytics API), metrik views.
+BREAKDOWNS = {"traffic_sources": "insightTrafficSourceType", "devices": "deviceType"}
 TIMEOUT = httpx.Timeout(connect=10.0, read=30.0, write=10.0, pool=10.0)
 YPP_FILE = Path(__file__).resolve().parent / "ypp.json"
 
@@ -530,9 +532,11 @@ class YouTubeService:
             return await self._api_get(client, f"{self.ep.data_api}/{path}", params, search=search)
 
     async def _report(self, client: ClientConfig, start: date, end: date, *, daily: bool = False,
-                      by_video: bool = False) -> dict[str, Any]:
+                      by_video: bool = False, breakdown: str | None = None) -> dict[str, Any]:
         params = {"ids": "channel==MINE", "startDate": start.isoformat(), "endDate": end.isoformat(),
                   "metrics": VIDEO_METRICS if by_video else ANALYTICS_METRICS}
+        if breakdown:
+            params |= {"dimensions": breakdown, "metrics": "views", "sort": "-views"}
         if daily:
             params |= {"dimensions": "day", "sort": "day"}
         if by_video:
@@ -568,6 +572,16 @@ class YouTubeService:
                     raise
                 except YouTubeError as exc:
                     result["by_video_error"] = exc.message
+                # Pembanding & rincian untuk dashboard — gagal di sini tidak menyembunyikan laporan utama.
+                try:
+                    result["previous_28_days"] = await self._report(client, end - timedelta(days=55),
+                                                                    end - timedelta(days=28))
+                    for key, dim in BREAKDOWNS.items():
+                        result[key] = await self._report(client, end - timedelta(days=27), end, breakdown=dim)
+                except NeedsReauth:
+                    raise
+                except YouTubeError as exc:
+                    result["breakdown_error"] = exc.message
             self._store("analytics", result)
         self._changed()
         return result

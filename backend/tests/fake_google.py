@@ -230,6 +230,14 @@ class FakeGoogle:
                     return js(200, {"columnHeaders": columns,
                                     "rows": [["vidAAAAAAA1", 900, 2700, 180, 42.5], ["vidAAAAAAA2", 210, 120, 34, 76.1],
                                              ["vidHAPUS0001", 12, 9, 45, 20.0]]})
+                if query.get("dimensions") in ("insightTrafficSourceType", "deviceType"):
+                    if query.get("metrics") != "views" or query.get("sort") != "-views":
+                        return js(400, {"error": {"code": 400, "message": "bad breakdown", "errors": []}})
+                    dim = query["dimensions"]
+                    traffic = [["YT_SEARCH", 500], ["SUGGESTED", 300], ["EXT_URL", 50]]
+                    rows = traffic if dim == "insightTrafficSourceType" else [["MOBILE", 700], ["DESKTOP", 150]]
+                    return js(200, {"columnHeaders": [{"name": dim, "columnType": "DIMENSION"},
+                                                      {"name": "views", "columnType": "METRIC"}], "rows": rows})
                 if query.get("ids") != "channel==MINE" or query.get("metrics", "").split(",") != METRICS:
                     return js(400, {"error": {"code": 400, "message": "bad report query", "errors": []}})
                 start, end = date.fromisoformat(query["startDate"]), date.fromisoformat(query["endDate"])
