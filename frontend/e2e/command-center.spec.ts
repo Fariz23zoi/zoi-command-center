@@ -52,12 +52,13 @@ test("task manager: pemeriksaan sistem berjalan sampai selesai", async ({ page }
   await expectNoHorizontalOverflow(page);
 });
 
-test("CLIPPER yang ditunda dijelaskan jujur, tanpa angka", async ({ page }) => {
+test("CLIPPER: belum dikonfigurasi → tombol jalankan mati dengan alasan, peringatan yt-dlp tampil", async ({ page }) => {
   await page.goto("/clipper");
-  const box = page.getByTestId("not-yet-available");
-  await expect(box).toContainText("Ditunda");
+  const box = page.getByTestId("clipper-page");
   await expect(box).toContainText("yt-dlp");
-  expect((await box.textContent())!.replace(/Phase \d+/g, "")).not.toMatch(/\d/);
+  await expect(page.getByTestId("clipper-state")).toHaveText("Server CLIPPER mati.");
+  await expect(box.getByRole("button", { name: "Jalankan CLIPPER" })).toBeDisabled();
+  await expect(box).toContainText("ZOI_CLIPPER_DIR");
 });
 
 test("content production: impor paket lalu tampil dengan tautan Blueprint", async ({ page }) => {

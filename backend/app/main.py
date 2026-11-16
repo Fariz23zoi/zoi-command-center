@@ -155,6 +155,9 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
         finally:
             scheduler.cancel()
             await youtube.cancel_connect()
+            for adapter in adapters:
+                if hasattr(adapter, "stop"):
+                    adapter.stop()
             await chat.wait_idle()
             tasks.shutdown()
             db.dispose()
@@ -283,6 +286,7 @@ def _mount_frontend(app: FastAPI, runtime: RuntimeConfig) -> None:
             response: Response = FileResponse(target)
         else:
             response = FileResponse(index)
+            response.headers["Cache-Control"] = "no-cache"  # index.html selalu dicek ulang → update langsung terlihat
         response.headers["Content-Security-Policy"] = csp
         return response
 

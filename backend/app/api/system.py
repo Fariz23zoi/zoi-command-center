@@ -10,6 +10,7 @@ from sqlalchemy import select
 
 from app import __version__
 from app.context import AppContext, get_ctx
+from app.core.errors import ZoiError
 from app.db.models import AppMeta
 from app.system import detectors
 
@@ -115,3 +116,24 @@ def network_audit(limit: int = 50, ctx: AppContext = Depends(get_ctx)) -> dict:
         rows = s.scalars(select(NetworkAudit).order_by(NetworkAudit.id.desc()).limit(min(limit, 500))).all()
         return {"entries": [{"at": r.at.isoformat(), "host": r.host, "method": r.method, "path": r.path,
                              "allowed": r.allowed, "reason": r.reason} for r in rows]}
+
+
+def _clipper(ctx: AppContext):  # noqa: ANN202
+    if ctx.runtime.is_online:
+        raise ZoiError("CLIPPER hanya bisa dijalankan di laptop (mode local).", status_code=400)
+    return next(a for a in ctx.adapters if a.name == "zoi_ai_clipper")
+
+
+@router.get("/clipper/status")
+def clipper_status(ctx: AppContext = Depends(get_ctx)) -> dict:
+    return _clipper(ctx).launch_status()
+
+
+@router.post("/clipper/start")
+def clipper_start(ctx: AppContext = Depends(get_ctx)) -> dict:
+    return _clipper(ctx).start()
+
+
+@router.post("/clipper/stop")
+def clipper_stop(ctx: AppContext = Depends(get_ctx)) -> dict:
+    return _clipper(ctx).stop()

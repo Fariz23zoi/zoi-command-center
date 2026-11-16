@@ -397,3 +397,7 @@ export interface AutomationOverview {
 export interface NotificationInfo {
   id: string; kind: string; title: string; body: string; link: string | null; created_at: string; read: boolean;
 }
+
+export interface ClipperLaunch {
+  running: boolean; port: number; can_start: boolean; reason: string | null; started_by_zoi: boolean;
+}

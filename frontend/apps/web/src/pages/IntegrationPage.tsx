@@ -1,6 +1,9 @@
+import { api, type ClipperLaunch } from "@zoi/api-client";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { formatTime } from "../lib/format";
+import { errorText } from "../lib/youtube";
 import { MENU } from "../menu";
 import { useApp } from "../stores/appStore";
 import { OnlineNotice } from "./OnlineNotice";
@@ -28,11 +31,7 @@ export function IntegrationPage({ adapterName }: { adapterName: string }) {
           </p>
         </section>
       ) : (
-        <section className="page not-ready" data-testid="not-yet-available">
-          <h1>{item.label}</h1>
-          <p className="tag-phase">Ditunda (keputusan Phase 7)</p>
-          <p>{item.description}</p>
-        </section>
+        <ClipperLauncher title={item.label} description={item.description} />
       )}
       <OnlineNotice feature="Integrasi aplikasi di laptop" />
       <section className="page">
@@ -51,5 +50,67 @@ export function IntegrationPage({ adapterName }: { adapterName: string }) {
         )}
       </section>
     </>
+  );
+}
+
+/** Menyalakan web app CLIPPER apa adanya (proses terpisah) lalu membukanya di tab baru. ZOI tidak mengolah video. */
+function ClipperLauncher({ title, description }: { title: string; description: string }) {
+  const [state, setState] = useState<ClipperLaunch | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    api.clipper.status().then(setState).catch((e) => setError(errorText(e, "Status CLIPPER tidak dapat dimuat.")));
+  }, []);
+
+  async function run(action: "start" | "stop") {
+    setBusy(true);
+    setError(null);
+    try {
+      let next = await api.clipper[action]();
+      // Server CLIPPER butuh beberapa detik untuk siap menerima koneksi.
+      for (let i = 0; action === "start" && !next.running && i < 20; i += 1) {
+        await new Promise((r) => setTimeout(r, 1000));
+        next = await api.clipper.status();
+      }
+      setState(next);
+      if (action === "start" && !next.running) setError("CLIPPER belum merespons. Periksa apakah paket Python-nya sudah terpasang.");
+    } catch (e) {
+      setError(errorText(e, "Perintah ke CLIPPER gagal."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const url = state ? `http://${window.location.hostname}:${state.port}` : "#";
+  return (
+    <section className="page" data-testid="clipper-page">
+      <h1>{title}</h1>
+      <p>{description}</p>
+      <p className="notice warn">
+        CLIPPER berjalan sebagai aplikasi terpisah dengan aturannya sendiri. Fitur unduh video YouTube di dalamnya memakai
+        yt-dlp; pakai hanya untuk video milikmu sendiri atau yang kamu punya izinnya. ZOI tidak mengunduh apa pun.
+      </p>
+      {error && <p className="notice bad" role="alert">{error}</p>}
+      {!state ? <p className="muted">Memeriksa…</p> : (
+        <>
+          <p className={`notice ${state.running ? "ok" : "warn"}`} data-testid="clipper-state">
+            {state.running ? "Server CLIPPER menyala." : "Server CLIPPER mati."}
+          </p>
+          {state.reason && <p className="muted">{state.reason}</p>}
+          <div className="row">
+            {state.running ? (
+              <a className="dash-cta" href={url} target="_blank" rel="noreferrer noopener">Buka CLIPPER</a>
+            ) : (
+              <button type="button" className="primary" disabled={busy || !state.can_start} onClick={() => run("start")}>
+                {busy ? "Menyalakan…" : "Jalankan CLIPPER"}
+              </button>
+            )}
+            {state.started_by_zoi && <button type="button" disabled={busy} onClick={() => run("stop")}>Matikan CLIPPER</button>}
+          </div>
+          <p className="source">Alamat: {url}. Dari HP alamat ini hanya terbuka bila Tailscale aktif dan firewall laptop mengizinkan.</p>
+        </>
+      )}
+    </section>
   );
 }

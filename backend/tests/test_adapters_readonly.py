@@ -75,3 +75,40 @@ def test_wrong_html_not_accepted(client_factory, tmp_path):
     other.write_text("<title>Bukan</title>", encoding="utf-8")
     adapters = {a["name"]: a for a in client_factory(blueprint_file=str(other)).get("/api/adapters").json()["adapters"]}
     assert adapters["blueprint_studio"]["found"] is False
+
+
+def test_clipper_launcher_starts_and_stops_without_touching_repo(client_factory, tmp_path):
+    import socket
+    import sys
+    import time
+
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+    root = tmp_path / "zoi-ai-clipper"
+    (root / "shorts_generator").mkdir(parents=True)
+    for name in ("main.py", "LICENSE"):
+        (root / name).write_text("x", encoding="utf-8")
+    (root / "app.py").write_text(
+        "import http.server\n"
+        f"http.server.HTTPServer(('127.0.0.1', {port}), http.server.BaseHTTPRequestHandler).serve_forever()\n",
+        encoding="utf-8")
+    before = snapshot(root)
+
+    bare = client_factory()
+    assert bare.get("/api/clipper/status").json()["can_start"] is False
+    assert bare.post("/api/clipper/start").status_code == 409
+
+    client = client_factory(clipper_dir=str(root), clipper_python=sys.executable)
+    adapter = next(a for a in client.app.state.zoi.adapters if a.name == "zoi_ai_clipper")
+    adapter.port = port
+    assert client.get("/api/clipper/status").json() == {"running": False, "port": port, "can_start": True,
+                                                        "reason": None, "started_by_zoi": False}
+    assert client.post("/api/clipper/start").json()["started_by_zoi"] is True
+    deadline = time.monotonic() + 10
+    while not adapter.running() and time.monotonic() < deadline:
+        time.sleep(0.1)
+    assert client.get("/api/clipper/status").json()["running"] is True
+    stopped = client.post("/api/clipper/stop").json()
+    assert stopped["started_by_zoi"] is False and stopped["running"] is False
+    assert snapshot(root) == before

@@ -27,7 +27,7 @@ export const MENU: MenuItem[] = [
   { path: "/ideas", group: "creation", label: "Content Ideas", phase: 6, ready: true, description: "Draf ide video panjang & Shorts oleh AI lokal: judul, hook, garis besar, dan CTA." },
   { path: "/script", group: "creation", label: "Script & Storyboard", phase: 6, ready: true, description: "Draf naskah dan storyboard oleh AI lokal. Tidak ada yang dipublikasikan." },
   { path: "/production", group: "creation", label: "Content Production", phase: 7, ready: true, description: "Paket produksi, narasi Piper, salinan Blueprint Studio, dan render HyperFrames opsional — di laptop." },
-  { path: "/clipper", group: "products", label: "ZOI AI CLIPPER", phase: 7, ready: false, description: "Ditunda: CLIPPER mengunduh video YouTube lewat yt-dlp, yang bertentangan dengan ketentuan YouTube. Aplikasi CLIPPER tidak diubah; ZOI hanya mendeteksinya (read-only)." },
+    { path: "/clipper", group: "products", label: "ZOI AI CLIPPER", phase: 7, ready: true, description: "Menyalakan dan membuka aplikasi ZOI AI CLIPPER di laptop. Repository CLIPPER tidak diubah; ZOI tidak mengolah videonya." },
   { path: "/blueprint", group: "products", label: "BLUEPRINT STUDIO", phase: 7, ready: true, description: "Paket produksi ZOI dimuat ke salinan Blueprint Studio di laptop. File asli tidak diubah." },
   { path: "/monetization", group: "analytics", label: "Monetization", phase: 6, ready: true, description: "Syarat resmi YouTube Partner Program berdampingan dengan angka channel-mu dari YouTube." },
   { path: "/performance", group: "analytics", label: "Performance", phase: 6, ready: true, description: "Laporan per video channel-mu dari YouTube Analytics, termasuk persentase tonton hitungan YouTube." },

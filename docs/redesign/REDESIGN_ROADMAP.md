@@ -53,3 +53,8 @@ Phase 1–8 selesai. Yang sengaja belum dibuat (tercatat jujur):
 - Attachment di chat, usage tracking per provider, lip-sync robot kantor (lip-sync tetap ada di avatar close-up).
 - Insight AI & Tren Topik di dashboard (butuh label "Estimasi AI"); tersedia di halaman Trend Detector / Content Ideas.
 - Login multi-pengguna: ZOI tetap satu pemilik.
+
+## 1.2.1 (17 Nov 2026)
+- **Keputusan pemilik**: tombol Open ZOI AI CLIPPER menyalakan web app CLIPPER apa adanya (`python app.py`, port 5000) sebagai proses terpisah dan membukanya di tab baru. ZOI tidak mengimpor/mengubah repo CLIPPER dan tidak mengunduh video; pemakaian fitur yt-dlp di CLIPPER tanggung jawab pemilik. API: `/api/clipper/{status,start,stop}` (hanya mode local).
+- `index.html` dikirim dengan `Cache-Control: no-cache` agar update langsung terlihat tanpa hapus cache.
+- Catatan: CLIPPER sendiri mendengarkan di `0.0.0.0:5000` (terjangkau perangkat lain di jaringan yang sama) — perilaku bawaan CLIPPER, tidak diubah.
