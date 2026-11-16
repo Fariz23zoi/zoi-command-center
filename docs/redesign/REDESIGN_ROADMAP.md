@@ -46,3 +46,10 @@ Aturan penerapan:
 | speaking | ruang rapat menghadap kamera |
 | riset / memori | pojok perpustakaan |
 Performa: geometri sederhana + instancing, tanpa tekstur besar, FPS maks 30, render berhenti saat tab tersembunyi, kamera tetap isometrik. Mobile / FPS rendah → mode ringan (avatar close-up) atau fallback 2D.
+
+## Status akhir (16 Nov 2026) — rilis 1.2.0
+Phase 1–8 selesai. Yang sengaja belum dibuat (tercatat jujur):
+- Provider Gemini/Bytez & "Custom OpenAI-compatible" — belum; butuh verifikasi tier gratis & UI kelola provider. Sistem provider tetap NVIDIA NIM / OpenRouter :free / Ollama lewat `.env`.
+- Attachment di chat, usage tracking per provider, lip-sync robot kantor (lip-sync tetap ada di avatar close-up).
+- Insight AI & Tren Topik di dashboard (butuh label "Estimasi AI"); tersedia di halaman Trend Detector / Content Ideas.
+- Login multi-pengguna: ZOI tetap satu pemilik.

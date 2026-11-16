@@ -94,17 +94,29 @@ Python: seluruh paket di venv backend (termasuk alat pengembangan). npm: depende
 | python | urllib3 | 2.8.0 | MIT |
 | python | uvicorn | 0.54.0 | BSD-3-Clause |
 | python | websockets | 17.4 | BSD-3-Clause |
+| npm | @babel/runtime | 7.29.14 | MIT |
 | npm | @interviewflowai/talking-avatar | 0.3.0 | MIT |
+| npm | @react-three/fiber | 9.8.2 | MIT |
 | npm | @types/react | 19.3.0 | MIT |
+| npm | @types/react-reconciler | 0.28.9 | MIT |
+| npm | @types/webxr | 0.5.24 | MIT |
+| npm | base64-js | 1.5.1 | MIT |
+| npm | buffer | 6.0.3 | MIT |
 | npm | cookie | 1.1.1 | MIT |
 | npm | csstype | 3.2.3 | MIT |
+| npm | ieee754 | 1.2.1 | BSD-3-Clause |
+| npm | its-fine | 2.1.1 | MIT |
+| npm | lucide-react | 1.73.0 | ISC |
 | npm | react | 19.3.1 | MIT |
 | npm | react-dom | 19.3.1 | MIT |
 | npm | react-router | 7.18.5 | MIT |
 | npm | react-router-dom | 7.18.5 | MIT |
+| npm | react-use-measure | 2.1.7 | MIT |
 | npm | scheduler | 0.28.0 | MIT |
 | npm | set-cookie-parser | 2.7.3 | MIT |
+| npm | suspend-react | 0.1.3 | MIT |
 | npm | three | 0.187.0 | MIT |
+| npm | use-sync-external-store | 1.7.0 | MIT |
 | npm | zustand | 5.1.0 | MIT |
 
 ## Aset yang ikut dibundel (avatar 3D)

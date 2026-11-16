@@ -8,8 +8,8 @@ import type { Group, Mesh, MeshStandardMaterial, OrthographicCamera } from "thre
 
 import { ZONE_OF, ZONES, type ZoneId } from "./zones";
 
-const C = { floor: "#1a1a2a", wall: "#222236", wood: "#6b5a8e", desk: "#2c2c44", screen: "#8b5cf6", accent: "#a78bfa",
-  booth: "#3b3a66", sofa: "#4c3f8f", shelf: "#3a3355", plant: "#22c55e", board: "#1e1b4b" };
+const C = { floor: "#34345a", wall: "#45457a", wood: "#8f7cc4", desk: "#5a5a8c", screen: "#8b5cf6", accent: "#a78bfa",
+  booth: "#6d6ab8", sofa: "#7c5cf0", shelf: "#5d5490", plant: "#22c55e", board: "#1e1b4b" };
 
 function Box({ p, s, c, e }: { p: [number, number, number]; s: [number, number, number]; c: string; e?: number }) {
   return (
@@ -156,7 +156,7 @@ function IsoCamera() {
   const size = useThree((s) => s.size);
   useEffect(() => {
     const cam = get().camera as OrthographicCamera;
-    cam.zoom = Math.max(18, Math.min(size.width / 15, size.height / 9.5));
+    cam.zoom = Math.max(18, Math.min(size.width / 13, size.height / 8.2));
     cam.position.set(10, 9, 10);
     cam.lookAt(0, 0, 0);
     cam.updateProjectionMatrix();
@@ -191,9 +191,9 @@ export default function OfficeScene({ state, onFallback }: OfficeSceneProps) {
       onCreated={({ gl }) => gl.setClearColor("#08080d", 0)}>
       <IsoCamera />
       <Throttle onSlow={(fps) => onFallback(`Kantor 3D terlalu berat untuk perangkat ini (${fps} fps) — memakai avatar 2D.`)} />
-      <ambientLight intensity={0.55} />
-      <directionalLight position={[6, 10, 4]} intensity={1.1} />
-      <pointLight position={[0, 3, 0]} intensity={8} color="#8b5cf6" distance={9} />
+      <ambientLight intensity={1.6} />
+      <directionalLight position={[6, 10, 4]} intensity={2.4} />
+      <pointLight position={[0, 3, 0]} intensity={30} color="#a78bfa" distance={12} />
       <Office />
       <Robot zone={zone} state={state} />
     </Canvas>
