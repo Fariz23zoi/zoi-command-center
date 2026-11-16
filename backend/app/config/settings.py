@@ -18,7 +18,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 ENV_PREFIX = "ZOI_"
 
 # Variabel yang dicadangkan untuk fase berikutnya: dibiarkan, tidak dianggap salah ketik.
-RESERVED_PREFIXES = ("ZOI_YOUTUBE_",)
+RESERVED_PREFIXES: tuple[str, ...] = ()
 META_VARS = {"ZOI_ENV_FILE"}
 
 
@@ -87,6 +87,10 @@ class Settings(BaseSettings):
     whisper_model_dir: Path | None = None
     tts: TtsChoice = TtsChoice.AUTO
     piper_url: str = "http://127.0.0.1:5000"
+
+    # YouTube (Phase 6). HANYA untuk tes: arahkan semua endpoint Google ke server tiruan di komputer ini.
+    # Kosong = Google sungguhan. Bila diisi, UI menandai semua data sebagai "ENDPOINT UJI".
+    youtube_test_url: str = ""
 
     clipper_dir: Path | None = None
     clipper_python: Path | None = None

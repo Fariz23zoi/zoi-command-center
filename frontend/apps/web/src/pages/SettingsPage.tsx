@@ -62,6 +62,8 @@ export function SettingsPage() {
         dan uji kecocokan model.
         {" · "}<Link to="/settings/voice" data-testid="voice-link">Suara</Link> — input suara, membacakan jawaban, dan
         cara memasang model suara.
+        {" · "}<Link to="/settings/youtube" data-testid="youtube-link">YouTube</Link> — hubungkan channel-mu (hanya-baca),
+        kuota, dan hapus data.
       </p>
       <h2>Konfigurasi efektif</h2>
       <p className="muted">Hanya-baca. Diubah lewat file <code>.env</code>, lalu restart ZOI.</p>

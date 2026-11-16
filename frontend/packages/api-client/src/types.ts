@@ -89,7 +89,8 @@ export type ZoiEvent =
   | { type: "voice.preferences.updated"; at: string; payload: VoicePreferences }
   | { type: "chat.message"; at: string; payload: { conversation_id: string; message: ChatMessageInfo } }
   | { type: "agent.run.updated"; at: string; payload: { run: AgentRunInfo } }
-  | { type: "memory.updated"; at: string; payload: { id: string | null } };
+  | { type: "memory.updated"; at: string; payload: { id: string | null } }
+  | { type: "youtube.updated"; at: string; payload: Record<string, never> };
 
 // ── AI lokal (Phase 3) ─────────────────────────────────────────────────────
 export type AiModelSource = "ui" | "env" | "none";
@@ -207,3 +208,59 @@ export interface AgentRunInfo {
 }
 
 export interface AgentStatusInfo { available: boolean; detail: string; tools: AgentToolInfo[]; can_publish: false }
+
+// ── YouTube (Phase 6A) — hanya data channel milik pengguna, angka persis dari YouTube ──────────────────
+export interface YouTubeQuotaInfo {
+  source: string; day: string; units_used: number; unit_limit: number; units_official: number;
+  search_used: number; search_limit: number; search_official: number; analytics_calls: number; resets_at: string;
+}
+
+export interface YouTubeAccount {
+  channel_id: string; title: string; custom_url: string | null; connected_at: string; verified_at: string;
+  scopes: string[]; analytics_granted: boolean; needs_reauth: boolean;
+}
+
+export interface YouTubeStatus {
+  client_configured: boolean; client_id_hint: string | null; connected: boolean; account: YouTubeAccount | null;
+  pending: boolean; last_error: string | null; token_storage: "keyring" | "file"; storage_warning: string | null;
+  test_endpoint: boolean; scopes: string[]; can_publish: false; quota: YouTubeQuotaInfo;
+  policy: { reverify_days: number; summary: string };
+}
+
+export interface YouTubeChannel {
+  id: string; title: string; custom_url: string | null; published_at: string | null; country: string | null;
+  view_count: number | null; subscriber_count: number | null; hidden_subscribers: boolean; video_count: number | null;
+  uploads_playlist: string | null;
+}
+
+export interface YouTubeVideo {
+  id: string; title: string; published_at: string | null; duration: string | null; privacy: string | null;
+  view_count: number | null; like_count: number | null; comment_count: number | null;
+}
+
+export interface YouTubeReport {
+  start: string; end: string; columns: string[]; rows: Record<string, string | number>[];
+}
+
+export interface YouTubeAnalytics {
+  error?: string; last_28_days?: YouTubeReport; daily?: YouTubeReport; last_365_days?: YouTubeReport;
+}
+
+export interface YouTubeCached<T> { payload: T; fetched_at: string }
+
+export interface YouTubeSnapshot {
+  day: string; fetched_at: string; view_count: number | null; subscriber_count: number | null;
+  hidden_subscribers: boolean; video_count: number | null;
+}
+
+export interface YppRequirements {
+  checked_at: string; note: string; caveats: string[]; unverified: string[];
+  tiers: { name: string; source: string; requirements: string[] }[];
+}
+
+export interface YouTubeData {
+  connected: boolean; account: YouTubeAccount | null; test_endpoint: boolean; source: string;
+  purged_unverified: boolean; channel: YouTubeCached<YouTubeChannel> | null;
+  videos: YouTubeCached<YouTubeVideo[]> | null; analytics: YouTubeCached<YouTubeAnalytics> | null;
+  history: YouTubeSnapshot[]; ypp: YppRequirements; quota: YouTubeQuotaInfo;
+}

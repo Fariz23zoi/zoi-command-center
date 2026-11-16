@@ -40,6 +40,7 @@ class RuntimeConfig:
     whisper_model_dir: Path | None
     tts: str  # "mock" | "piper" | "none"
     piper_url: str
+    youtube_test_url: str
     cors_origins: tuple[str, ...]
     serve_frontend: bool
     frontend_dist: Path
@@ -127,6 +128,14 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
     if stt == "whisper" and whisper_dir is None:
         warnings.append("ZOI_WHISPER_MODEL_DIR belum diisi — input suara berstatus 'tidak tersedia'.")
 
+    youtube_test = settings.youtube_test_url.strip().rstrip("/")
+    if youtube_test:
+        test_host = urlparse(youtube_test).hostname
+        if urlparse(youtube_test).scheme != "http" or not test_host or not _is_loopback(test_host):
+            raise ConfigError("ZOI_YOUTUBE_TEST_URL hanya boleh menunjuk server uji di komputer ini "
+                              "(http://127.0.0.1:PORT). Kosongkan untuk memakai YouTube sungguhan.")
+        warnings.append("ZOI_YOUTUBE_TEST_URL aktif — data YouTube berasal dari SERVER UJI, bukan YouTube.")
+
     port = settings.port or DEFAULT_PORTS[settings.mode]
     data_dir = _resolve_dir(settings.data_dir, DEFAULT_DATA_DIRS[settings.mode])
     frontend_dist = _resolve_dir(settings.frontend_dist, "frontend/apps/web/dist")
@@ -146,6 +155,7 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
         whisper_model_dir=whisper_dir,
         tts=tts,
         piper_url=settings.piper_url.rstrip("/"),
+        youtube_test_url=youtube_test,
         cors_origins=DEV_FRONTEND_ORIGINS if is_dev else (),
         serve_frontend=not is_dev,
         frontend_dist=frontend_dist,

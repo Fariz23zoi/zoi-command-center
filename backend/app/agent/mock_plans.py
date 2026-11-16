@@ -24,6 +24,9 @@ def mock_plan(request: str) -> Rencana:
                   Step(tool="jalankan_pemeriksaan_sistem", alasan="[MOCK] Jalankan pemeriksaan lengkap (perlu izin)")]
     if any(word in text for word in ("aplikasi", "clipper", "blueprint")):
         steps.append(Step(tool="status_aplikasi", alasan="[MOCK] Cek CLIPPER & Blueprint"))
+    if "youtube" in text:
+        steps += [Step(tool="youtube_kuota", alasan="[MOCK] Cek pemakaian kuota YouTube"),
+                  Step(tool="youtube_channel_saya", alasan="[MOCK] Baca statistik channel (selalu minta izin)")]
     if "tugas" in text:
         steps.append(Step(tool="daftar_tugas", argumen={"jumlah": 5}, alasan="[MOCK] Lihat tugas terbaru"))
     if not steps:

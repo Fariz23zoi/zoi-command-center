@@ -22,6 +22,7 @@ from app.providers.base import LLMProvider
 from app.security.cost_guard import CostGuard
 from app.tasks.manager import TaskManager
 from app.voice.service import VoiceService
+from app.youtube.service import YouTubeService
 
 
 @dataclass
@@ -40,6 +41,7 @@ class AppContext:
     voice: VoiceService
     memory: MemoryService
     agent_service: AgentService
+    youtube: YouTubeService
     migration_backup: str | None = None
     started_monotonic: float = field(default_factory=time.monotonic)
     cache: dict[str, Any] = field(default_factory=dict)

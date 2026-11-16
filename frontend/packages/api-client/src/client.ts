@@ -1,7 +1,7 @@
 import type {
   AdapterStatus, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
   ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, TranscriptInfo,
-  VoicePreferences, VoiceStatus, ZoiEvent,
+  VoicePreferences, VoiceStatus, YouTubeData, YouTubeStatus, ZoiEvent,
 } from "./types";
 
 /** Header wajib untuk permintaan yang mengubah data (perlindungan CSRF di backend). */
@@ -81,6 +81,18 @@ export const api = {
     approvals: () => request<{ approvals: ApprovalInfo[] }>("GET", "/api/agent/approvals"),
     setPermission: (name: string, mode: "ask" | "auto") =>
       request<{ tools: AgentToolInfo[] }>("PUT", `/api/agent/tools/${encodeURIComponent(name)}/permission`, { mode }),
+  },
+  youtube: {
+    status: () => request<YouTubeStatus>("GET", "/api/youtube/status"),
+    /** Isi file client OAuth dikirim ke backend ZOI di komputer ini saja, dan tidak pernah dikembalikan ke browser. */
+    putClient: (config: unknown) => request<{ client_id_hint: string }>("PUT", "/api/youtube/client", { config }),
+    deleteClient: () => request<null>("DELETE", "/api/youtube/client"),
+    connect: () => request<{ auth_url: string; expires_in_s: number }>("POST", "/api/youtube/connect"),
+    cancelConnect: () => request<null>("POST", "/api/youtube/connect/cancel"),
+    disconnect: () => request<{ revoked_at_google: boolean; note: string | null }>("POST", "/api/youtube/disconnect"),
+    refresh: (what: "all" | "channel" | "videos" | "analytics" = "all") =>
+      request<YouTubeData>("POST", "/api/youtube/refresh", { what }),
+    data: () => request<YouTubeData>("GET", "/api/youtube/data"),
   },
   voice: {
     status: () => request<VoiceStatus>("GET", "/api/voice/status"),

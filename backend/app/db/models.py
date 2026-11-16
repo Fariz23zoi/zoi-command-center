@@ -161,3 +161,36 @@ class Approval(Base):
     is_mock: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
     decided_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+
+
+class YouTubeSnapshot(Base):
+    """Statistik channel MILIK SENDIRI per hari (data berizin OAuth — boleh disimpan >30 hari, kebijakan III.E.4.b,
+    selama izin dicek ulang tiap 30 hari). Angka persis seperti yang dikirim YouTube; tidak ada metrik buatan."""
+
+    __tablename__ = "youtube_channel_snapshots"
+    day: Mapped[str] = mapped_column(String(10), primary_key=True)  # tanggal lokal pengambilan (YYYY-MM-DD)
+    channel_id: Mapped[str] = mapped_column(String(64))
+    fetched_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    view_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    subscriber_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    hidden_subscribers: Mapped[bool] = mapped_column(Boolean, default=False)
+    video_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class YouTubeCache(Base):
+    """Respons terakhir dari YouTube untuk channel sendiri (channel, video, laporan analitik)."""
+
+    __tablename__ = "youtube_cache"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    payload_json: Mapped[str] = mapped_column(Text)
+    fetched_at: Mapped[datetime] = mapped_column(UTCDateTime)
+
+
+class YouTubeQuota(Base):
+    """Hitungan ZOI sendiri atas panggilan API per hari kuota (zona Pasifik). Bukan data dari YouTube."""
+
+    __tablename__ = "youtube_quota"
+    day: Mapped[str] = mapped_column(String(10), primary_key=True)
+    units: Mapped[int] = mapped_column(Integer, default=0)
+    search_calls: Mapped[int] = mapped_column(Integer, default=0)
+    analytics_calls: Mapped[int] = mapped_column(Integer, default=0)

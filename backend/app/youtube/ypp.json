@@ -1,0 +1,30 @@
+{
+  "checked_at": "2026-11-15",
+  "note": "Syarat bisa berubah. Angka resmi kelayakan channel-mu (jam tonton publik yang sah, tayangan Shorts yang memenuhi syarat) hanya ada di YouTube Studio › Earn.",
+  "tiers": [
+    {
+      "name": "Bergabung lebih awal (fitur dukungan penggemar)",
+      "source": "https://support.google.com/youtube/answer/13429240",
+      "requirements": [
+        "500 subscriber",
+        "3 unggahan publik yang sah dalam 90 hari terakhir",
+        "3.000 jam tonton yang memenuhi syarat dalam 12 bulan terakhir, ATAU 3 juta tayangan Shorts yang memenuhi syarat dalam 90 hari terakhir"
+      ]
+    },
+    {
+      "name": "Bagi hasil iklan",
+      "source": "https://support.google.com/youtube/answer/72851",
+      "requirements": [
+        "1.000 subscriber",
+        "4.000 jam tonton publik yang sah dalam 12 bulan terakhir, ATAU 10 juta tayangan Shorts publik yang sah dalam 90 hari terakhir"
+      ]
+    }
+  ],
+  "caveats": [
+    "Jam tonton dari Shorts di Shorts Feed tidak dihitung ke syarat 4.000 jam.",
+    "Memenuhi angka tidak otomatis diterima: channel tetap ditinjau terhadap kebijakan monetisasi YouTube."
+  ],
+  "unverified": [
+    "Sumber pihak ketiga menyebut mulai 1 Februari 2027 pelamar baru bagi hasil iklan butuh 8.000 jam tonton atau 20 juta tayangan Shorts. Ini BELUM saya temukan di halaman resmi YouTube — periksa YouTube Studio / Pusat Bantuan sebelum mengandalkannya."
+  ]
+}
