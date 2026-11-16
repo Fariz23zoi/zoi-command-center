@@ -111,6 +111,8 @@ class Settings(BaseSettings):
     clipper_dir: Path | None = None
     clipper_python: Path | None = None
     blueprint_file: Path | None = None
+    # Folder tempat pengguna sendiri menjalankan `npm install hyperframes` (opsional, Phase 7).
+    hyperframes_dir: Path | None = None
 
     extra_allowed_hosts: str = ""
 

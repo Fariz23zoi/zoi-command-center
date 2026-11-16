@@ -100,7 +100,8 @@ export type ZoiEvent =
   | { type: "agent.run.updated"; at: string; payload: { run: AgentRunInfo } }
   | { type: "memory.updated"; at: string; payload: { id: string | null } }
   | { type: "youtube.updated"; at: string; payload: Record<string, never> }
-  | { type: "content.updated"; at: string; payload: { id: string; kind: string | null } };
+  | { type: "content.updated"; at: string; payload: { id: string; kind: string | null } }
+  | { type: "production.updated"; at: string; payload: Record<string, never> };
 
 // ── AI lokal (Phase 3) ─────────────────────────────────────────────────────
 export type AiModelSource = "ui" | "env" | "none";
@@ -348,4 +349,19 @@ export interface CloudStatus {
 export interface CloudModels { name: string; models: string[]; current: string | null; current_listed: boolean; note: string }
 export interface CloudTestResult {
   name: string; model: string | null; ok: boolean; reply: string; error: string | null; limits: CloudLimits;
+}
+
+export interface ProductionPackage {
+  id: string; judul: string; rasio: string; mock: boolean; beats: number; created: number;
+  files: Record<string, number>; blueprint_url: string;
+  narration: { start: number; speech: number; duration: number; file: string }[] | null;
+}
+
+export interface ProductionStatus {
+  available: boolean;
+  blueprint: { configured: boolean; original_found: boolean; copy_exists: boolean; up_to_date: boolean;
+    problem: string | null; url: string } | null;
+  hyperframes: { enabled: boolean; problems: string[]; node: string | null; ffmpeg: boolean; version: string | null;
+    tested_version: string; browser: string | null; folder: string | null } | null;
+  narration: { available: boolean; problem: string | null; mock: boolean; engine: string } | null;
 }

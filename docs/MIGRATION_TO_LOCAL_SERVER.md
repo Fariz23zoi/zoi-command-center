@@ -132,6 +132,21 @@ Bawaan ZOI tetap lokal. Langkah ini membuat chat, agen, ide, dan naskah dijawab 
 
 Kembali ke lokal: hapus baris-baris itu dari `.env` dan jalankan ulang.
 
+## 5e. (Opsional) Produksi konten — Blueprint Studio & HyperFrames
+
+1. **Blueprint Studio**: isi `ZOI_BLUEPRINT_FILE` dengan path file `Blueprint_Studio.html` milikmu. Buka
+   ZOI › **Content Production** › **Buat salinan**. ZOI menulis salinan di `data/blueprint/` dengan tombol
+   **Muat paket ZOI**; file aslimu hanya dibaca. Salinan dibuka di `http://127.0.0.1/blueprint-studio/`.
+2. **Paket**: di ZOI (online atau laptop) buka **Script & Storyboard › Unduh paket produksi**, lalu di laptop
+   **Content Production › Impor paket**. Tombol **Buka di Blueprint Studio** mengisi topik, durasi, rasio,
+   beat, dan SRT narasi secara otomatis.
+3. **Narasi** (butuh Piper dari bagian 5b): **Buat narasi** → `narasi.wav` + `narasi.srt` (waktu per beat dari
+   audio sungguhan).
+4. **HyperFrames** (opsional, berat untuk laptop lemah): pasang Node.js 22+ dari nodejs.org, lalu di folder
+   pilihanmu jalankan `npm install hyperframes`. Isi `ZOI_HYPERFRAMES_DIR` dengan folder itu. ZOI memakai
+   Chrome/Edge yang sudah terpasang (tidak mengunduh browser) dan mematikan telemetri HyperFrames. Hasil:
+   kartu teks beranimasi + narasi sebagai `video.mp4` — bukan pengganti animasi Blueprint + Claude.
+
 ## 6. Impor data (jika ada)
 
 ```powershell

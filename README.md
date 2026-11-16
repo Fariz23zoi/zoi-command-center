@@ -47,6 +47,9 @@ scripts/dev.sh            # buka http://127.0.0.1:5173
 **Local server Windows**: pakai paket rilis (frontend sudah di-build, tanpa Node.js) dan ikuti
 [`docs/MIGRATION_TO_LOCAL_SERVER.md`](docs/MIGRATION_TO_LOCAL_SERVER.md).
 
+**Produksi konten (laptop)**: paket dari halaman Naskah → Content Production → narasi Piper, salinan
+Blueprint Studio dengan tombol *Muat paket ZOI*, render HyperFrames opsional. Lihat `docs/adr/0013-produksi-konten-laptop.md`.
+
 **Online (Render + Neon, gratis)**: ikuti [`docs/DEPLOY_ONLINE.md`](docs/DEPLOY_ONLINE.md) —
 `Dockerfile` dan `render.yaml` sudah disiapkan di root repo.
 
