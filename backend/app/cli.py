@@ -91,6 +91,10 @@ def run_doctor(settings: Settings, runtime: RuntimeConfig, *, check_port: bool =
         report.add("Ollama", "OK" if status_.available else "WARN", status_.detail)
     elif runtime.provider == "mock":
         report.add("Penyedia AI", "INFO", "Mock Provider (hanya development, jawaban berlabel MOCK)")
+    elif runtime.provider in {"nvidia", "openrouter"}:
+        model = runtime.nvidia_model if runtime.provider == "nvidia" else runtime.openrouter_model
+        report.add("Penyedia AI", "INFO", f"AI cloud gratis: {runtime.provider} — model {model or '(belum diisi)'}. "
+                   "API key dimasukkan di Settings › AI Cloud.")
     else:
         report.add("Penyedia AI", "INFO", "AI dinonaktifkan (ZOI_AI_PROVIDER=none)")
 
