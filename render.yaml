@@ -23,6 +23,6 @@ services:
       - key: ZOI_AI_FALLBACK
         value: openrouter
       - key: ZOI_NVIDIA_MODEL
-        value: ""                  # isi nama model NVIDIA NIM pilihanmu, mis. meta/llama-3.3-70b-instruct
+        value: ""                  # isi nama model NVIDIA NIM pilihanmu, cek "Free Endpoint" di build.nvidia.com/models
       - key: ZOI_OPENROUTER_MODEL
         value: ""                  # isi model OpenRouter GRATIS (wajib berakhiran :free)
