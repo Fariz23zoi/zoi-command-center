@@ -6,6 +6,7 @@ Semua keputusan mode dihitung di satu tempat agar tidak ada bagian lain yang men
 from __future__ import annotations
 
 import ipaddress
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlparse
@@ -22,8 +23,10 @@ from app.config.settings import (
 )
 
 DEV_FRONTEND_ORIGINS = ("http://127.0.0.1:5173", "http://localhost:5173")
-DEFAULT_PORTS = {Mode.DEVELOPMENT: 8000, Mode.LOCAL: 80}
-DEFAULT_DATA_DIRS = {Mode.DEVELOPMENT: "data-dev", Mode.LOCAL: "data"}
+DEFAULT_PORTS = {Mode.DEVELOPMENT: 8000, Mode.LOCAL: 80, Mode.ONLINE: 10000}
+DEFAULT_DATA_DIRS = {Mode.DEVELOPMENT: "data-dev", Mode.LOCAL: "data", Mode.ONLINE: "data-online"}
+MIN_SECRET_KEY = 32
+MIN_SETUP_TOKEN = 16
 LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
 CLOUD_OLLAMA_HOSTS = {"ollama.com", "www.ollama.com", "api.ollama.com"}
 
@@ -62,6 +65,19 @@ class RuntimeConfig:
     openrouter_model: str = ""
     ai_fallback: str = "none"
     cloud_test_url: str = ""
+    # Mode online
+    database_url: str = ""
+    secret_key: str = ""
+    setup_token: str = ""
+    public_url: str = ""
+
+    @property
+    def is_online(self) -> bool:
+        return self.mode is Mode.ONLINE
+
+    @property
+    def public_host(self) -> str | None:
+        return urlparse(self.public_url).hostname if self.public_url else None
 
     @property
     def cloud_names(self) -> tuple[str, ...]:
@@ -76,11 +92,15 @@ class RuntimeConfig:
 
     @property
     def base_url(self) -> str:
+        if self.is_online:
+            return self.public_url
         host = f"[{self.host}]" if ":" in self.host else self.host
         return f"http://{host}" if self.port == 80 else f"http://{host}:{self.port}"
 
     @property
     def self_origins(self) -> tuple[str, ...]:
+        if self.is_online:
+            return (self.public_url,)
         suffix = "" if self.port == 80 else f":{self.port}"
         return (f"http://127.0.0.1{suffix}", f"http://localhost{suffix}")
 
@@ -104,7 +124,8 @@ def _is_loopback(host: str) -> bool:
 def resolve_runtime(settings: Settings) -> RuntimeConfig:
     warnings: list[str] = []
 
-    if not _is_loopback(settings.host):
+    online = settings.mode is Mode.ONLINE
+    if not online and not _is_loopback(settings.host):
         raise ConfigError(
             f"ZOI_HOST={settings.host} belum didukung di Phase 1. Gunakan 127.0.0.1 — membuka akses "
             "ke jaringan rumah baru tersedia di Phase 10 dengan token keamanan."
@@ -113,7 +134,7 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
     # Provider AI
     choice = settings.ai_provider
     if choice is ProviderChoice.AUTO:
-        provider = "mock" if settings.mode is Mode.DEVELOPMENT else "ollama"
+        provider = {Mode.DEVELOPMENT: "mock", Mode.LOCAL: "ollama", Mode.ONLINE: "none"}[settings.mode]
     else:
         provider = choice.value
 
@@ -121,6 +142,11 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
         raise ConfigError(
             "Mode local tidak boleh memakai Mock Provider (ZOI_AI_PROVIDER=mock). "
             "Pakai ZOI_AI_PROVIDER=ollama atau none. Mock hanya untuk ZOI_MODE=development."
+        )
+    if online and provider not in (*CLOUD_PROVIDERS, "none"):
+        raise ConfigError(
+            f"Mode online tidak bisa memakai ZOI_AI_PROVIDER={provider}: server hosting tidak menjalankan "
+            "model sendiri. Pakai nvidia, openrouter, atau none."
         )
 
     parsed = urlparse(settings.ollama_url)
@@ -144,15 +170,15 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
     fallback = settings.ai_fallback.value
     if provider in CLOUD_PROVIDERS:
         if provider == "nvidia" and not settings.nvidia_model:
-            raise ConfigError("ZOI_AI_PROVIDER=nvidia membutuhkan ZOI_NVIDIA_MODEL (mis. nama model dari "
-                              "build.nvidia.com). Isi di .env, lalu jalankan ulang.")
+            warnings.append("ZOI_NVIDIA_MODEL belum diisi — AI berstatus 'tidak tersedia'. Lihat daftar model di "
+                            "Settings › AI Cloud, isi nama model, lalu jalankan ulang.")
         if provider == "openrouter" and fallback != "none":
             raise ConfigError("ZOI_AI_FALLBACK hanya dipakai bersama ZOI_AI_PROVIDER=nvidia.")
         if "openrouter" in (provider, fallback):
             if not settings.openrouter_model:
-                raise ConfigError("ZOI_OPENROUTER_MODEL belum diisi. Pilih model gratis OpenRouter (berakhiran "
-                                  "':free').")
-            if not settings.openrouter_model.endswith(":free"):
+                warnings.append("ZOI_OPENROUTER_MODEL belum diisi — OpenRouter belum bisa dipakai. Pilih model "
+                                "gratis (berakhiran ':free') dari daftar di Settings › AI Cloud.")
+            elif not settings.openrouter_model.endswith(":free"):
                 raise ConfigError(f"ZOI_OPENROUTER_MODEL={settings.openrouter_model} bukan model gratis. Hanya "
                                   "model berakhiran ':free' yang diizinkan (aturan ZERO PAID API).")
         names = " dan ".join("NVIDIA NIM" if n == "nvidia" else "OpenRouter"
@@ -169,8 +195,38 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
         warnings.append("ZOI_CLOUD_TEST_URL aktif — jawaban 'AI cloud' berasal dari SERVER UJI, bukan "
                         "NVIDIA/OpenRouter.")
 
-    stt = _voice_choice(settings.stt, SttChoice, "whisper", settings.mode, "ZOI_STT")
-    tts = _voice_choice(settings.tts, TtsChoice, "piper", settings.mode, "ZOI_TTS")
+    database_url = settings.database_url.strip()
+    public_url = (settings.public_url.strip() or (os.environ.get("RENDER_EXTERNAL_URL", "") if online else "")
+                  ).rstrip("/")
+    if database_url:
+        db = urlparse(database_url)
+        if db.scheme not in {"postgresql", "postgres"} or not db.hostname or not db.path.strip("/"):
+            raise ConfigError("ZOI_DATABASE_URL tidak valid. Bentuknya: postgresql://pengguna:sandi@host/namadb "
+                              "(salin 'connection string' dari dasbor Neon).")
+    if online:
+        if not database_url:
+            raise ConfigError("Mode online membutuhkan ZOI_DATABASE_URL (alamat Postgres dari Neon). File di "
+                              "server hosting gratis tidak permanen, jadi data harus di database.")
+        if len(settings.secret_key) < MIN_SECRET_KEY:
+            raise ConfigError(f"Mode online membutuhkan ZOI_SECRET_KEY acak minimal {MIN_SECRET_KEY} karakter "
+                              "(kunci enkripsi API key dan token). Jangan pernah menaruhnya di repo.")
+        if len(settings.setup_token) < MIN_SETUP_TOKEN:
+            raise ConfigError(f"Mode online membutuhkan ZOI_SETUP_TOKEN acak minimal {MIN_SETUP_TOKEN} karakter "
+                              "(kode untuk membuat kata sandi login).")
+        parsed_public = urlparse(public_url)
+        if not parsed_public.hostname or parsed_public.scheme not in {"https", "http"} or (
+                parsed_public.scheme == "http" and not _is_loopback(parsed_public.hostname)):
+            raise ConfigError("Mode online membutuhkan ZOI_PUBLIC_URL berawalan https:// (alamat ZOI di internet). "
+                              "Di Render nilainya terisi otomatis.")
+        if settings.stt not in (SttChoice.AUTO, SttChoice.NONE) or settings.tts not in (TtsChoice.AUTO, TtsChoice.NONE):
+            raise ConfigError("Mode online tidak menjalankan Whisper/Piper. Hapus ZOI_STT dan ZOI_TTS; suara "
+                              "memakai suara bawaan browser.")
+        warnings.append("MODE ONLINE — ZOI bisa dijangkau dari internet. Data dan rahasia (terenkripsi) tersimpan "
+                        "di database online; login wajib.")
+        stt = tts = "none"
+    else:
+        stt = _voice_choice(settings.stt, SttChoice, "whisper", settings.mode, "ZOI_STT")
+        tts = _voice_choice(settings.tts, TtsChoice, "piper", settings.mode, "ZOI_TTS")
     piper = urlparse(settings.piper_url)
     if piper.scheme not in {"http", "https"} or not piper.hostname:
         raise ConfigError(f"ZOI_PIPER_URL tidak valid: {settings.piper_url!r} (contoh: http://127.0.0.1:5000)")
@@ -188,14 +244,14 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
                               "(http://127.0.0.1:PORT). Kosongkan untuk memakai YouTube sungguhan.")
         warnings.append("ZOI_YOUTUBE_TEST_URL aktif — data YouTube berasal dari SERVER UJI, bukan YouTube.")
 
-    port = settings.port or DEFAULT_PORTS[settings.mode]
+    port = settings.port or (_env_port() if online else None) or DEFAULT_PORTS[settings.mode]
     data_dir = _resolve_dir(settings.data_dir, DEFAULT_DATA_DIRS[settings.mode])
     frontend_dist = _resolve_dir(settings.frontend_dist, "frontend/apps/web/dist")
 
     is_dev = settings.mode is Mode.DEVELOPMENT
     return RuntimeConfig(
         mode=settings.mode,
-        host=settings.host,
+        host="0.0.0.0" if online else settings.host,  # noqa: S104 — server hosting butuh semua antarmuka
         port=port,
         data_dir=data_dir,
         provider=provider,
@@ -217,7 +273,17 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
         openrouter_model=settings.openrouter_model,
         ai_fallback=fallback,
         cloud_test_url=cloud_test,
+        database_url=database_url,
+        secret_key=settings.secret_key if online else "",
+        setup_token=settings.setup_token if online else "",
+        public_url=public_url if online else "",
     )
+
+
+def _env_port() -> int | None:
+    """Layanan hosting (Render) memberi tahu port lewat variabel PORT."""
+    value = os.environ.get("PORT", "")
+    return int(value) if value.isdigit() and 0 < int(value) < 65536 else None
 
 
 def _voice_choice(choice: SttChoice | TtsChoice, enum: type, real: str, mode: Mode, name: str) -> str:

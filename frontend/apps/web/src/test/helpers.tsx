@@ -11,11 +11,20 @@ export function config(overrides: Partial<PublicConfig> = {}): PublicConfig {
 }
 
 /** fetch tiruan: memetakan path API ke respons JSON. */
+/** Rute bisa berupa nilai langsung, atau fungsi (menerima body permintaan) yang mengembalikan nilai.
+ *  Nilai berbentuk { status, body } dipakai untuk menjawab dengan kode HTTP selain 200. */
 export function mockFetch(routes: Record<string, unknown>) {
-  const fn = vi.fn(async (input: RequestInfo | URL) => {
+  const fn = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const path = typeof input === "string" ? input : input.toString();
     const key = Object.keys(routes).find((k) => path === k || path.startsWith(k + "?"));
-    const body = key ? routes[key] : { error: { message: "tidak ada" } };
+    let body = key ? routes[key] : { error: { message: "tidak ada" } };
+    if (typeof body === "function") {
+      body = body(init?.body ? JSON.parse(init.body as string) : undefined);
+    }
+    const shaped = body as { status?: number; body?: unknown };
+    if (shaped && typeof shaped.status === "number" && "body" in shaped) {
+      return new Response(JSON.stringify(shaped.body), { status: shaped.status });
+    }
     return new Response(JSON.stringify(body), { status: key ? 200 : 404 });
   });
   vi.stubGlobal("fetch", fn);

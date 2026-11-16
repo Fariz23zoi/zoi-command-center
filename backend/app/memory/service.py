@@ -1,4 +1,4 @@
-"""Layanan memori. Pencarian kata lewat SQLite FTS5 (K-3) — tanpa model, tanpa unduhan.
+"""Layanan memori. Pencarian kata lewat SQLite FTS5 (K-3), atau teks penuh Postgres di mode online — tanpa model.
 
 Isi memori yang disisipkan ke prompt selalu dibungkus penanda DATA: memori adalah informasi, bukan perintah.
 """
@@ -37,6 +37,14 @@ def fts_query(query: str) -> str | None:
     return " OR ".join(f'"{w}"*' for w in words)
 
 
+def pg_query(query: str) -> str | None:
+    """Kata kunci → kueri teks penuh Postgres (awalan cocok, digabung ATAU). Kata hanya huruf/angka → aman."""
+    words = [w for w in WORD.findall(query.lower()) if len(w) >= 2][:12]
+    if not words:
+        return None
+    return " | ".join(f"'{w}':*" for w in words)
+
+
 class MemoryService:
     def __init__(self, db: Database) -> None:
         self.db = db
@@ -52,13 +60,20 @@ class MemoryService:
             return {"items": [memory_dict(m) for m in rows], "total": total}
 
     def search(self, query: str, *, limit: int = PROMPT_LIMIT) -> list[dict[str, Any]]:
-        match = fts_query(query)
+        postgres = self.db.dialect == "postgresql"
+        match = pg_query(query) if postgres else fts_query(query)
         if match is None:
             return []
+        sql = (
+            "SELECT id FROM memories WHERE to_tsvector('simple', content) @@ to_tsquery('simple', :q) "
+            "ORDER BY ts_rank(to_tsvector('simple', content), to_tsquery('simple', :q)) DESC, updated_at DESC "
+            "LIMIT :n"
+        ) if postgres else (
+            "SELECT m.id FROM memories_fts JOIN memories m ON m.rowid = memories_fts.rowid "
+            "WHERE memories_fts MATCH :q ORDER BY bm25(memories_fts) LIMIT :n"
+        )
         with self.db.session() as s:
-            ids = [row[0] for row in s.execute(text(
-                "SELECT m.id FROM memories_fts JOIN memories m ON m.rowid = memories_fts.rowid "
-                "WHERE memories_fts MATCH :q ORDER BY bm25(memories_fts) LIMIT :n"), {"q": match, "n": limit})]
+            ids = [row[0] for row in s.execute(text(sql), {"q": match, "n": limit})]
             by_id = {m.id: m for m in s.scalars(select(MemoryItem).where(MemoryItem.id.in_(ids)))}
             return [memory_dict(by_id[i]) for i in ids if i in by_id]
 

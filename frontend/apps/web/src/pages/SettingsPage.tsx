@@ -126,6 +126,20 @@ export function SettingsPage() {
       <input id="lipsync-file" type="file" accept="audio/*" onChange={testLipsync} disabled={renderer !== "3d"} />
       <p className="muted">File diputar di browser ini saja dan tidak dikirim ke server. Suara ZOI sendiri dibuat di Phase 4.</p>
       {lipsync && <p role="status" data-testid="lipsync-status">{lipsync}</p>}
+
+      {config?.online && (
+        <div className="settings-block">
+          <h2>Sesi</h2>
+          <p className="muted">ZOI online dilindungi satu kata sandi. Keluar menutup sesi di perangkat ini saja.</p>
+          <button type="button" onClick={() => { api.auth.logout().finally(() => location.reload()); }}>
+            Keluar
+          </button>{" "}
+          <button type="button" className="danger" title="Semua perangkat harus masuk lagi"
+                  onClick={() => { api.auth.logoutAll().finally(() => location.reload()); }}>
+            Keluar dari semua perangkat
+          </button>
+        </div>
+      )}
     </section>
   );
 }

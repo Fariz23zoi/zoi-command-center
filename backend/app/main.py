@@ -29,7 +29,7 @@ from app.context import AppContext
 from app.core.agent_state import AgentStateTracker
 from app.core.errors import ZoiError, zoi_error_handler
 from app.core.events import EventBus
-from app.db.migrations import upgrade_database
+from app.db.migrations import upgrade_database, upgrade_engine
 from app.db.models import NetworkAudit
 from app.db.session import Database, db_path
 from app.integrations.blueprint.adapter import BlueprintAdapter
@@ -38,7 +38,9 @@ from app.logging_setup import configure_logging, get_logger
 from app.memory.service import MemoryService
 from app.providers.base import LocalModelAdmin
 from app.providers.registry import build_provider
+from app.security.auth import SESSION_COOKIE, AuthService
 from app.security.cost_guard import CostGuard
+from app.security.secrets_db import DbSecretStore
 from app.tasks.builtin import make_run_async, system_check_kind
 from app.tasks.manager import TaskManager
 from app.voice.registry import build_voice
@@ -62,8 +64,13 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
 
     runtime.data_dir.mkdir(parents=True, exist_ok=True)
     configure_logging(runtime.data_dir / "logs", settings.log_level.value)
-    backup = upgrade_database(db_path(runtime.data_dir))
-    db = Database(db_path(runtime.data_dir))
+    if runtime.database_url:
+        db = Database(url=runtime.database_url)
+        upgrade_engine(db.engine)
+        backup = None
+    else:
+        backup = upgrade_database(db_path(runtime.data_dir))
+        db = Database(db_path(runtime.data_dir))
     bus = EventBus()
     agent = AgentStateTracker(bus, return_to_idle_s=return_to_idle_s)
 
@@ -78,7 +85,8 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
                             extra_hosts=[*settings.extra_hosts, *([piper_host.lower()] if piper_host else [])],
                             cloud_hosts=[] if runtime.cloud_test_url else [CLOUD_HOSTS[n] for n in runtime.cloud_names],
                             recorder=record)
-    secrets = SecretStore(runtime.data_dir)
+    secrets = DbSecretStore(db, runtime.secret_key) if runtime.is_online else SecretStore(runtime.data_dir)
+    auth = AuthService(db, runtime.setup_token, enabled=runtime.is_online)
     provider = build_provider(runtime, guard, db=db, key_getter=secrets.get)
     stt, tts = build_voice(runtime, guard)
     ai_source = "none"
@@ -104,7 +112,7 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
                      provider=provider, adapters=adapters, tasks=tasks, chat=chat,
                      voice=VoiceService(stt=stt, tts=tts, db=db), memory=memory, agent_service=agent_service,
                      youtube=youtube, public=public, content=content,
-                     cloud_ai=CloudAIService(provider=provider, store=secrets, bus=bus),
+                     cloud_ai=CloudAIService(provider=provider, store=secrets, bus=bus), auth=auth,
                      local_ai=LocalAIService(provider=provider, runtime=runtime, db=db, bus=bus, tasks=tasks,
                                              source=ai_source),
                      migration_backup=str(backup) if backup else None)
@@ -148,13 +156,19 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
                 and request.headers.get(CLIENT_HEADER) != "web":
             return JSONResponse(status_code=403, content={"error": {
                 "code": "missing_client_header", "message": "Permintaan ditolak: header X-ZOI-Client tidak ada."}})
+        path = request.url.path
+        if auth.enabled and path.startswith("/api/") and not path.startswith(("/api/auth/", "/api/health")) \
+                and not auth.check(request.cookies.get(SESSION_COOKIE)):
+            return JSONResponse(status_code=401, content={"error": {
+                "code": "belum_login", "message": "Sesi tidak ada atau kedaluwarsa. Masuk dahulu."}})
         response: Response = await call_next(request)
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Referrer-Policy", "no-referrer")
         return response
 
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=TRUSTED_HOSTS)
+    hosts = [*TRUSTED_HOSTS, runtime.public_host] if runtime.is_online and runtime.public_host else TRUSTED_HOSTS
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=hosts)
     if runtime.cors_origins:
         app.add_middleware(CORSMiddleware, allow_origins=list(runtime.cors_origins), allow_credentials=False,
                            allow_methods=["GET", "POST", "PUT"], allow_headers=["Content-Type", "X-ZOI-Client"])
@@ -172,6 +186,12 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
     return app
 
 
+def _ws_sources(runtime: RuntimeConfig) -> str:
+    if runtime.is_online and runtime.public_host:
+        return f"wss://{runtime.public_host}"
+    return f"ws://127.0.0.1:{runtime.port} ws://localhost:{runtime.port}"
+
+
 def _mount_frontend(app: FastAPI, runtime: RuntimeConfig) -> None:
     if not runtime.serve_frontend:
         @app.get("/", include_in_schema=False)
@@ -186,7 +206,7 @@ def _mount_frontend(app: FastAPI, runtime: RuntimeConfig) -> None:
     #  blob: → AudioWorklet lip-sync & tekstur model; 'wasm-unsafe-eval' → dekompresi model (meshopt, WebAssembly).
     csp = ("default-src 'self'; script-src 'self' blob: 'wasm-unsafe-eval'; worker-src 'self' blob:; "
            "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; "
-           f"connect-src 'self' blob: ws://127.0.0.1:{runtime.port} ws://localhost:{runtime.port}; "
+           f"connect-src 'self' blob: {_ws_sources(runtime)}; "
            "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'")
 
     @app.get("/{path:path}", include_in_schema=False)

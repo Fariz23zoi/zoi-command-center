@@ -1,5 +1,5 @@
 import type {
-  AdapterStatus, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
+  AdapterStatus, AuthStatus, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
   ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, TranscriptInfo,
   VoicePreferences, VoiceStatus, YouTubeData, YouTubeStatus, ZoiEvent,
   CloudModels, CloudStatus, CloudTestResult, CompetitorsData, IdeaRequest, IdeaSet, ScriptItem, ScriptRequest, ViralData,
@@ -22,6 +22,9 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   const data = text ? JSON.parse(text) : null;
   if (!response.ok) {
     const message = data?.error?.message ?? (Array.isArray(data?.detail) ? "Isian tidak valid." : `HTTP ${response.status}`);
+    if (response.status === 401 && data?.error?.code === "belum_login" && typeof window !== "undefined") {
+      window.dispatchEvent(new Event("zoi-unauthorized")); // sesi habis → AuthGate menampilkan halaman masuk
+    }
     throw new ApiError(response.status, message, data?.error?.code);
   }
   return data as T;
@@ -94,6 +97,13 @@ export const api = {
     refresh: (what: "all" | "channel" | "videos" | "analytics" = "all") =>
       request<YouTubeData>("POST", "/api/youtube/refresh", { what }),
     data: () => request<YouTubeData>("GET", "/api/youtube/data"),
+  },
+  auth: {
+    status: () => request<AuthStatus>("GET", "/api/auth/status"),
+    setup: (token: string, password: string) => request<{ ok: boolean }>("POST", "/api/auth/setup", { token, password }),
+    login: (password: string) => request<{ ok: boolean }>("POST", "/api/auth/login", { password }),
+    logout: () => request<{ ok: boolean }>("POST", "/api/auth/logout", {}),
+    logoutAll: () => request<{ ok: boolean }>("POST", "/api/auth/logout-all", {}),
   },
   aiCloud: {
     status: () => request<CloudStatus>("GET", "/api/ai/cloud/status"),
@@ -180,17 +190,23 @@ export function connectEvents(
   let delay = 500;
   let timer: ReturnType<typeof setTimeout> | undefined;
 
+  let beat: ReturnType<typeof setInterval> | undefined;
   const open = () => {
     socket = new WebSocket(url);
-    socket.onopen = () => { delay = 500; onStatus(true); };
+    socket.onopen = () => {
+      delay = 500; onStatus(true);
+      // Detak tiap 4 menit: lalu lintas masuk agar hosting gratis (Render) tidak menidurkan ZOI selagi dipakai.
+      clearInterval(beat);
+      beat = setInterval(() => { if (socket?.readyState === WebSocket.OPEN) socket.send("detak"); }, 240_000);
+    };
     socket.onmessage = (message) => {
       try { onEvent(JSON.parse(message.data) as ZoiEvent); } catch { /* abaikan pesan rusak */ }
     };
     socket.onclose = () => {
-      onStatus(false);
+      onStatus(false); clearInterval(beat);
       if (!closed) { timer = setTimeout(open, delay); delay = Math.min(delay * 2, 10_000); }
     };
   };
   open();
-  return { close: () => { closed = true; clearTimeout(timer); socket?.close(); } };
+  return { close: () => { closed = true; clearTimeout(timer); clearInterval(beat); socket?.close(); } };
 }

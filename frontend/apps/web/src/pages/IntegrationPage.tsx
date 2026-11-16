@@ -2,6 +2,7 @@ import { formatTime } from "../lib/format";
 import { MENU } from "../menu";
 import { useApp } from "../stores/appStore";
 import { NotYetAvailable } from "./NotYetAvailable";
+import { OnlineNotice } from "./OnlineNotice";
 
 const ENV_VAR: Record<string, string> = {
   zoi_ai_clipper: "ZOI_CLIPPER_DIR",
@@ -16,6 +17,7 @@ export function IntegrationPage({ adapterName }: { adapterName: string }) {
   return (
     <>
       <NotYetAvailable item={item} />
+      <OnlineNotice feature="Integrasi aplikasi di laptop" />
       <section className="page">
         <h2>Deteksi (read-only)</h2>
         {!adapter && <p className="muted">Memeriksa…</p>}

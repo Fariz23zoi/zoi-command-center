@@ -23,7 +23,7 @@ EXPECTED_TABLES = {"app_meta", "tasks", "task_events", "system_checks", "network
                    # Indeks pencarian memori (FTS5) — tabel bayangan SQLite, sengaja di luar model ORM.
                    "memories_fts", "memories_fts_data", "memories_fts_idx", "memories_fts_docsize",
                    "memories_fts_config", "youtube_channel_snapshots", "youtube_cache", "youtube_quota",
-                   "youtube_public_cache", "youtube_watchlist", "content_items"}
+                   "youtube_public_cache", "youtube_watchlist", "content_items", "auth_sessions", "secrets"}
 
 
 def tables(db_file):

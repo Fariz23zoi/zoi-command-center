@@ -17,13 +17,19 @@ Platform web lokal dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
 | Penyedia AI | `backend/app/providers` | `mock` (development, selalu berlabel MOCK) · `ollama` (local) · `none` |
 | Integrasi | `backend/app/integrations` | Adapter ZOI AI CLIPPER & Blueprint Studio — **read-only**, aplikasi asli tidak diubah |
 
-## Dua mode
+## Tiga mode
 
-| | `ZOI_MODE=development` | `ZOI_MODE=local` |
-|---|---|---|
-| Penyedia AI | Mock (jawaban berlabel **MOCK**, tidak pernah membuat statistik) | Ollama lokal; **mock ditolak** |
-| Alamat | Vite `http://127.0.0.1:5173` → backend `:8000` | Satu alamat: `http://127.0.0.1` (port 80) |
-| Banner | Pita kuning "DEVELOPMENT MODE" | Tidak ada |
+| | `ZOI_MODE=development` | `ZOI_MODE=local` | `ZOI_MODE=online` |
+|---|---|---|---|
+| Penyedia AI | Mock (jawaban berlabel **MOCK**, tidak pernah membuat statistik) | Ollama lokal; **mock ditolak** | NVIDIA NIM / OpenRouter (gratis) |
+| Alamat | Vite `http://127.0.0.1:5173` → backend `:8000` | Satu alamat: `http://127.0.0.1` (port 80) | `https://…onrender.com` (Render free) |
+| Database | SQLite | SQLite | Postgres (Neon free), rahasia terenkripsi |
+| Login | — | — | Satu kata sandi (wajib) |
+| Banner | Pita kuning "DEVELOPMENT MODE" | Tidak ada | Tidak ada |
+
+Mode online untuk membuka ZOI dari HP tanpa laptop; produksi konten (render video, narasi, CLIPPER,
+Blueprint) tetap di laptop. Panduan: [`docs/DEPLOY_ONLINE.md`](docs/DEPLOY_ONLINE.md), keputusan desain:
+`docs/adr/0012-mode-online.md`.
 
 Semua konfigurasi lewat environment variable / file `.env` — lihat `.env.development.example` dan
 `.env.local.example`. Nama variabel yang salah ketik ditolak saat start.
@@ -40,6 +46,9 @@ scripts/dev.sh            # buka http://127.0.0.1:5173
 
 **Local server Windows**: pakai paket rilis (frontend sudah di-build, tanpa Node.js) dan ikuti
 [`docs/MIGRATION_TO_LOCAL_SERVER.md`](docs/MIGRATION_TO_LOCAL_SERVER.md).
+
+**Online (Render + Neon, gratis)**: ikuti [`docs/DEPLOY_ONLINE.md`](docs/DEPLOY_ONLINE.md) —
+`Dockerfile` dan `render.yaml` sudah disiapkan di root repo.
 
 ## Alat baris perintah
 

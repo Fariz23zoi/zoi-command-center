@@ -28,6 +28,7 @@ def public_config(ctx: AppContext = Depends(get_ctx)) -> dict:
         "provider": rt.provider,
         "is_mock": ctx.provider.is_mock,
         "is_cloud": bool(rt.cloud_names),
+        "online": rt.is_online,
         "cloud_providers": list(rt.cloud_names),
         "ollama_url": rt.ollama_url if rt.provider == "ollama" else None,
         "ollama_model": rt.ollama_model or None,

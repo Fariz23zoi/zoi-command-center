@@ -21,6 +21,7 @@ from app.db.session import Database
 from app.integrations.base import ExternalAppAdapter
 from app.memory.service import MemoryService
 from app.providers.base import LLMProvider
+from app.security.auth import AuthService
 from app.security.cost_guard import CostGuard
 from app.tasks.manager import TaskManager
 from app.voice.service import VoiceService
@@ -48,6 +49,7 @@ class AppContext:
     public: PublicDataService
     content: ContentService
     cloud_ai: CloudAIService
+    auth: AuthService
     migration_backup: str | None = None
     started_monotonic: float = field(default_factory=time.monotonic)
     cache: dict[str, Any] = field(default_factory=dict)

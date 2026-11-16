@@ -1,0 +1,26 @@
+# Blueprint Render untuk ZOI mode online (paket FREE — jika Render meminta kartu/pembayaran, BERHENTI).
+services:
+  - type: web
+    name: zoi
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: ZOI_MODE
+        value: online
+      - key: ZOI_SECRET_KEY
+        generateValue: true        # kunci enkripsi rahasia di database — dibuat otomatis oleh Render
+      - key: ZOI_SETUP_TOKEN
+        generateValue: true        # token sekali pakai untuk membuat kata sandi login pertama
+      - key: ZOI_DATABASE_URL
+        sync: false                # diisi manual: connection string Neon (postgresql://...)
+      - key: ZOI_AI_PROVIDER
+        value: nvidia
+      - key: ZOI_AI_FALLBACK
+        value: openrouter
+      - key: ZOI_NVIDIA_MODEL
+        value: ""                  # isi nama model NVIDIA NIM pilihanmu, mis. meta/llama-3.3-70b-instruct
+      - key: ZOI_OPENROUTER_MODEL
+        value: ""                  # isi model OpenRouter GRATIS (wajib berakhiran :free)
