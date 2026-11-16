@@ -1,19 +1,60 @@
-/* Token desain ZOI — dark futuristic, font sistem (tanpa CDN agar jalan offline). */
+/* Token desain ZOI Universe V2 — premium futuristic, font sistem (tanpa CDN agar jalan offline).
+   Nama variabel lama (--surface, --accent, …) dipertahankan agar halaman lama tetap berfungsi. */
 :root {
-  --bg: #0b0c13;
-  --surface: #12131d;
-  --surface-2: #191a27;
-  --border: #2a2c3f;
-  --text: #ecebf7;
-  --muted: #9a9bb3;
-  --accent: #9385ff;
-  --accent-ink: #0b0c13;
-  --ok: #83d9a0;
-  --warn: #ffd23f;
-  --bad: #ff6b7a;
-  --radius: 10px;
+  /* Palet spesifikasi V2 */
+  --bg: #08080d;
+  --bg-2: #101019;
+  --panel: #141420;
+  --primary: #8b5cf6;
+  --primary-2: #6366f1;
+  --accent: #a78bfa;
+  --text: #f8fafc;
+  --muted: #9292a8;
+
+  /* Alias lama → palet baru */
+  --surface: var(--bg-2);
+  --surface-2: var(--panel);
+  --border: #252536;
+  --border-strong: #3a3360;
+  --accent-ink: #ffffff;
+
+  /* Status */
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
+  --info: #22d3ee;
+
+  /* Efek — dipakai selektif */
+  --gradient: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+  --gradient-soft: linear-gradient(135deg, rgb(139 92 246 / 0.18) 0%, rgb(99 102 241 / 0.08) 100%);
+  --glow: 0 0 0 1px rgb(139 92 246 / 0.35), 0 8px 30px -12px rgb(139 92 246 / 0.55);
+  --glass: rgb(20 20 32 / 0.72);
+
+  /* Bentuk & ritme (kelipatan 4/8) */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
   --space: 8px;
+  --sidebar-w: 248px;
+
+  /* Tipografi */
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 15px;
+  --fs-lg: 18px;
+  --fs-xl: 24px;
+  --fs-2xl: 32px;
+
+  /* Gerak */
   --dur: 160ms;
+  --dur-slow: 320ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur: 0ms; --dur-slow: 0ms; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }
