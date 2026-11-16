@@ -22,3 +22,8 @@ Semua pekerjaan redesign di branch `redesign/v2`; `main` baru diubah setelah Pha
 5. **ZOI AI LAB**: belum ada produknya → ditampilkan berstatus "Planned", tanpa tombol Open palsu.
 6. **ZOI AI CLIPPER**: tetap status "Ditunda" (alasan ketentuan YouTube); kartu produk jujur.
 7. Bahasa UI: spesifikasi berbahasa Inggris (landing, greeting) — dipakai sesuai spesifikasi; halaman fungsi tetap Bahasa Indonesia kecuali diminta lain.
+
+## Keputusan pemilik (16 Nov 2026)
+- Provider: **hanya gratis** — NVIDIA NIM, OpenRouter `:free`, Ollama, Custom OpenAI-compatible; Gemini/Bytez hanya bila terverifikasi gratis tanpa kartu. OpenAI/Claude tidak dibuat.
+- Contact: **link GitHub Fariz23zoi saja**, tanpa formulir/email.
+- Avatar 3D: **React Three Fiber + Drei disetujui** (MIT), lazy di workspace AI.
