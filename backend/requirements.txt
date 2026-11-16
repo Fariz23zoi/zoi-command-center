@@ -1,0 +1,12 @@
+# ZOI backend — runtime (versi dikunci, lisensi diverifikasi 14 Nov 2026)
+fastapi==0.162.6          # MIT
+uvicorn==0.54.0           # BSD-3-Clause
+websockets==17.4          # BSD-3-Clause (WebSocket untuk uvicorn — tanpa ini /ws tidak berfungsi)
+pydantic==2.14.3          # MIT
+pydantic-settings==2.16.3 # MIT
+sqlalchemy==2.1.8         # MIT
+alembic==1.20.1           # MIT
+httpx==0.28.1             # BSD-3-Clause
+psutil==7.2.2             # BSD-3-Clause
+structlog==26.1.0         # MIT OR Apache-2.0
+python-dotenv==1.2.4      # BSD-3-Clause (membaca file .env)

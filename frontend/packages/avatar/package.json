@@ -1,0 +1,14 @@
+{
+  "name": "@zoi/avatar",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "description": "Avatar ZOI. Antarmuka publik: index.ts. Renderer 2D sekarang, 3D (Phase 2) menyusul tanpa mengubah aplikasi.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  }
+}

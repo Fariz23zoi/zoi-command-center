@@ -1,0 +1,19 @@
+/* Token desain ZOI — dark futuristic, font sistem (tanpa CDN agar jalan offline). */
+:root {
+  --bg: #0b0c13;
+  --surface: #12131d;
+  --surface-2: #191a27;
+  --border: #2a2c3f;
+  --text: #ecebf7;
+  --muted: #9a9bb3;
+  --accent: #9385ff;
+  --accent-ink: #0b0c13;
+  --ok: #83d9a0;
+  --warn: #ffd23f;
+  --bad: #ff6b7a;
+  --radius: 10px;
+  --space: 8px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --dur: 160ms;
+}

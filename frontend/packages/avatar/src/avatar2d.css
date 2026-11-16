@@ -1,0 +1,35 @@
+.zoi-avatar2d { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.zoi-avatar2d svg { display: block; overflow: visible; }
+.zoi-ring { fill: none; stroke: var(--zoi-state, #9385ff); stroke-width: 3; opacity: .55; transition: stroke .3s ease; }
+.zoi-head { fill: #161827; stroke: #2c2f45; stroke-width: 2; }
+.zoi-eye { fill: #e9e7ff; transform-box: fill-box; transform-origin: center; animation: zoi-blink 5s infinite; }
+.zoi-mouth { fill: none; stroke: #e9e7ff; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.zoi-mouth-talk, .zoi-mouth-open { fill: #e9e7ff22; }
+.zoi-mouth-talk { transform-box: fill-box; transform-origin: center; animation: zoi-talk .32s infinite alternate; }
+.zoi-mark { fill: var(--zoi-state); font: 700 34px system-ui, sans-serif; }
+.zoi-avatar-label { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--zoi-state, #9385ff); }
+
+.zoi-avatar2d[data-state="IDLE"] { --zoi-state: #9385ff; }
+.zoi-avatar2d[data-state="LISTENING"] { --zoi-state: #5fd4ff; }
+.zoi-avatar2d[data-state="THINKING"], .zoi-avatar2d[data-state="PLANNING"] { --zoi-state: #c3a6ff; }
+.zoi-avatar2d[data-state="RESEARCHING"], .zoi-avatar2d[data-state="ANALYZING"] { --zoi-state: #5fd4ff; }
+.zoi-avatar2d[data-state="CREATING"], .zoi-avatar2d[data-state="EXECUTING"] { --zoi-state: #ffb85f; }
+.zoi-avatar2d[data-state="WAITING_APPROVAL"] { --zoi-state: #ffd23f; }
+.zoi-avatar2d[data-state="SPEAKING"] { --zoi-state: #83d9a0; }
+.zoi-avatar2d[data-state="COMPLETED"] { --zoi-state: #83d9a0; }
+.zoi-avatar2d[data-state="FAILED"] { --zoi-state: #ff6b7a; }
+
+.zoi-avatar2d:is([data-state="THINKING"], [data-state="ANALYZING"], [data-state="RESEARCHING"],
+  [data-state="PLANNING"], [data-state="EXECUTING"], [data-state="CREATING"]) .zoi-ring {
+  stroke-dasharray: 40 18; transform-origin: 100px 100px; animation: zoi-spin 2.4s linear infinite; opacity: .9;
+}
+.zoi-avatar2d[data-state="LISTENING"] .zoi-ring { animation: zoi-pulse 1.2s ease-in-out infinite; }
+
+@keyframes zoi-blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(.1); } }
+@keyframes zoi-talk { from { transform: scaleY(.55); } to { transform: scaleY(1.15); } }
+@keyframes zoi-spin { to { transform: rotate(360deg); } }
+@keyframes zoi-pulse { 50% { opacity: .2; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .zoi-avatar2d * { animation: none !important; }
+}
