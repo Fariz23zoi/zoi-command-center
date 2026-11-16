@@ -5,6 +5,7 @@ import { create } from "zustand";
 
 interface EarlyChat {
   delta: string;
+  thinking: string;
   done?: ChatMessageInfo;
 }
 
@@ -12,10 +13,13 @@ const EARLY_LIMIT = 20;
 
 /** Simpan event yang datang terlalu awal; dibatasi agar event pesan dari tab lain tidak menumpuk. */
 function bufferEarly(
-  buffer: Record<string, EarlyChat>, id: string, add: { delta?: string; done?: ChatMessageInfo },
+  buffer: Record<string, EarlyChat>, id: string, add: { delta?: string; thinking?: string; done?: ChatMessageInfo },
 ): Record<string, EarlyChat> {
-  const prev = buffer[id] ?? { delta: "" };
-  const next = { ...buffer, [id]: { delta: prev.delta + (add.delta ?? ""), done: add.done ?? prev.done } };
+  const prev = buffer[id] ?? { delta: "", thinking: "" };
+  const next = {
+    ...buffer,
+    [id]: { delta: prev.delta + (add.delta ?? ""), thinking: prev.thinking + (add.thinking ?? ""), done: add.done ?? prev.done },
+  };
   const keys = Object.keys(next);
   for (const key of keys.slice(0, Math.max(0, keys.length - EARLY_LIMIT))) delete next[key];
   return next;
@@ -35,6 +39,8 @@ interface AppState {
   bootstrapped: boolean;
   /** Event chat untuk pesan yang belum diketahui halaman ini (tiba sebelum respons POST). */
   earlyChat: Record<string, EarlyChat>;
+  /** Naik setiap model aktif berubah (event provider.updated) — halaman AI Lokal memuat ulang datanya. */
+  aiRevision: number;
   avatarRenderer: "2d" | "3d" | null;
   avatarNote: string | null;
   setConfig(config: PublicConfig): void;
@@ -64,6 +70,7 @@ export const useApp = create<AppState>((set) => ({
   prefs: null,
   bootstrapped: false,
   earlyChat: {},
+  aiRevision: 0,
   avatarRenderer: null,
   avatarNote: null,
   setConfig: (config) => set({ config }),
@@ -83,7 +90,8 @@ export const useApp = create<AppState>((set) => ({
         const pending = early[m.id];
         if (!pending) return m;
         delete early[m.id];
-        return pending.done ?? { ...m, content: m.content + pending.delta };
+        return pending.done
+          ?? { ...m, content: m.content + pending.delta, thinking: ((m.thinking ?? "") + pending.thinking) || null };
       });
       return {
         earlyChat: early,
@@ -110,6 +118,20 @@ export const useApp = create<AppState>((set) => ({
           return {
             messages: s.messages.map((m) =>
               m.id === event.payload.message_id ? { ...m, content: m.content + event.payload.text } : m),
+          };
+        case "chat.thinking":
+          if (!s.messages.some((m) => m.id === event.payload.message_id)) {
+            return { earlyChat: bufferEarly(s.earlyChat, event.payload.message_id, { thinking: event.payload.text }) };
+          }
+          if (event.payload.conversation_id !== s.conversationId) return {};
+          return {
+            messages: s.messages.map((m) =>
+              m.id === event.payload.message_id ? { ...m, thinking: (m.thinking ?? "") + event.payload.text } : m),
+          };
+        case "provider.updated":
+          return {
+            aiRevision: s.aiRevision + 1,
+            provider: s.provider ? { ...s.provider, model: event.payload.active_model } : s.provider,
           };
         case "chat.done":
           if (!s.messages.some((m) => m.id === event.payload.message.id)) {

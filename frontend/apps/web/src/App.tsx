@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router-dom";
 
 import { CommandCenter } from "./layout/CommandCenter";
 import { MENU } from "./menu";
+import { AiLocalPage } from "./pages/AiLocalPage";
 import { AssistantPage } from "./pages/AssistantPage";
 import { IntegrationPage } from "./pages/IntegrationPage";
 import { NotYetAvailable } from "./pages/NotYetAvailable";
@@ -50,6 +51,7 @@ export function App() {
             element={READY_PAGES[item.path] ?? <NotYetAvailable item={item} />}
           />
         ))}
+        <Route path="/settings/ai" element={<AiLocalPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

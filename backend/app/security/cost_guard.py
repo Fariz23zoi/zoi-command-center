@@ -95,7 +95,9 @@ class CostGuard:
         async def hook(request: httpx.Request) -> None:
             self.enforce(request.method, request.url)
 
-        hooks = {"request": [hook]}
+        # Hook Cost Guard selalu dijalankan PERTAMA; hook tambahan dari pemanggil tidak bisa menggantikannya.
+        extra = kwargs.pop("event_hooks", None) or {}
+        hooks = {"request": [hook, *extra.get("request", [])], "response": list(extra.get("response", []))}  # type: ignore[union-attr]
         return httpx.AsyncClient(event_hooks=hooks, trust_env=False, **kwargs)  # type: ignore[arg-type]
 
     def client(self, **kwargs: object) -> httpx.Client:

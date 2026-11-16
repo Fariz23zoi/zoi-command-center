@@ -6,6 +6,7 @@ const stamp = Date.now();
 const python = process.env.E2E_PYTHON ?? "../backend/.venv/bin/python";
 const chrome = process.env.E2E_CHROME; // browser sistem bila unduhan browser Playwright tidak tersedia
 const LOCAL_PORT = 8080; // port alternatif — port 80 di local server Windows diuji saat migrasi
+const FAKE_OLLAMA_PORT = 11500; // Ollama TIRUAN (backend/tests/fake_ollama.py) — tidak ada model sungguhan
 
 export default defineConfig({
   testDir: "e2e",
@@ -41,12 +42,19 @@ export default defineConfig({
       reuseExistingServer: false,
     },
     {
+      command: `${python} -m tests.fake_ollama --port ${FAKE_OLLAMA_PORT}`,
+      cwd: "../backend",
+      url: `http://127.0.0.1:${FAKE_OLLAMA_PORT}/api/version`,
+      reuseExistingServer: false,
+    },
+    {
       command: `${python} -m app`,
       cwd: "../backend",
       url: `http://127.0.0.1:${LOCAL_PORT}/api/health`,
       reuseExistingServer: false,
       env: { ZOI_MODE: "local", ZOI_PORT: String(LOCAL_PORT), ZOI_DATA_DIR: `/tmp/zoi-e2e-local-${stamp}`,
-        ZOI_OLLAMA_URL: "http://127.0.0.1:9", ZOI_OLLAMA_MODEL: "qwen3:4b", ZOI_ENV_FILE: "/nonexistent" },
+        ZOI_OLLAMA_URL: `http://127.0.0.1:${FAKE_OLLAMA_PORT}`, ZOI_OLLAMA_MODEL: "qwen3:4b",
+        ZOI_ENV_FILE: "/nonexistent" },
     },
   ],
 });

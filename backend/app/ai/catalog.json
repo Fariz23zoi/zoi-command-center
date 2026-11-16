@@ -1,0 +1,21 @@
+{
+  "checked_at": "2026-11-14",
+  "source": "Halaman resmi ollama.com/library (qwen3/tags, gemma4/tags), dicek 14 Nov 2026. Ukuran = ukuran unduhan yang tertulis di sana; bisa berubah.",
+  "models": [
+    {"tag": "qwen3:0.6b", "family": "Qwen3", "license": "Apache-2.0", "download": "523 MB", "context": "40K",
+     "fit": "Paling ringan. Cocok untuk uji coba di komputer lemah; kualitas Bahasa Indonesia dan tool call terbatas."},
+    {"tag": "qwen3:1.7b", "family": "Qwen3", "license": "Apache-2.0", "download": "1,4 GB", "context": "40K",
+     "fit": "Ringan. Percakapan sederhana; masih lemah untuk agent."},
+    {"tag": "qwen3:4b", "family": "Qwen3", "license": "Apache-2.0", "download": "2,5 GB", "context": "256K",
+     "fit": "Titik tengah untuk komputer kelas ZOI Standard (CPU dengan AVX2, RAM 16 GB)."},
+    {"tag": "qwen3:8b", "family": "Qwen3", "license": "Apache-2.0", "download": "5,2 GB", "context": "40K",
+     "fit": "Lebih baik untuk agent; butuh RAM 16 GB atau GPU."},
+    {"tag": "gemma4:e2b-it-qat", "family": "Gemma 4", "license": "Apache-2.0", "download": "4,3 GB", "context": "128K",
+     "fit": "Meski bernama 2B, unduhannya besar. Tag gemma4:e2b biasa: 4,6–7,5 GB."},
+    {"tag": "gemma4:e4b-it-qat", "family": "Gemma 4", "license": "Apache-2.0", "download": "6,1 GB", "context": "128K",
+     "fit": "Butuh RAM 16 GB atau GPU. Tag gemma4:e4b biasa: 6,6–9,5 GB."}
+  ],
+  "not_default": [
+    {"family": "Llama", "reason": "Lisensi kustom (Llama Community License) — tidak dijadikan saran."}
+  ]
+}

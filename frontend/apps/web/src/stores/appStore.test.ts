@@ -34,4 +34,21 @@ describe("event chat yang tiba sebelum respons POST", () => {
     }
     expect(Object.keys(useApp.getState().earlyChat)).toHaveLength(20);
   });
+
+  it("chat.thinking lebih dulu ikut digabung", () => {
+    useApp.getState().handleEvent({ type: "chat.thinking", at: "", payload: { conversation_id: "c1", message_id: "a1", text: "Pikir" } });
+    useApp.getState().setConversation("c1", []);
+    useApp.getState().addMessages([msg({})]);
+    expect(useApp.getState().messages[0].thinking).toBe("Pikir");
+  });
+});
+
+describe("provider.updated", () => {
+  it("menaikkan revisi AI dan memperbarui model penyedia", () => {
+    useApp.setState({ aiRevision: 0, provider: { name: "ollama", available: true, is_mock: false, model: "a", detail: "",
+      models: [], checked_at: "" } });
+    useApp.getState().handleEvent({ type: "provider.updated", at: "", payload: { active_model: "b", active_source: "ui" } });
+    expect(useApp.getState().aiRevision).toBe(1);
+    expect(useApp.getState().provider?.model).toBe("b");
+  });
 });

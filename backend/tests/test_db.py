@@ -19,7 +19,7 @@ from app.db.migrations import (
 )
 
 EXPECTED_TABLES = {"app_meta", "tasks", "task_events", "system_checks", "network_audit", "conversations",
-                   "messages", "alembic_version"}
+                   "messages", "alembic_version", "model_evaluations"}
 
 
 def tables(db_file):

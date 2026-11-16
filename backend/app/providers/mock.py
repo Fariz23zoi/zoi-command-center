@@ -18,7 +18,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from app.providers.base import ChatChunk, ChatMessage, ProviderStatus, ToolCall, ToolSpec
+from app.providers.base import (
+    DEFAULT_CONTEXT_TOKENS,
+    ChatChunk,
+    ChatMessage,
+    ChatOptions,
+    ProviderStatus,
+    ToolCall,
+    ToolSpec,
+)
 
 SCRIPTS_DIR = Path(__file__).resolve().parent / "mock_scripts"
 PREFIX = "[MOCK] "
@@ -28,6 +36,39 @@ TRIGGER_ERROR = "/uji-error"
 TRIGGER_TIMEOUT = "/uji-timeout"
 TRIGGER_TOOL = "/uji-tool"
 TRIGGER_BAD_TOOL = "/uji-tool-rusak"
+TRIGGER_THINK = "/uji-berpikir"
+TRIGGER_BAD_JSON = "/uji-json-rusak"
+
+
+class MockJsonUnsupported(ValueError):
+    pass
+
+
+def mock_instance(schema: dict[str, Any], defs: dict[str, Any] | None = None) -> Any:
+    """Contoh minimal yang lolos skema — teks diberi label [MOCK]; angka TIDAK PERNAH dikarang."""
+    defs = defs if defs is not None else schema.get("$defs", {})
+    if "$ref" in schema:
+        return mock_instance(defs[schema["$ref"].split("/")[-1]], defs)
+    if "enum" in schema:
+        return schema["enum"][0]
+    if "anyOf" in schema:
+        for option in schema["anyOf"]:
+            if option.get("type") == "null":
+                return None
+        return mock_instance(schema["anyOf"][0], defs)
+    kind = schema.get("type")
+    if kind == "object":
+        props = schema.get("properties", {})
+        return {key: mock_instance(props[key], defs) for key in schema.get("required", list(props))}
+    if kind == "array":
+        return []
+    if kind == "string":
+        return "[MOCK]"
+    if kind == "boolean":
+        return False
+    if kind == "null":
+        return None
+    raise MockJsonUnsupported("Mock Provider tidak mengarang angka untuk keluaran terstruktur.")
 
 
 @dataclass(frozen=True)
@@ -65,6 +106,12 @@ class MockProvider:
     async def list_models(self) -> list[str]:
         return [self.model]
 
+    def set_model(self, model: str | None) -> None:  # noqa: ARG002 — model mock tetap
+        return None
+
+    async def context_tokens(self) -> int:
+        return DEFAULT_CONTEXT_TOKENS
+
     def reply_for(self, text: str) -> str:
         for rule in self.rules:
             if rule.pattern.search(text):
@@ -76,10 +123,25 @@ class MockProvider:
             await asyncio.sleep(self.latency_ms / 1000 * factor)
 
     async def chat(
-        self, messages: list[ChatMessage], tools: list[ToolSpec] | None = None, timeout_s: float = 120.0
+        self, messages: list[ChatMessage], tools: list[ToolSpec] | None = None, timeout_s: float = 120.0,
+        options: ChatOptions | None = None,
     ) -> AsyncIterator[ChatChunk]:
         last_user = next((m.content for m in reversed(messages) if m.role == "user"), "")
         await self._pause()
+
+        if options and options.json_schema is not None:
+            if TRIGGER_BAD_JSON in last_user:
+                yield ChatChunk(type="text", text='{"rusak": ')
+                yield ChatChunk(type="done")
+                return
+            try:
+                payload = json.dumps(mock_instance(options.json_schema), ensure_ascii=False)
+            except (MockJsonUnsupported, KeyError, IndexError) as exc:
+                yield ChatChunk(type="error", error=str(exc))
+                return
+            yield ChatChunk(type="text", text=payload)
+            yield ChatChunk(type="done")
+            return
 
         if TRIGGER_ERROR in last_user:
             yield ChatChunk(type="error", error="Simulasi error dari Mock Provider.")
@@ -97,6 +159,11 @@ class MockProvider:
             yield ChatChunk(type="tool_call", tool_call=ToolCall(name=tools[0].name, arguments={}))
             yield ChatChunk(type="done")
             return
+
+        if TRIGGER_THINK in last_user:
+            for word in "[MOCK] Menimbang pertanyaan sebelum menjawab.".split(" "):
+                yield ChatChunk(type="thinking", text=word + " ")
+                await self._pause(0.05)
 
         words = (PREFIX + self.reply_for(last_user)).split(" ")
         for index, word in enumerate(words):

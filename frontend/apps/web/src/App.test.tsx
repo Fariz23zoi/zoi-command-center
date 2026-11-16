@@ -99,4 +99,13 @@ describe("Command Center", () => {
     expect(screen.getAllByText(/tidak mendukung WebGL 2/).length).toBeGreaterThan(0);
     expect(screen.getByLabelText("Karakter 3D")).toHaveValue("female");
   });
+
+  it("tombol Berhenti muncul selama ZOI menulis dan memanggil API stop", async () => {
+    renderApp();
+    const fetchFn = vi.mocked(globalThis.fetch);
+    useApp.setState({ conversationId: "c1", messages: [{ id: "a1", conversation_id: "c1", role: "assistant", content: "",
+      provider: "mock", model: "m", is_mock: true, status: "streaming", error: null, created_at: null }] });
+    fireEvent.click(await screen.findByTestId("stop-button"));
+    await waitFor(() => expect(fetchFn).toHaveBeenCalledWith("/api/chat/a1/stop", expect.objectContaining({ method: "POST" })));
+  });
 });

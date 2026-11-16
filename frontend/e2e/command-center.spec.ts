@@ -30,10 +30,15 @@ test("chat: development memakai mock berlabel, local tidak pernah mock", async (
   await send(page, "halo ZOI");
   const reply = page.getByTestId("msg-assistant").last();
   if (isLocal()) {
-    await expect(reply.getByRole("alert")).toContainText("tidak dapat dihubungi");
+    // Ollama TIRUAN: jalur sukses + proses berpikir terpisah, tanpa lencana MOCK.
+    await expect(reply).toContainText("Jawaban dari model lokal.", { timeout: 10_000 });
+    await expect(reply.getByTestId("msg-thinking")).toContainText("Menimbang jawaban.");
     await expect(page.getByTestId("mock-badge")).toHaveCount(0);
+    // Jalur gagal yang cepat (error tiba sebelum respons POST) tetap tampil.
+    await send(page, "/uji-error");
+    await expect(page.getByTestId("msg-assistant").last().getByRole("alert")).toContainText("Ollama menolak permintaan");
   } else {
-    await expect(reply.getByTestId("mock-badge")).toBeVisible();
+    await expect(reply.getByTestId("mock-badge")).toBeVisible({ timeout: 10_000 });
     await expect(reply).toContainText("[MOCK] Halo!", { timeout: 10_000 });
   }
   await expectNoHorizontalOverflow(page);

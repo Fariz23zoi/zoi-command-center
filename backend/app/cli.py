@@ -5,6 +5,8 @@
   python -m app.cli backup                      Salin database ke data/backups
   python -m app.cli data export [--exclude-mock] [--out FILE]
   python -m app.cli data import FILE [--yes]    Pulihkan arsip (ZOI harus dalam keadaan berhenti)
+  python -m app.cli ai models                   Daftar model Ollama yang terpasang (hanya-baca)
+  python -m app.cli ai eval --model NAMA        Uji kecocokan model dengan 20 prompt Bahasa Indonesia
 """
 
 from __future__ import annotations
@@ -154,6 +156,11 @@ def main(argv: list[str] | None = None) -> int:
     imp.add_argument("--yes", action="store_true", help="lanjut tanpa konfirmasi")
     ver = data_sub.add_parser("verify")
     ver.add_argument("file", type=Path)
+    ai = sub.add_parser("ai", help="AI lokal (Ollama) — hanya-baca; ZOI tidak mengunduh model")
+    ai_sub = ai.add_subparsers(dest="action", required=True)
+    ai_sub.add_parser("models")
+    ev = ai_sub.add_parser("eval")
+    ev.add_argument("--model", required=True)
     args = parser.parse_args(argv)
 
     try:
@@ -203,10 +210,53 @@ def main(argv: list[str] | None = None) -> int:
             print("Impor selesai." + (f" Backup data lama: {result.backup}" if result.backup else ""))
             print(json.dumps(result.table_counts, indent=2))
             return 0
+        if args.cmd == "ai":
+            return asyncio.run(_ai_command(args, runtime))
     except PortabilityError as exc:
         print(f"Gagal: {exc}", file=sys.stderr)
         return 1
     return 1
+
+
+async def _ai_command(args: argparse.Namespace, runtime: RuntimeConfig) -> int:
+    import httpx
+
+    from app.ai.evaluation import evaluate, save_evaluation
+    from app.db.base import utcnow
+    from app.db.session import Database
+    from app.providers.ollama import OllamaProvider
+    from app.security.cost_guard import CostGuard, CostGuardBlocked
+
+    guard = CostGuard.build(ollama_url=runtime.ollama_url, extra_hosts=load_settings().extra_hosts, recorder=None)
+    provider = OllamaProvider(runtime.ollama_url, getattr(args, "model", "") or "", guard)
+    try:
+        if args.action == "models":
+            for model in await provider.installed():
+                size = f"{model.size_bytes / 1e9:.1f} GB" if model.size_bytes else "ukuran tidak dilaporkan"
+                note = " (cloud — tidak diizinkan)" if model.is_cloud else ""
+                print(f"{model.name}\t{size}\t{model.parameter_size or '-'}{note}")
+            return 0
+        problem = await provider.validate_choice(args.model)
+        if problem:
+            print(problem, file=sys.stderr)
+            return 1
+        version = await provider.version()
+        started = utcnow()
+        print(f"Menguji {args.model} di Ollama {version} — bisa memakan waktu lama di CPU lambat.")
+        results, summary = await evaluate(provider, on_progress=lambda pct, msg: print(f"[{pct:3d}%] {msg}"))
+    except (httpx.HTTPError, ValueError, CostGuardBlocked) as exc:
+        print(f"Ollama tidak dapat dihubungi di {runtime.ollama_url} ({type(exc).__name__}).", file=sys.stderr)
+        return 1
+    upgrade_database(db_path(runtime.data_dir))
+    db = Database(db_path(runtime.data_dir))
+    try:
+        saved = save_evaluation(db, model=args.model, ollama_version=version, started_at=started, results=results,
+                                summary=summary)
+    finally:
+        db.dispose()
+    print(json.dumps(summary, indent=2, ensure_ascii=False))
+    print(f"Disimpan (id {saved['id']}). Nilai jawaban percakapan di Settings › AI Lokal.")
+    return 0
 
 
 if __name__ == "__main__":

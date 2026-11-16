@@ -43,7 +43,8 @@ test("avatar 3D: aset lokal, tanpa permintaan keluar, lip-sync dari file perangk
   await page.goto("/settings");
   await expect(page.getByTestId("avatar-renderer")).toHaveText("3d");
   const canvas = page.getByTestId("avatar-3d-canvas").locator("canvas");
-  await expect(canvas).toHaveCount(1);
+  // SwiftShader (WebGL lewat CPU) bisa membekukan halaman beberapa detik saat model dimuat di mesin 2 core.
+  await expect(canvas).toHaveCount(1, { timeout: 30_000 });
   await expect(page.locator(".zoi-avatar3d")).toHaveAttribute("data-ready", "true", { timeout: 30_000 });
 
   await page.getByLabel(/Uji lip-sync/).setInputFiles({ name: "uji.wav", mimeType: "audio/wav", buffer: wav() });

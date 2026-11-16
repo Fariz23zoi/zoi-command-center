@@ -13,6 +13,9 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 
 from app import __version__
+from app.ai import selection
+from app.ai.local import LocalAIService
+from app.ai.tasks import model_eval_kind
 from app.api.router import api_router, ws_router
 from app.chat.service import ChatService
 from app.config.modes import RuntimeConfig, resolve_runtime
@@ -27,6 +30,7 @@ from app.db.session import Database, db_path
 from app.integrations.blueprint.adapter import BlueprintAdapter
 from app.integrations.clipper.adapter import ClipperAdapter
 from app.logging_setup import configure_logging, get_logger
+from app.providers.base import LocalModelAdmin
 from app.providers.registry import build_provider
 from app.security.cost_guard import CostGuard
 from app.tasks.builtin import make_run_async, system_check_kind
@@ -58,12 +62,18 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
 
     guard = CostGuard.build(ollama_url=runtime.ollama_url, extra_hosts=settings.extra_hosts, recorder=record)
     provider = build_provider(runtime, guard)
+    ai_source = "none"
+    if isinstance(provider, LocalModelAdmin):
+        model, ai_source = selection.resolve(db, runtime.ollama_model)
+        provider.set_model(model)
     adapters = [ClipperAdapter(settings.clipper_dir, settings.clipper_python),
                 BlueprintAdapter(settings.blueprint_file)]
     tasks = TaskManager(db, bus, agent)
     chat = ChatService(db, bus, agent, provider)
     ctx = AppContext(settings=settings, runtime=runtime, db=db, bus=bus, agent=agent, guard=guard,
                      provider=provider, adapters=adapters, tasks=tasks, chat=chat,
+                     local_ai=LocalAIService(provider=provider, runtime=runtime, db=db, bus=bus, tasks=tasks,
+                                             source=ai_source),
                      migration_backup=str(backup) if backup else None)
 
     @asynccontextmanager
@@ -73,6 +83,8 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
         agent.bind_loop(loop)
         tasks.register(system_check_kind(db=db, data_dir=runtime.data_dir, provider=provider, adapters=adapters,
                                          run_async=make_run_async(loop)))
+        if isinstance(provider, LocalModelAdmin):
+            tasks.register(model_eval_kind(db=db, admin=provider, run_async=make_run_async(loop)))
         recovered = tasks.recover_interrupted()
         log.info("zoi_started", version=__version__, mode=runtime.mode.value, provider=provider.name,
                  url=runtime.base_url, recovered_tasks=recovered, warnings=list(runtime.warnings))

@@ -66,4 +66,4 @@ def test_export_import_via_cli(env, tmp_path, client_factory, capsys):
 def test_db_upgrade_and_status(env, capsys):
     assert cli.main(["db", "upgrade"]) == 0
     assert cli.main(["db", "status"]) == 0
-    assert "0001_foundation" in capsys.readouterr().out
+    assert "0002_local_ai" in capsys.readouterr().out

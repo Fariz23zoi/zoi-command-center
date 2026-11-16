@@ -1,6 +1,7 @@
 import { api, ApiError, type Preferences } from "@zoi/api-client";
 import { clearCachedFps, readCachedFps } from "@zoi/avatar";
 import { type ChangeEvent, type FormEvent, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { avatarController } from "../lib/avatarBridge";
 import { useApp } from "../stores/appStore";
@@ -56,6 +57,10 @@ export function SettingsPage() {
   return (
     <section className="page">
       <h1>Settings</h1>
+      <p className="notice ok">
+        <Link to="/settings/ai" data-testid="ai-local-link">AI Lokal</Link> — status Ollama, model terpasang, model aktif,
+        dan uji kecocokan model.
+      </p>
       <h2>Konfigurasi efektif</h2>
       <p className="muted">Hanya-baca. Diubah lewat file <code>.env</code>, lalu restart ZOI.</p>
       {config && (
