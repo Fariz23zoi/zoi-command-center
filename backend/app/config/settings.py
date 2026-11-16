@@ -119,6 +119,11 @@ class Settings(BaseSettings):
     # Phase 8: token Bearer (≥24 karakter) untuk POST /api/automation/wake dari GitHub Actions. Kosong = nonaktif.
     wake_token: str = ""
 
+    # Akses dari HP lewat Tailscale Serve (mode local, ADR 0015): alamat https://<laptop>.<tailnet>.ts.net
+    # dan (opsional) login Tailscale yang diizinkan. Kosong = hanya bisa dibuka dari laptop ini.
+    remote_url: str = ""
+    remote_user: str = ""
+
     # ── Mode online (ADR 0012). Semua nilai di bawah ini RAHASIA: hanya di pengaturan layanan hosting. ──
     # Alamat Postgres (Neon): postgresql://user:sandi@host/db
     database_url: str = ""

@@ -42,6 +42,7 @@ from app.providers.base import LocalModelAdmin
 from app.providers.registry import build_provider
 from app.security.auth import SESSION_COOKIE, AuthService
 from app.security.cost_guard import CostGuard
+from app.security.remote import remote_denied
 from app.security.secrets_db import DbSecretStore
 from app.tasks.builtin import make_run_async, system_check_kind
 from app.tasks.manager import TaskManager
@@ -173,6 +174,9 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
             return JSONResponse(status_code=403, content={"error": {
                 "code": "missing_client_header", "message": "Permintaan ditolak: header X-ZOI-Client tidak ada."}})
         path = request.url.path
+        denied = remote_denied(runtime, request.headers)
+        if denied:
+            return JSONResponse(status_code=403, content={"error": {"code": "remote_denied", "message": denied}})
         if auth.enabled and path.startswith("/api/") \
                 and not path.startswith(("/api/auth/", "/api/health", "/api/automation/wake")) \
                 and not auth.check(request.cookies.get(SESSION_COOKIE)):
@@ -189,7 +193,10 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
             response.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
         return response
 
-    hosts = [*TRUSTED_HOSTS, runtime.public_host] if runtime.is_online and runtime.public_host else TRUSTED_HOSTS
+    hosts = list(TRUSTED_HOSTS)
+    for extra in (runtime.public_host if runtime.is_online else None, runtime.remote_host):
+        if extra:
+            hosts.append(extra)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=hosts)
     if runtime.cors_origins:
         app.add_middleware(CORSMiddleware, allow_origins=list(runtime.cors_origins), allow_credentials=False,
@@ -222,7 +229,8 @@ async def _automation_loop(automation: AutomationService, interval_s: float) -> 
 def _ws_sources(runtime: RuntimeConfig) -> str:
     if runtime.is_online and runtime.public_host:
         return f"wss://{runtime.public_host}"
-    return f"ws://127.0.0.1:{runtime.port} ws://localhost:{runtime.port}"
+    local = f"ws://127.0.0.1:{runtime.port} ws://localhost:{runtime.port}"
+    return f"{local} wss://{runtime.remote_host}" if runtime.remote_host else local
 
 
 # Salinan Blueprint Studio (Phase 7, ADR 0013): skrip inline milik file asli dan font Google yang memang dipakai

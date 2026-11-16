@@ -1,7 +1,7 @@
 # ZOI — Command Center (YouTube Intelligence)
 
 Platform web dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
-**ZERO PAID API · ZERO SUBSCRIPTION.** Lisensi: MIT. Versi **1.0.0** (Phase 1–10 selesai).
+**ZERO PAID API · ZERO SUBSCRIPTION.** Lisensi: MIT. Versi **1.1.0**. Online = laptop + Tailscale (lihat `docs/AKSES_HP.md`).
 
 > Bentuk akhir: **ZOI online** (Render + Neon, gratis) untuk dibuka dari HP — chat, analitik, kompetitor, tren,
 > ide, naskah, otomatisasi — dan **ZOI laptop** (mode local) untuk produksi konten: narasi, Blueprint Studio,
@@ -10,7 +10,7 @@ Platform web dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
 
 ## Mulai di sini
 
-1. **Online**: [`docs/DEPLOY_ONLINE.md`](docs/DEPLOY_ONLINE.md) — Neon → Render → kata sandi → API key AI →
+1. **Online dari HP (gratis)**: [`docs/AKSES_HP.md`](docs/AKSES_HP.md) — laptop + Tailscale. Hosting cloud: [`docs/DEPLOY_ONLINE.md`](docs/DEPLOY_ONLINE.md) — Neon → Render → kata sandi → API key AI →
    (opsional) YouTube, otomatisasi, cadangan.
 2. **Laptop**: [`docs/MIGRATION_TO_LOCAL_SERVER.md`](docs/MIGRATION_TO_LOCAL_SERVER.md) — paket rilis ZIP,
    `install.ps1`, `start.ps1`, lalu bagian 5e untuk produksi konten.

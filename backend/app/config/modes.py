@@ -70,6 +70,13 @@ class RuntimeConfig:
     secret_key: str = ""
     setup_token: str = ""
     public_url: str = ""
+    # Akses jarak jauh lewat Tailscale Serve (mode local)
+    remote_url: str = ""
+    remote_user: str = ""
+
+    @property
+    def remote_host(self) -> str | None:
+        return urlparse(self.remote_url).hostname if self.remote_url else None
 
     @property
     def is_online(self) -> bool:
@@ -102,7 +109,8 @@ class RuntimeConfig:
         if self.is_online:
             return (self.public_url,)
         suffix = "" if self.port == 80 else f":{self.port}"
-        return (f"http://127.0.0.1{suffix}", f"http://localhost{suffix}")
+        local = (f"http://127.0.0.1{suffix}", f"http://localhost{suffix}")
+        return (*local, self.remote_url) if self.remote_url else local
 
 
 def _resolve_dir(path: Path | None, default_name: str) -> Path:
@@ -198,6 +206,19 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
     if settings.wake_token and len(settings.wake_token) < 24:
         raise ConfigError("ZOI_WAKE_TOKEN terlalu pendek — pakai teks acak minimal 24 karakter, atau kosongkan.")
 
+    remote_url = settings.remote_url.strip().rstrip("/")
+    if remote_url:
+        parsed_remote = urlparse(remote_url)
+        if online:
+            raise ConfigError("ZOI_REMOTE_URL hanya untuk mode local (akses dari HP lewat Tailscale). "
+                              "Hapus di mode online.")
+        if parsed_remote.scheme != "https" or not (parsed_remote.hostname or "").endswith(".ts.net") \
+                or parsed_remote.path not in {"", "/"}:
+            raise ConfigError(f"ZOI_REMOTE_URL tidak valid: {remote_url!r}. Contoh: https://laptop-zoi.tail1234.ts.net "
+                              "(salin dari perintah `tailscale serve`).")
+        warnings.append(f"AKSES HP aktif lewat Tailscale: {remote_url} — hanya perangkat di tailnet-mu "
+                        "yang bisa membuka.")
+
     database_url = settings.database_url.strip()
     public_url = (settings.public_url.strip() or (os.environ.get("RENDER_EXTERNAL_URL", "") if online else "")
                   ).rstrip("/")
@@ -280,6 +301,8 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
         secret_key=settings.secret_key if online else "",
         setup_token=settings.setup_token if online else "",
         public_url=public_url if online else "",
+        remote_url=remote_url,
+        remote_user=settings.remote_user.strip().lower(),
     )
 
 

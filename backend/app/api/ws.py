@@ -6,6 +6,7 @@ import contextlib
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app.context import AppContext
+from app.security.remote import remote_denied
 
 router = APIRouter()
 
@@ -17,6 +18,9 @@ async def events(websocket: WebSocket) -> None:
     allowed = set(ctx.runtime.cors_origins) | set(ctx.runtime.self_origins)
     if origin is not None and origin not in allowed:
         await websocket.close(code=1008, reason="Origin tidak diizinkan")
+        return
+    if remote_denied(ctx.runtime, websocket.headers):
+        await websocket.close(code=1008, reason="Akses Tailscale ditolak")
         return
     if not ctx.auth.check(websocket.cookies.get("zoi_session")):
         await websocket.close(code=1008, reason="Belum login")
