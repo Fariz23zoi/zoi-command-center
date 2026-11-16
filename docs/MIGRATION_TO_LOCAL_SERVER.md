@@ -72,6 +72,25 @@ ZOI **tidak pernah** memasang Ollama atau mengunduh model. Bila hardware memadai
 Ollama di komputer lain di jaringan rumah juga bisa: `ZOI_OLLAMA_URL=http://192.168.x.x:11434` dan tambahkan
 `192.168.x.x` ke `ZOI_EXTRA_ALLOWED_HOSTS`.
 
+## 5b. (Opsional) Suara
+
+ZOI **tidak pernah** mengunduh model suara. Tanpa langkah ini ZOI tetap bisa membacakan jawaban dengan suara
+lokal Windows (Settings Windows › Time & language › Language & region › Bahasa Indonesia, fitur Text-to-speech).
+
+1. Pengenal suara (bicara ke ZOI):
+   ```powershell
+   backend\.venv\Scripts\pip install -r backend\requirements-voice.txt
+   backend\.venv\Scripts\python -c "from faster_whisper import download_model; download_model('base', output_dir=r'D:\zoi-models\whisper-base')"
+   ```
+   Isi `.env`: `ZOI_WHISPER_MODEL_DIR=D:\zoi-models\whisper-base`. Di laptop lemah mulai dari `tiny` (±75 MB).
+2. Suara Piper (lip-sync avatar 3D) — **baca catatan lisensinya di Settings › Suara dulu**:
+   ```powershell
+   python -m venv C:\zoi-piper
+   C:\zoi-piper\Scripts\pip install "piper-tts[http]==1.8.0"
+   C:\zoi-piper\Scripts\python -m piper.download_voices --data-dir D:\zoi-models\piper id_ID-news_tts-medium
+   powershell -ExecutionPolicy Bypass -File deploy\windows\voice.ps1
+   ```
+
 ## 6. Impor data (jika ada)
 
 ```powershell
@@ -99,6 +118,12 @@ Buka `http://127.0.0.1` lalu:
       "Uji koneksi" berhasil; chat menjawab tanpa lencana MOCK; tombol **Berhenti** menghentikan jawaban
 - [ ] (Bila Ollama dipasang) Jalankan **Uji model** sekali untuk model aktif dan nilai jawaban percakapannya.
       Ini pertama kalinya ZOI berbicara dengan Ollama sungguhan — semua tes sebelumnya memakai Ollama tiruan
+- [ ] (Bila suara dipasang) Settings › Suara: pengenal suara "siap"; tekan 🎙, ucapkan satu kalimat Bahasa Indonesia,
+      tekan Selesai → teks masuk kotak pesan. Ini pertama kalinya Whisper dijalankan dengan model sungguhan
+- [ ] (Bila Piper dipasang) Terima catatan lisensi → "Coba suara" → avatar bicara; nyalakan "Bacakan jawaban" dan
+      uji tombol Berhenti
+- [ ] (Opsional) Jalankan tes roundtrip suara: `ZOI_TEST_WHISPER_DIR=… ZOI_TEST_PIPER_URL=http://127.0.0.1:5000
+      python -m pytest tests/test_voice.py -k real`
 
 Opsional: `deploy\windows\autostart.ps1` agar ZOI berjalan otomatis saat login.
 

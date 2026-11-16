@@ -1,6 +1,7 @@
 import type {
   AdapterStatus, AiModelSource, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
-  ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, ZoiEvent,
+  ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, TranscriptInfo,
+  VoicePreferences, VoiceStatus, ZoiEvent,
 } from "./types";
 
 /** Header wajib untuk permintaan yang mengubah data (perlindungan CSRF di backend). */
@@ -25,6 +26,18 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   return data as T;
 }
 
+async function raiseFor(response: Response): Promise<never> {
+  const text = await response.text();
+  let message = `HTTP ${response.status}`;
+  let code: string | undefined;
+  try {
+    const data = JSON.parse(text);
+    message = data?.error?.message ?? (Array.isArray(data?.detail) ? "Isian tidak valid." : message);
+    code = data?.error?.code;
+  } catch { /* bukan JSON */ }
+  throw new ApiError(response.status, message, code);
+}
+
 export const api = {
   config: () => request<PublicConfig>("GET", "/api/config"),
   systemStatus: () => request<SystemStatus>("GET", "/api/system/status"),
@@ -43,6 +56,27 @@ export const api = {
     request<{ stopped: boolean }>("POST", `/api/chat/${encodeURIComponent(messageId)}/stop`),
   preferences: () => request<Preferences>("GET", "/api/preferences"),
   savePreferences: (prefs: Preferences) => request<Preferences>("PUT", "/api/preferences", prefs),
+  voice: {
+    status: () => request<VoiceStatus>("GET", "/api/voice/status"),
+    preferences: () => request<VoicePreferences>("GET", "/api/voice/preferences"),
+    savePreferences: (prefs: VoicePreferences) => request<VoicePreferences>("PUT", "/api/voice/preferences", prefs),
+    /** Mengirim rekaman ke backend ZOI di komputer ini saja. Rekaman tidak disimpan. */
+    async transcribe(audio: Blob, language?: "id" | "en" | "auto"): Promise<TranscriptInfo> {
+      const query = language ? `?language=${language}` : "";
+      const response = await fetch(`/api/voice/transcribe${query}`, {
+        method: "POST", headers: { ...CLIENT_HEADER, "Content-Type": audio.type || "application/octet-stream" }, body: audio,
+      });
+      if (!response.ok) return raiseFor(response);
+      return response.json() as Promise<TranscriptInfo>;
+    },
+    async speak(text: string, signal?: AbortSignal): Promise<Blob> {
+      const response = await fetch("/api/voice/speak", {
+        method: "POST", headers: { ...CLIENT_HEADER, "Content-Type": "application/json" }, body: JSON.stringify({ text }), signal,
+      });
+      if (!response.ok) return raiseFor(response);
+      return response.blob();
+    },
+  },
   ai: {
     status: () => request<AiStatus>("GET", "/api/ai/status"),
     test: () => request<{ ok: boolean; detail: string; latency_ms: number | null }>("POST", "/api/ai/test"),

@@ -6,6 +6,7 @@ import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import urlparse
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,6 +36,8 @@ from app.providers.registry import build_provider
 from app.security.cost_guard import CostGuard
 from app.tasks.builtin import make_run_async, system_check_kind
 from app.tasks.manager import TaskManager
+from app.voice.registry import build_voice
+from app.voice.service import VoiceService
 
 log = get_logger("main")
 
@@ -60,8 +63,12 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
         if not allowed:
             log.warning("cost_guard_blocked", host=host, method=method, reason=reason)
 
-    guard = CostGuard.build(ollama_url=runtime.ollama_url, extra_hosts=settings.extra_hosts, recorder=record)
+    piper_host = urlparse(runtime.piper_url).hostname
+    guard = CostGuard.build(ollama_url=runtime.ollama_url,
+                            extra_hosts=[*settings.extra_hosts, *([piper_host.lower()] if piper_host else [])],
+                            recorder=record)
     provider = build_provider(runtime, guard)
+    stt, tts = build_voice(runtime, guard)
     ai_source = "none"
     if isinstance(provider, LocalModelAdmin):
         model, ai_source = selection.resolve(db, runtime.ollama_model)
@@ -72,6 +79,7 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
     chat = ChatService(db, bus, agent, provider)
     ctx = AppContext(settings=settings, runtime=runtime, db=db, bus=bus, agent=agent, guard=guard,
                      provider=provider, adapters=adapters, tasks=tasks, chat=chat,
+                     voice=VoiceService(stt=stt, tts=tts, db=db),
                      local_ai=LocalAIService(provider=provider, runtime=runtime, db=db, bus=bus, tasks=tasks,
                                              source=ai_source),
                      migration_backup=str(backup) if backup else None)

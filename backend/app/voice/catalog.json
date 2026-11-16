@@ -1,0 +1,33 @@
+{
+  "checked_at": "2026-11-14",
+  "whisper": {
+    "package": "faster-whisper 1.2.1 (MIT)",
+    "note": "Perkiraan ukuran model format CTranslate2 (Systran/faster-whisper-*). Semakin besar semakin akurat untuk Bahasa Indonesia, tetapi semakin lambat di CPU.",
+    "models": [
+      {"name": "tiny", "repo": "Systran/faster-whisper-tiny", "download": "±75 MB", "fit": "Paling ringan; akurasi Bahasa Indonesia rendah. Coba dulu di laptop lemah."},
+      {"name": "base", "repo": "Systran/faster-whisper-base", "download": "±145 MB", "fit": "Seimbang untuk komputer kelas ZOI Standard."},
+      {"name": "small", "repo": "Systran/faster-whisper-small", "download": "±480 MB", "fit": "Lebih akurat; butuh CPU yang lebih kuat."}
+    ],
+    "install": [
+      "backend\\.venv\\Scripts\\pip install -r backend\\requirements-voice.txt",
+      "backend\\.venv\\Scripts\\python -c \"from faster_whisper import download_model; download_model('base', output_dir=r'D:\\zoi-models\\whisper-base')\"",
+      "Isi .env: ZOI_WHISPER_MODEL_DIR=D:\\zoi-models\\whisper-base lalu restart ZOI"
+    ]
+  },
+  "piper": {
+    "package": "piper-tts 1.8.0 (GPL-3.0-or-later) — dijalankan sebagai program terpisah, tidak digabung ke ZOI",
+    "voice": "id_ID-news_tts-medium",
+    "download": "±63 MB",
+    "license_note": "Repo suara berlisensi MIT, tetapi model card menunjuk dataset Kaggle 'indic-tts-malayalam-speech-corpus' dengan lisensi 'See URL', dan suara ini di-fine-tune dari suara Inggris 'lessac'. Asal-usul & lisensi datanya tidak bisa dipastikan. Aman untuk pemakaian pribadi; JANGAN dipakai sebagai suara di video yang dipublikasikan sampai lisensinya jelas.",
+    "install": [
+      "python -m venv C:\\zoi-piper",
+      "C:\\zoi-piper\\Scripts\\pip install \"piper-tts[http]==1.8.0\"",
+      "C:\\zoi-piper\\Scripts\\python -m piper.download_voices --data-dir D:\\zoi-models\\piper id_ID-news_tts-medium",
+      "powershell -ExecutionPolicy Bypass -File deploy\\windows\\voice.ps1"
+    ]
+  },
+  "browser": {
+    "note": "Suara Windows dipakai lewat browser. ZOI hanya menampilkan suara yang berjalan di komputer ini (localService); suara 'Online/Natural' Edge berjalan di cloud dan diblokir. Untuk suara Bahasa Indonesia: Settings Windows › Time & language › Language & region › tambahkan Bahasa Indonesia (fitur Speech/Text-to-speech).",
+    "lip_sync": false
+  }
+}

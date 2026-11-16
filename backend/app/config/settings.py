@@ -18,7 +18,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 ENV_PREFIX = "ZOI_"
 
 # Variabel yang dicadangkan untuk fase berikutnya: dibiarkan, tidak dianggap salah ketik.
-RESERVED_PREFIXES = ("ZOI_YOUTUBE_", "ZOI_STT", "ZOI_TTS")
+RESERVED_PREFIXES = ("ZOI_YOUTUBE_",)
 META_VARS = {"ZOI_ENV_FILE"}
 
 
@@ -31,6 +31,20 @@ class ProviderChoice(StrEnum):
     AUTO = "auto"
     MOCK = "mock"
     OLLAMA = "ollama"
+    NONE = "none"
+
+
+class SttChoice(StrEnum):
+    AUTO = "auto"
+    MOCK = "mock"
+    WHISPER = "whisper"
+    NONE = "none"
+
+
+class TtsChoice(StrEnum):
+    AUTO = "auto"
+    MOCK = "mock"
+    PIPER = "piper"
     NONE = "none"
 
 
@@ -67,6 +81,12 @@ class Settings(BaseSettings):
     mock_latency_ms: int = Field(default=300, ge=0, le=10_000)
 
     avatar_mode: AvatarMode = AvatarMode.AUTO
+
+    # Suara (Phase 4). ZOI tidak mengunduh model: folder Whisper & server Piper disiapkan pengguna sendiri.
+    stt: SttChoice = SttChoice.AUTO
+    whisper_model_dir: Path | None = None
+    tts: TtsChoice = TtsChoice.AUTO
+    piper_url: str = "http://127.0.0.1:5000"
 
     clipper_dir: Path | None = None
     clipper_python: Path | None = None

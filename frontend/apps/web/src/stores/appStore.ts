@@ -1,7 +1,10 @@
 import type {
-  AdapterStatus, AgentStateName, ChatMessageInfo, Preferences, PublicConfig, ProviderStatus, TaskInfo, ZoiEvent,
+  AdapterStatus, AgentStateName, ChatMessageInfo, Preferences, PublicConfig, ProviderStatus, TaskInfo, VoicePreferences,
+  VoiceStatus, ZoiEvent,
 } from "@zoi/api-client";
 import { create } from "zustand";
+
+export type VoicePhase = "recording" | "transcribing" | "speaking" | null;
 
 interface EarlyChat {
   delta: string;
@@ -41,6 +44,15 @@ interface AppState {
   earlyChat: Record<string, EarlyChat>;
   /** Naik setiap model aktif berubah (event provider.updated) — halaman AI Lokal memuat ulang datanya. */
   aiRevision: number;
+  /** Suara (Phase 4). voicePhase menimpa tampilan status avatar selama merekam/mengenali/berbicara. */
+  voiceStatus: VoiceStatus | null;
+  voicePrefs: VoicePreferences | null;
+  voicePhase: VoicePhase;
+  voiceError: string | null;
+  setVoiceStatus(status: VoiceStatus): void;
+  setVoicePrefs(prefs: VoicePreferences): void;
+  setVoicePhase(phase: VoicePhase): void;
+  setVoiceError(message: string | null): void;
   avatarRenderer: "2d" | "3d" | null;
   avatarNote: string | null;
   setConfig(config: PublicConfig): void;
@@ -71,6 +83,15 @@ export const useApp = create<AppState>((set) => ({
   bootstrapped: false,
   earlyChat: {},
   aiRevision: 0,
+  voiceStatus: null,
+  voicePrefs: null,
+  voicePhase: null,
+  voiceError: null,
+  setVoiceStatus: (voiceStatus) => set({ voiceStatus, voicePrefs: voiceStatus.preferences }),
+  setVoicePrefs: (voicePrefs) =>
+    set((s) => ({ voicePrefs, voiceStatus: s.voiceStatus ? { ...s.voiceStatus, preferences: voicePrefs } : s.voiceStatus })),
+  setVoicePhase: (voicePhase) => set({ voicePhase }),
+  setVoiceError: (voiceError) => set({ voiceError }),
   avatarRenderer: null,
   avatarNote: null,
   setConfig: (config) => set({ config }),
@@ -128,6 +149,8 @@ export const useApp = create<AppState>((set) => ({
             messages: s.messages.map((m) =>
               m.id === event.payload.message_id ? { ...m, thinking: (m.thinking ?? "") + event.payload.text } : m),
           };
+        case "voice.preferences.updated":
+          return { voicePrefs: event.payload };
         case "provider.updated":
           return {
             aiRevision: s.aiRevision + 1,
