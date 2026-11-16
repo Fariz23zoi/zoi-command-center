@@ -49,6 +49,40 @@ function show(element: React.ReactElement) {
 beforeEach(() => useApp.setState({ youtubeRevision: 0 }));
 afterEach(() => vi.unstubAllGlobals());
 
+describe("Settings › YouTube (mode online, alur web)", () => {
+  it("menampilkan redirect URI persis dan pindah ke Google di tab yang sama", async () => {
+    const assign = vi.fn();
+    vi.stubGlobal("location", { ...window.location, assign });
+    const open = vi.fn();
+    vi.stubGlobal("open", open);
+    mockFetch({
+      "/api/youtube/status": status({ web_flow: true, client_kind: "web", token_storage: "database",
+        callback_url: "https://zoi.example.com/api/youtube/callback" }),
+    });
+    show(<YouTubeSettingsPage />);
+    expect(await screen.findByTestId("youtube-web-howto")).toHaveTextContent(
+      "https://zoi.example.com/api/youtube/callback");
+    expect(screen.getByTestId("youtube-web-howto")).toHaveTextContent("Web application");
+    expect(screen.getByTestId("youtube-storage")).toHaveTextContent("terenkripsi");
+  });
+
+  it("tombol hubungkan memakai location.assign, bukan tab baru", async () => {
+    const assign = vi.fn();
+    vi.stubGlobal("location", { ...window.location, assign });
+    const open = vi.fn();
+    vi.stubGlobal("open", open);
+    mockFetch({
+      "/api/youtube/status": status({ web_flow: true, client_kind: "web", client_configured: true,
+        client_id_hint: "…web", callback_url: "https://zoi.example.com/api/youtube/callback" }),
+      "/api/youtube/connect": { auth_url: "https://accounts.google.com/o/oauth2/v2/auth?y=1", expires_in_s: 300 },
+    });
+    show(<YouTubeSettingsPage />);
+    fireEvent.click(await screen.findByTestId("youtube-connect"));
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("https://accounts.google.com/o/oauth2/v2/auth?y=1"));
+    expect(open).not.toHaveBeenCalled();
+  });
+});
+
 describe("Settings › YouTube", () => {
   it("belum ada file client → tombol hubungkan mati, penjelasan jujur tampil", async () => {
     mockFetch({ "/api/youtube/status": status() });

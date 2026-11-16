@@ -105,6 +105,17 @@ export const api = {
     logout: () => request<{ ok: boolean }>("POST", "/api/auth/logout", {}),
     logoutAll: () => request<{ ok: boolean }>("POST", "/api/auth/logout-all", {}),
   },
+  backup: {
+    downloadUrl: "/api/backup/download",
+    /** Pulihkan arsip cadangan ZOI (.zip). Rahasia tidak pernah ada di arsip. */
+    async restore(file: Blob): Promise<{ ok: boolean; note: string }> {
+      const response = await fetch("/api/backup/restore", {
+        method: "POST", headers: { ...CLIENT_HEADER, "Content-Type": "application/zip" }, body: file,
+      });
+      if (!response.ok) return raiseFor(response);
+      return response.json() as Promise<{ ok: boolean; note: string }>;
+    },
+  },
   aiCloud: {
     status: () => request<CloudStatus>("GET", "/api/ai/cloud/status"),
     /** API key hanya dikirim ke backend ZOI di komputer ini dan tidak pernah dikembalikan. */
@@ -130,6 +141,7 @@ export const api = {
     themes: (key: string) => request<TaskInfo>("POST", "/api/youtube/public/themes", { key }),
   },
   content: {
+    packageUrl: (id: string) => `/api/content/items/${encodeURIComponent(id)}/package`,
     ideas: () => request<{ items: IdeaSet[]; is_mock: boolean; provider: string }>("GET", "/api/content/items?kind=ideas"),
     scripts: () => request<{ items: ScriptItem[]; is_mock: boolean; provider: string }>("GET", "/api/content/items?kind=script"),
     makeIdeas: (body: IdeaRequest) => request<TaskInfo>("POST", "/api/content/ideas", body),

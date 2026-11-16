@@ -232,8 +232,9 @@ export interface YouTubeAccount {
 
 export interface YouTubeStatus {
   client_configured: boolean; client_id_hint: string | null; connected: boolean; account: YouTubeAccount | null;
-  pending: boolean; last_error: string | null; token_storage: "keyring" | "file"; storage_warning: string | null;
+  pending: boolean; last_error: string | null; token_storage: "keyring" | "file" | "database"; storage_warning: string | null;
   test_endpoint: boolean; scopes: string[]; can_publish: false; quota: YouTubeQuotaInfo;
+  web_flow?: boolean; callback_url?: string | null; client_kind?: "installed" | "web";
   policy: { reverify_days: number; summary: string };
 }
 
@@ -339,7 +340,7 @@ export interface CloudProviderInfo {
 }
 
 export interface CloudStatus {
-  enabled: boolean; provider: string; test_endpoint: boolean; token_storage: "keyring" | "file";
+  enabled: boolean; provider: string; test_endpoint: boolean; token_storage: "keyring" | "file" | "database";
   storage_warning: string | null; providers: CloudProviderInfo[]; data_sent: string[]; never_sent: string[];
   how_to_enable: string[]; selection: string;
 }

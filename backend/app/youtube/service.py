@@ -45,6 +45,8 @@ from app.youtube.secrets_store import SecretStore
 log = get_logger("youtube")
 
 ACCOUNT_KEY = "youtube_account"
+CLIENT_NAME = "youtube_client"  # nama entri file client di penyimpanan rahasia (mode online)
+WEB_CONNECT_TIMEOUT_S = 300.0
 TOKEN_NAME = "youtube_refresh_token"  # noqa: S105 — nama entri, bukan rahasia
 REVERIFY_DAYS = 30
 RECENT_VIDEOS = 25
@@ -70,7 +72,7 @@ def _int(value: Any) -> int | None:
 class YouTubeService:
     def __init__(self, *, db: Database, bus: EventBus, guard: CostGuard, endpoints: Endpoints, data_dir: Path,
                  store: SecretStore | None = None, transport: httpx.AsyncBaseTransport | None = None,
-                 connect_timeout_s: float = CONNECT_TIMEOUT_S) -> None:
+                 connect_timeout_s: float = CONNECT_TIMEOUT_S, web_callback_url: str = "") -> None:
         self.db = db
         self.bus = bus
         self.guard = guard
@@ -78,6 +80,7 @@ class YouTubeService:
         self.store = store or SecretStore(data_dir)
         self.quota = QuotaTracker(db)
         self.client_file = data_dir / "secrets" / "youtube_client.json"
+        self.web_callback_url = web_callback_url  # terisi di mode online → alur OAuth Web application
         self.connect_timeout_s = connect_timeout_s
         self._transport = transport
         self._access: tuple[str, float] | None = None
@@ -105,29 +108,50 @@ class YouTubeService:
                                status_code=502, code="unreachable") from exc
 
     # ── client OAuth ──────────────────────────────────────────────────────
-    def client(self) -> ClientConfig | None:
+    @property
+    def _client_kind(self) -> str:
+        return "web" if self.web_callback_url else "installed"
+
+    def _client_raw(self) -> str | None:
+        if self.store.kind == "database":
+            return self.store.get(CLIENT_NAME)
         try:
-            return parse_client_config(json.loads(self.client_file.read_text(encoding="utf-8")))
-        except (OSError, ValueError, YouTubeError):
+            return self.client_file.read_text(encoding="utf-8")
+        except OSError:
+            return None
+
+    def client(self) -> ClientConfig | None:
+        raw = self._client_raw()
+        if raw is None:
+            return None
+        try:
+            return parse_client_config(json.loads(raw), expect=self._client_kind)
+        except (ValueError, YouTubeError):
             return None
 
     def import_client(self, data: Any) -> dict[str, Any]:
-        config = parse_client_config(data)
+        config = parse_client_config(data, expect=self._client_kind)
         if not self.ep.is_test and not config.client_id.endswith(".apps.googleusercontent.com"):
             raise YouTubeError("client_id tidak berbentuk client Google (…apps.googleusercontent.com).")
         if self.account():
             raise YouTubeError("Akun masih terhubung. Putuskan dulu sebelum mengganti file client.", status_code=409)
-        self.client_file.parent.mkdir(parents=True, exist_ok=True)
-        self.client_file.write_text(json.dumps({"installed": {"client_id": config.client_id,
-                                                              "client_secret": config.client_secret}}),
-                                    encoding="utf-8")
+        payload = json.dumps({config.kind: {"client_id": config.client_id,
+                                            "client_secret": config.client_secret}})
+        if self.store.kind == "database":
+            self.store.set(CLIENT_NAME, payload)  # terenkripsi di database (mode online)
+        else:
+            self.client_file.parent.mkdir(parents=True, exist_ok=True)
+            self.client_file.write_text(payload, encoding="utf-8")
         self._changed()
         return {"client_id_hint": config.hint}
 
     def delete_client(self) -> None:
         if self.account():
             raise YouTubeError("Putuskan akun dulu sebelum menghapus file client.", status_code=409)
-        self.client_file.unlink(missing_ok=True)
+        if self.store.kind == "database":
+            self.store.delete(CLIENT_NAME)
+        else:
+            self.client_file.unlink(missing_ok=True)
         self._changed()
 
     # ── akun ──────────────────────────────────────────────────────────────
@@ -162,6 +186,8 @@ class YouTubeService:
             "pending": self._pending is not None, "last_error": self._last_error,
             "token_storage": self.store.kind, "storage_warning": self.store.warning,
             "test_endpoint": self.ep.is_test, "scopes": list(SCOPES), "can_publish": False,
+            "web_flow": bool(self.web_callback_url), "callback_url": self.web_callback_url or None,
+            "client_kind": self._client_kind,
             "quota": self.quota.status(),
             "policy": {"reverify_days": REVERIFY_DAYS,
                        "summary": "Hanya data channel-mu sendiri yang disimpan. ZOI tidak membuat skor/metrik "
@@ -172,10 +198,20 @@ class YouTubeService:
     async def start_connect(self) -> dict[str, Any]:
         client = self.client()
         if client is None:
-            raise YouTubeError("Impor dulu file client OAuth (Desktop app) dari Google Cloud.", status_code=409)
+            kind = "Web application" if self.web_callback_url else "Desktop app"
+            raise YouTubeError(f"Impor dulu file client OAuth ({kind}) dari Google Cloud.", status_code=409)
         if self.account():
             raise YouTubeError("Akun sudah terhubung. Putuskan dulu untuk menghubungkan akun lain.", status_code=409)
         await self.cancel_connect()
+        if self.web_callback_url:
+            verifier, challenge = new_pkce()
+            state = secrets.token_urlsafe(24)
+            self._last_error = None
+            self._pending = {"web": True, "state": state, "verifier": verifier,
+                             "deadline": time.monotonic() + WEB_CONNECT_TIMEOUT_S}
+            self._changed()
+            return {"auth_url": build_auth_url(self.ep, client, self.web_callback_url, state, challenge),
+                    "expires_in_s": int(WEB_CONNECT_TIMEOUT_S)}
         listener = LoopbackListener()
         await listener.start()
         verifier, challenge = new_pkce()
@@ -190,8 +226,33 @@ class YouTubeService:
     async def cancel_connect(self) -> None:
         pending, self._pending = self._pending, None
         if pending:
-            pending["task"].cancel()
-            await pending["listener"].close()
+            if not pending.get("web"):
+                pending["task"].cancel()
+                await pending["listener"].close()
+            self._changed()
+
+    async def handle_web_callback(self, params: dict[str, str]) -> None:
+        """Jawaban Google di alur web (mode online). Galat masuk `last_error` agar tampil di halaman Settings."""
+        pending = self._pending
+        if not pending or not pending.get("web"):
+            self._last_error = "Tidak ada permintaan hubungkan yang sedang berjalan. Mulai dari Settings › YouTube."
+            self._changed()
+            return
+        self._pending = None
+        client = self.client()
+        try:
+            if client is None:
+                raise YouTubeError("File client OAuth tidak ditemukan. Impor ulang di Settings › YouTube.")
+            if time.monotonic() > pending["deadline"]:
+                raise YouTubeError("Waktu habis menunggu persetujuan di halaman Google. Coba hubungkan lagi.")
+            await self._complete(client, self.web_callback_url, pending["state"], pending["verifier"], params)
+            self._last_error = None
+        except YouTubeError as exc:
+            self._last_error = exc.message
+        except Exception as exc:  # noqa: BLE001 — dilaporkan, tidak disembunyikan
+            log.exception("youtube_web_callback_failed")
+            self._last_error = f"Kesalahan internal saat menghubungkan ({type(exc).__name__})."
+        finally:
             self._changed()
 
     async def _wait_for_redirect(self, listener: LoopbackListener, client: ClientConfig, state: str,
