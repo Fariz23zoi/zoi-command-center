@@ -48,6 +48,9 @@ class TaskKind:
     name: str
     func: Callable[[TaskContext], dict[str, Any]]
     agent_state: AgentState = AgentState.EXECUTING
+    # Jalur antrean. Tugas yang bisa lama MENUNGGU pengguna (agen menunggu izin) diberi jalur sendiri agar tidak
+    # menahan tugas lain. Tiap jalur tetap satu-satu, agar CPU lemah tidak dibebani berlipat.
+    lane: str = "default"
 
 
 class TaskContext:
@@ -74,7 +77,15 @@ class TaskManager:
         self._kinds: dict[str, TaskKind] = {}
         self._contexts: dict[str, TaskContext] = {}
         self._lock = threading.Lock()
-        self._executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="zoi-task")
+        self._max_workers = max_workers
+        self._executors: dict[str, ThreadPoolExecutor] = {}
+
+    def _executor_for(self, lane: str) -> ThreadPoolExecutor:
+        with self._lock:
+            if lane not in self._executors:
+                self._executors[lane] = ThreadPoolExecutor(max_workers=self._max_workers,
+                                                           thread_name_prefix=f"zoi-task-{lane}")
+            return self._executors[lane]
 
     def register(self, kind: TaskKind) -> None:
         self._kinds[kind.kind] = kind
@@ -107,7 +118,7 @@ class TaskManager:
         with self._lock:
             self._contexts[task_id] = ctx
         self._publish(task_id)
-        self._executor.submit(self._run, spec, ctx)
+        self._executor_for(spec.lane).submit(self._run, spec, ctx)
         return self.get(task_id)
 
     def cancel(self, task_id: str) -> dict[str, Any]:
@@ -138,7 +149,9 @@ class TaskManager:
         with self._lock:
             for ctx in self._contexts.values():
                 ctx.cancel_event.set()
-        self._executor.shutdown(wait=True, cancel_futures=True)
+            executors = list(self._executors.values())
+        for executor in executors:
+            executor.shutdown(wait=True, cancel_futures=True)
 
     # --- internal ---------------------------------------------------------------------------------------
     def _run(self, spec: TaskKind, ctx: TaskContext) -> None:

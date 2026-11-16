@@ -7,6 +7,7 @@ import { MENU } from "./menu";
 import { AiLocalPage } from "./pages/AiLocalPage";
 import { AssistantPage } from "./pages/AssistantPage";
 import { VoicePage } from "./pages/VoicePage";
+import { MemoryPage } from "./pages/MemoryPage";
 import { useReplyVoice } from "./lib/voice/useReplyVoice";
 import { IntegrationPage } from "./pages/IntegrationPage";
 import { NotYetAvailable } from "./pages/NotYetAvailable";
@@ -21,6 +22,7 @@ const READY_PAGES: Record<string, ReactElement> = {
   "/": <OverviewPage />,
   "/assistant": <AssistantPage />,
   "/tasks": <TasksPage />,
+  "/memory": <MemoryPage />,
   "/settings": <SettingsPage />,
   "/clipper": <IntegrationPage adapterName="zoi_ai_clipper" />,
   "/blueprint": <IntegrationPage adapterName="blueprint_studio" />,

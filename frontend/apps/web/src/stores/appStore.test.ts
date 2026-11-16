@@ -52,3 +52,15 @@ describe("provider.updated", () => {
     expect(useApp.getState().provider?.model).toBe("b");
   });
 });
+
+describe("agentRuns", () => {
+  it("respons HTTP yang lebih lama tidak menimpa status terbaru dari WebSocket", () => {
+    const base = { id: "r1", conversation_id: "c1", request: "x", plan: null, errors: [], results: [], summary: null,
+      warnings: [], task_id: null, provider: "mock", is_mock: true, created_at: "", approvals: [] };
+    useApp.setState({ agentRuns: {} });
+    useApp.getState().handleEvent({ type: "agent.run.updated", at: "", payload: { run: { ...base, status: "waiting_approval",
+      updated_at: "2026-11-14T10:00:02.000000+00:00" } } });
+    useApp.getState().setAgentRuns([{ ...base, status: "running", updated_at: "2026-11-14T10:00:01.000000+00:00" }]);
+    expect(useApp.getState().agentRuns.r1.status).toBe("waiting_approval");
+  });
+});

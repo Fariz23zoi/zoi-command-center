@@ -5,6 +5,9 @@ import { MicrophoneError, type Recording, recordingSupported, startRecording } f
 import { stopReading } from "../lib/voice/session";
 import { useApp } from "../stores/appStore";
 
+/** Pesan yang diawali /agen diperlakukan sama dengan tombol Rencanakan. */
+const AGENT_PREFIX = /^\/agen\b\s*(.*)$/is;
+
 function streamingMessageId(messages: ChatMessageInfo[]): string | undefined {
   for (let i = messages.length - 1; i >= 0; i -= 1) {
     if (messages[i].role === "assistant" && messages[i].status === "streaming") return messages[i].id;
@@ -39,12 +42,42 @@ export function BottomBar() {
     }
   }
 
+  async function plan(request: string) {
+    const { conversationId, addMessages, setConversation, setSending, setAgentRuns } = useApp.getState();
+    setSending(true);
+    setError(null);
+    try {
+      const res = await api.agent.plan(request, conversationId);
+      setAgentRuns([res.run]);
+      if (res.user_message.conversation_id !== conversationId) setConversation(res.user_message.conversation_id, []);
+      addMessages([res.user_message]);
+      setText("");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Rencana gagal dibuat. Periksa koneksi ke backend.");
+    } finally {
+      setSending(false);
+    }
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     const message = text.trim();
     if (!message || sending) return;
     stopReading();
+    const agent = AGENT_PREFIX.exec(message);
+    if (agent) {
+      if (agent[1].trim()) await plan(agent[1].trim());
+      else setError("Tulis permintaan setelah /agen, mis. \"/agen cek status sistem\".");
+      return;
+    }
     await send(message);
+  }
+
+  async function planClicked() {
+    const message = text.trim().replace(AGENT_PREFIX, "$1").trim();
+    if (!message || sending) return;
+    stopReading();
+    await plan(message);
   }
 
   async function stop() {
@@ -135,9 +168,16 @@ export function BottomBar() {
       {showStop ? (
         <button type="button" onClick={stop} data-testid="stop-button">Berhenti</button>
       ) : (
-        <button type="submit" className="primary" disabled={sending || !text.trim() || isRecording}>
-          {sending ? "Mengirim…" : "Kirim"}
-        </button>
+        <>
+          <button type="button" onClick={planClicked} disabled={sending || !text.trim() || isRecording}
+            title="ZOI menyusun rencana langkah memakai tool. Rencana ditampilkan dulu sebelum dijalankan."
+            data-testid="plan-button">
+            Rencanakan
+          </button>
+          <button type="submit" className="primary" disabled={sending || !text.trim() || isRecording}>
+            {sending ? "Mengirim…" : "Kirim"}
+          </button>
+        </>
       )}
       {(error || voiceError) && <p className="form-error" role="alert">{error ?? voiceError}</p>}
     </form>

@@ -3,7 +3,7 @@
 Platform web lokal dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
 **ZERO PAID API · ZERO SUBSCRIPTION · LOCAL FIRST.** Lisensi: MIT.
 
-> Status: **Phase 4 — suara dua arah** (di atas Phase 1–3). Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
+> Status: **Phase 5 — AI agent & memori** (di atas Phase 1–4). Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
 > ditampilkan sebagai "Belum tersedia — Phase N", tanpa data contoh.
 
 ## Arsitektur singkat
@@ -51,7 +51,7 @@ python -m app.cli data import <file.zip>         # pulihkan (ZOI harus berhenti;
 python -m app.cli db upgrade | db status | backup
 ```
 
-## Yang sudah berfungsi (Phase 1–4)
+## Yang sudah berfungsi (Phase 1–5)
 
 | Fitur | Status |
 |---|---|
@@ -73,7 +73,10 @@ python -m app.cli db upgrade | db status | backup
 | Bicara ke ZOI: tekan 🎙 → faster-whisper lokal → teks masuk kotak pesan (rekaman tidak disimpan, tanpa cloud) | ✅ (diuji dengan tiruan; model asli belum) |
 | ZOI membacakan jawaban per kalimat: Piper (program terpisah, lip-sync avatar 3D) atau suara lokal Windows; tombol Berhenti | ✅ (Piper diuji dengan tiruan) |
 | Settings › Suara: status, bahasa, kirim otomatis, mesin suara, kecepatan, catatan lisensi Piper, cara memasang | ✅ |
-| YouTube, ide konten, CLIPPER/Blueprint penuh, memory, automation | Phase 5–8 |
+| Agen atas permintaan (tombol **Rencanakan** / `/agen`): rencana ditampilkan dulu, langkah ubah-data minta izin, hasil per langkah, ringkasan dengan cek angka | ✅ (diuji dengan Mock & Ollama tiruan) |
+| 10 tool nyata (memori, status sistem/AI/aplikasi, tugas, waktu); **tidak ada tool publikasi** | ✅ |
+| Halaman **Memory**: tambah, cari (FTS5), ubah, hapus, hapus semua dengan konfirmasi; izin tool; log izin | ✅ |
+| YouTube, ide konten, CLIPPER/Blueprint penuh, automation | Phase 6–8 |
 
 ## Pengujian
 

@@ -9,7 +9,7 @@ export interface MenuItem {
 
 export const MENU: MenuItem[] = [
   { path: "/", label: "Overview", phase: 1, ready: true, description: "Status sistem, penyedia AI, dan aplikasi terintegrasi." },
-  { path: "/assistant", label: "AI Assistant", phase: 1, ready: true, description: "Percakapan dengan ZOI. Agent dengan tools menyusul di Phase 5." },
+  { path: "/assistant", label: "AI Assistant", phase: 1, ready: true, description: "Percakapan dengan ZOI, dan agen yang menyusun rencana memakai tool (dengan izinmu)." },
   { path: "/analytics", label: "Channel Analytics", phase: 6, ready: false, description: "Statistik channel dari YouTube Data & Analytics API (OAuth resmi)." },
   { path: "/competitors", label: "Competitor Intelligence", phase: 6, ready: false, description: "Data publik kompetitor: topik, format, frekuensi upload, engagement." },
   { path: "/viral", label: "Viral Video Hunter", phase: 6, ready: false, description: "Kandidat video yang sedang naik berdasarkan snapshot berkala." },
@@ -22,6 +22,6 @@ export const MENU: MenuItem[] = [
   { path: "/monetization", label: "Monetization", phase: 6, ready: false, description: "Progres syarat YPP dari data resmi channel." },
   { path: "/performance", label: "Performance", phase: 6, ready: false, description: "Evaluasi hasil konten dan eksperimen." },
   { path: "/tasks", label: "Task Manager", phase: 1, ready: true, description: "Tugas latar belakang: progress, riwayat, dan pembatalan." },
-  { path: "/memory", label: "Memory", phase: 5, ready: false, description: "Memori jangka panjang yang bisa dilihat, diedit, dan dihapus." },
+  { path: "/memory", label: "Memory", phase: 5, ready: true, description: "Memori jangka panjang yang bisa dilihat, diedit, dan dihapus." },
   { path: "/settings", label: "Settings", phase: 1, ready: true, description: "Konfigurasi efektif dan preferensi." },
 ];

@@ -140,3 +140,19 @@ button.recording { animation: zoi-pulse 1.2s ease-in-out infinite; }
 .commands { padding-left: 18px; display: grid; gap: 6px; }
 .commands .command { display: inline-block; max-width: 100%; }
 input[type="range"] { width: 100%; max-width: 360px; }
+.agent-card { margin-top: 8px; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; background: var(--surface); min-width: 0; }
+.agent-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.agent-status { color: var(--muted); }
+.agent-goal { margin: 6px 0; overflow-wrap: anywhere; }
+.agent-steps { padding-left: 18px; margin: 6px 0; display: grid; gap: 6px; }
+.agent-step { min-width: 0; overflow-wrap: anywhere; }
+.agent-step-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.agent-step p { margin: 2px 0; }
+.agent-args code, .agent-output pre { overflow-wrap: anywhere; white-space: pre-wrap; font-size: 12px; }
+.agent-output summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; }
+.step-ok .agent-step-head code { color: var(--ok); }
+.step-error .agent-step-head code, .step-rejected .agent-step-head code { color: var(--bad); }
+.badge.perm-write_local, .badge.perm-external { border-color: var(--warn); color: var(--warn); }
+.agent-errors { color: var(--bad); padding-left: 18px; }
+.agent-approval p { margin: 4px 0; overflow-wrap: anywhere; }
+textarea { width: 100%; max-width: 100%; font: inherit; color: inherit; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 8px; box-sizing: border-box; }

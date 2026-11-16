@@ -1,5 +1,5 @@
 import type {
-  AdapterStatus, AiModelSource, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
+  AdapterStatus, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
   ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, TranscriptInfo,
   VoicePreferences, VoiceStatus, ZoiEvent,
 } from "./types";
@@ -56,6 +56,32 @@ export const api = {
     request<{ stopped: boolean }>("POST", `/api/chat/${encodeURIComponent(messageId)}/stop`),
   preferences: () => request<Preferences>("GET", "/api/preferences"),
   savePreferences: (prefs: Preferences) => request<Preferences>("PUT", "/api/preferences", prefs),
+  memories: {
+    list: (query?: string) =>
+      request<{ items: MemoryInfo[]; total: number }>("GET", `/api/memories${query ? `?q=${encodeURIComponent(query)}` : ""}`),
+    create: (content: string, kind: MemoryKind) => request<MemoryInfo>("POST", "/api/memories", { content, kind }),
+    update: (id: string, content: string, kind: MemoryKind) =>
+      request<MemoryInfo>("PUT", `/api/memories/${encodeURIComponent(id)}`, { content, kind }),
+    remove: (id: string) => request<null>("DELETE", `/api/memories/${encodeURIComponent(id)}`),
+    removeAll: (confirm: string) =>
+      request<{ deleted: number }>("DELETE", `/api/memories?confirm=${encodeURIComponent(confirm)}`),
+  },
+  agent: {
+    status: () => request<AgentStatusInfo>("GET", "/api/agent/status"),
+    plan: (text: string, conversationId?: string | null) =>
+      request<{ run: AgentRunInfo; user_message: ChatMessageInfo }>("POST", "/api/agent/plan",
+        { request: text, conversation_id: conversationId ?? null }),
+    runs: (conversationId?: string | null) =>
+      request<{ runs: AgentRunInfo[] }>("GET", `/api/agent/runs${conversationId ? `?conversation_id=${encodeURIComponent(conversationId)}` : ""}`),
+    approve: (id: string) => request<AgentRunInfo>("POST", `/api/agent/runs/${encodeURIComponent(id)}/approve`),
+    reject: (id: string) => request<AgentRunInfo>("POST", `/api/agent/runs/${encodeURIComponent(id)}/reject`),
+    cancel: (id: string) => request<AgentRunInfo>("POST", `/api/agent/runs/${encodeURIComponent(id)}/cancel`),
+    decide: (approvalId: string, decision: "approve" | "reject") =>
+      request<AgentRunInfo>("POST", `/api/agent/approvals/${encodeURIComponent(approvalId)}`, { decision }),
+    approvals: () => request<{ approvals: ApprovalInfo[] }>("GET", "/api/agent/approvals"),
+    setPermission: (name: string, mode: "ask" | "auto") =>
+      request<{ tools: AgentToolInfo[] }>("PUT", `/api/agent/tools/${encodeURIComponent(name)}/permission`, { mode }),
+  },
   voice: {
     status: () => request<VoiceStatus>("GET", "/api/voice/status"),
     preferences: () => request<VoicePreferences>("GET", "/api/voice/preferences"),

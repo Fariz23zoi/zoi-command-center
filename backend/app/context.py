@@ -8,6 +8,7 @@ from typing import Any
 
 from fastapi import Request
 
+from app.agent.service import AgentService
 from app.ai.local import LocalAIService
 from app.chat.service import ChatService
 from app.config.modes import RuntimeConfig
@@ -16,6 +17,7 @@ from app.core.agent_state import AgentStateTracker
 from app.core.events import EventBus
 from app.db.session import Database
 from app.integrations.base import ExternalAppAdapter
+from app.memory.service import MemoryService
 from app.providers.base import LLMProvider
 from app.security.cost_guard import CostGuard
 from app.tasks.manager import TaskManager
@@ -36,6 +38,8 @@ class AppContext:
     chat: ChatService
     local_ai: LocalAIService
     voice: VoiceService
+    memory: MemoryService
+    agent_service: AgentService
     migration_backup: str | None = None
     started_monotonic: float = field(default_factory=time.monotonic)
     cache: dict[str, Any] = field(default_factory=dict)

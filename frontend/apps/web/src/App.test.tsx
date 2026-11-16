@@ -108,4 +108,15 @@ describe("Command Center", () => {
     fireEvent.click(await screen.findByTestId("stop-button"));
     await waitFor(() => expect(fetchFn).toHaveBeenCalledWith("/api/chat/a1/stop", expect.objectContaining({ method: "POST" })));
   });
+
+  it("/agen meminta rencana, bukan mengirim chat biasa", async () => {
+    renderApp();
+    const fetchFn = vi.mocked(globalThis.fetch);
+    const input = await screen.findByLabelText("Pesan untuk ZOI");
+    fireEvent.change(input, { target: { value: "/agen cek status sistem" } });
+    fireEvent.click(screen.getByRole("button", { name: "Kirim" }));
+    await waitFor(() => expect(fetchFn).toHaveBeenCalledWith("/api/agent/plan", expect.objectContaining({
+      method: "POST", body: JSON.stringify({ request: "cek status sistem", conversation_id: null }) })));
+    expect(fetchFn.mock.calls.some(([url]) => url === "/api/chat")).toBe(false);
+  });
 });

@@ -1,8 +1,18 @@
 import type {
-  AdapterStatus, AgentStateName, ChatMessageInfo, Preferences, PublicConfig, ProviderStatus, TaskInfo, VoicePreferences,
+  AdapterStatus, AgentRunInfo, AgentStateName, ChatMessageInfo, Preferences, PublicConfig, ProviderStatus, TaskInfo, VoicePreferences,
   VoiceStatus, ZoiEvent,
 } from "@zoi/api-client";
 import { create } from "zustand";
+
+/** Respons HTTP bisa tiba setelah event WebSocket yang lebih baru — versi lama tidak boleh menimpa yang baru. */
+function mergeRuns(current: Record<string, AgentRunInfo>, incoming: AgentRunInfo[]): Record<string, AgentRunInfo> {
+  const next = { ...current };
+  for (const run of incoming) {
+    const existing = next[run.id];
+    if (!existing || Date.parse(run.updated_at) >= Date.parse(existing.updated_at)) next[run.id] = run;
+  }
+  return next;
+}
 
 export type VoicePhase = "recording" | "transcribing" | "speaking" | null;
 
@@ -45,6 +55,10 @@ interface AppState {
   /** Naik setiap model aktif berubah (event provider.updated) — halaman AI Lokal memuat ulang datanya. */
   aiRevision: number;
   /** Suara (Phase 4). voicePhase menimpa tampilan status avatar selama merekam/mengenali/berbicara. */
+  /** Permintaan agen (Phase 5) menurut id. memoryRevision naik setiap memori berubah. */
+  agentRuns: Record<string, AgentRunInfo>;
+  memoryRevision: number;
+  setAgentRuns(runs: AgentRunInfo[]): void;
   voiceStatus: VoiceStatus | null;
   voicePrefs: VoicePreferences | null;
   voicePhase: VoicePhase;
@@ -83,6 +97,9 @@ export const useApp = create<AppState>((set) => ({
   bootstrapped: false,
   earlyChat: {},
   aiRevision: 0,
+  agentRuns: {},
+  memoryRevision: 0,
+  setAgentRuns: (runs) => set((s) => ({ agentRuns: mergeRuns(s.agentRuns, runs) })),
   voiceStatus: null,
   voicePrefs: null,
   voicePhase: null,
@@ -149,6 +166,16 @@ export const useApp = create<AppState>((set) => ({
             messages: s.messages.map((m) =>
               m.id === event.payload.message_id ? { ...m, thinking: (m.thinking ?? "") + event.payload.text } : m),
           };
+        case "agent.run.updated":
+          return { agentRuns: mergeRuns(s.agentRuns, [event.payload.run]) };
+        case "memory.updated":
+          return { memoryRevision: s.memoryRevision + 1 };
+        case "chat.message": {
+          const { message } = event.payload;
+          if (event.payload.conversation_id !== s.conversationId || s.messages.some((m) => m.id === message.id)) return {};
+          const extra = message.agent_run_id && message.role === "assistant" ? { memoryRevision: s.memoryRevision + 1 } : {};
+          return { messages: [...s.messages, message], ...extra };
+        }
         case "voice.preferences.updated":
           return { voicePrefs: event.payload };
         case "provider.updated":
