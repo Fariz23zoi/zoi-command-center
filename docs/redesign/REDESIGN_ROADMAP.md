@@ -27,3 +27,22 @@ Semua pekerjaan redesign di branch `redesign/v2`; `main` baru diubah setelah Pha
 - Provider: **hanya gratis** — NVIDIA NIM, OpenRouter `:free`, Ollama, Custom OpenAI-compatible; Gemini/Bytez hanya bila terverifikasi gratis tanpa kartu. OpenAI/Claude tidak dibuat.
 - Contact: **link GitHub Fariz23zoi saja**, tanpa formulir/email.
 - Avatar 3D: **React Three Fiber + Drei disetujui** (MIT), lazy di workspace AI.
+
+## Arah visual dari pemilik (16 Nov 2026) — referensi di `reference/`
+**Dashboard (`dashboard-ref.png`)**: sidebar ungu gelap berkelompok (Analytics / Creation / Products), banner sambutan + tombol alur (Analisis Channel → Riset Tren → Ide Konten → Buat Video), 4 kartu statistik, grafik performa bertab, Sumber Traffic (donut), Perangkat Penonton, Video Terbaik, Insight AI, Tren Topik, badge "Mode: Local" + "AI Terhubung".
+Aturan penerapan:
+- Semua angka dari YouTube Analytics/Data API milik pengguna; belum terhubung → kartu kosong + tombol "Hubungkan YouTube". **Tidak ada angka contoh.**
+- Tab/kartu yang tidak disediakan API resmi tidak ditampilkan (dicek saat implementasi, mis. CTR).
+- Insight AI = teks dari AI berdasarkan angka nyata, diberi label "dibuat AI".
+- Ilustrasi karakter & pemandangan di gambar tidak dipakai (lisensi tidak jelas) → diganti avatar ZOI 3D sendiri + latar abstrak.
+
+**Workspace AI (`office-ref.jpg`)**: avatar ZOI hidup di **kantor isometrik 3D low-poly** (R3F): meja kerja, phone booth, ruang rapat, pojok perpustakaan, lounge. Posisi/aktivitas avatar mengikuti status nyata:
+| Status ZOI | Zona & aktivitas |
+|---|---|
+| idle | lounge / berjalan santai |
+| listening | phone booth (mendengar mikrofon) |
+| thinking / agen menyusun rencana | meja kerja, mengetik |
+| tool berjalan / tugas latar | papan tugas / printer, sesuai jenis tugas |
+| speaking | ruang rapat menghadap kamera |
+| riset / memori | pojok perpustakaan |
+Performa: geometri sederhana + instancing, tanpa tekstur besar, FPS maks 30, render berhenti saat tab tersembunyi, kamera tetap isometrik. Mobile / FPS rendah → mode ringan (avatar close-up) atau fallback 2D.
