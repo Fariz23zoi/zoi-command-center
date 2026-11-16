@@ -16,7 +16,11 @@ def test_local_mode_serves_frontend_on_one_origin(client_factory, tmp_path):
     client = client_factory(mode="local", frontend_dist=str(make_dist(tmp_path)))
     root = client.get("/")
     assert root.status_code == 200 and "<title>ZOI</title>" in root.text
-    assert "default-src 'self'" in root.headers["content-security-policy"]
+    csp = root.headers["content-security-policy"]
+    assert "default-src 'self'" in csp and "object-src 'none'" in csp
+    # Pengecualian avatar 3D terbatas: tanpa 'unsafe-eval' umum dan tanpa sumber eksternal.
+    assert "'unsafe-eval'" not in csp.replace("'wasm-unsafe-eval'", "")
+    assert "http" not in csp.replace("ws://127.0.0.1", "").replace("ws://localhost", "")
     assert client.get("/assets/app.js").text == "console.log('zoi')"
     assert "<title>ZOI</title>" in client.get("/tasks").text  # deep link → SPA
     assert client.get("/api/health").json()["mode"] == "local"

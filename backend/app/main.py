@@ -131,9 +131,12 @@ def _mount_frontend(app: FastAPI, runtime: RuntimeConfig) -> None:
 
     dist = runtime.frontend_dist
     index = dist / "index.html"
-    csp = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
-           f"connect-src 'self' ws://127.0.0.1:{runtime.port} ws://localhost:{runtime.port}; "
-           "frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+    # Pengecualian terbatas untuk avatar 3D (lihat docs/adr/0005-avatar-3d.md):
+    #  blob: → AudioWorklet lip-sync & tekstur model; 'wasm-unsafe-eval' → dekompresi model (meshopt, WebAssembly).
+    csp = ("default-src 'self'; script-src 'self' blob: 'wasm-unsafe-eval'; worker-src 'self' blob:; "
+           "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; "
+           f"connect-src 'self' blob: ws://127.0.0.1:{runtime.port} ws://localhost:{runtime.port}; "
+           "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'")
 
     @app.get("/{path:path}", include_in_schema=False)
     def frontend(path: str) -> Response:

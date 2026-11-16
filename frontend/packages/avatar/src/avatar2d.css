@@ -7,17 +7,6 @@
 .zoi-mouth-talk, .zoi-mouth-open { fill: #e9e7ff22; }
 .zoi-mouth-talk { transform-box: fill-box; transform-origin: center; animation: zoi-talk .32s infinite alternate; }
 .zoi-mark { fill: var(--zoi-state); font: 700 34px system-ui, sans-serif; }
-.zoi-avatar-label { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--zoi-state, #9385ff); }
-
-.zoi-avatar2d[data-state="IDLE"] { --zoi-state: #9385ff; }
-.zoi-avatar2d[data-state="LISTENING"] { --zoi-state: #5fd4ff; }
-.zoi-avatar2d[data-state="THINKING"], .zoi-avatar2d[data-state="PLANNING"] { --zoi-state: #c3a6ff; }
-.zoi-avatar2d[data-state="RESEARCHING"], .zoi-avatar2d[data-state="ANALYZING"] { --zoi-state: #5fd4ff; }
-.zoi-avatar2d[data-state="CREATING"], .zoi-avatar2d[data-state="EXECUTING"] { --zoi-state: #ffb85f; }
-.zoi-avatar2d[data-state="WAITING_APPROVAL"] { --zoi-state: #ffd23f; }
-.zoi-avatar2d[data-state="SPEAKING"] { --zoi-state: #83d9a0; }
-.zoi-avatar2d[data-state="COMPLETED"] { --zoi-state: #83d9a0; }
-.zoi-avatar2d[data-state="FAILED"] { --zoi-state: #ff6b7a; }
 
 .zoi-avatar2d:is([data-state="THINKING"], [data-state="ANALYZING"], [data-state="RESEARCHING"],
   [data-state="PLANNING"], [data-state="EXECUTING"], [data-state="CREATING"]) .zoi-ring {

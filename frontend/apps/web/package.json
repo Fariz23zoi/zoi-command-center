@@ -5,7 +5,9 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-avatar-assets.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/copy-avatar-assets.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },

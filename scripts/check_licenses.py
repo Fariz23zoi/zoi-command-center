@@ -97,6 +97,13 @@ def main(argv: list[str]) -> int:
                  "Python: seluruh paket di venv backend (termasuk alat pengembangan). npm: dependensi produksi frontend.",
                  "", "| Ekosistem | Paket | Versi | Lisensi |", "|---|---|---|---|"]
         lines += [f"| {e} | {n} | {v} | {lic} |" for e, n, v, lic in rows]
+        lines += ["", "## Aset yang ikut dibundel (avatar 3D)", "",
+                  "Disalin dari paket `@interviewflowai/talking-avatar` ke `avatar-assets/` dan disajikan dari server ZOI",
+                  "sendiri (tanpa CDN). Teks lisensinya ikut disalin ke folder yang sama.", "",
+                  "| Aset | Asal | Lisensi |", "|---|---|---|",
+                  "| `female.glb`, `male.glb` | Microsoft Rocketbox (business female 04 / male 01), dikonversi oleh "
+                  "talking-avatar | MIT (Copyright (c) 2020 Microsoft) — `LICENSE-rocketbox.txt` |",
+                  "| `viseme-model.bin` | Bobot model lip-sync talking-avatar | MIT — `LICENSE-talking-avatar.txt` |"]
         lines += ["", "Lisensi lengkap tiap paket tersedia di folder paket masing-masing (site-packages / node_modules).",
                   "", "ZOI sendiri berlisensi MIT — lihat `LICENSE`."]
         target.write_text("\n".join(lines) + "\n", encoding="utf-8")

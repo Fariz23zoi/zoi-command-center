@@ -116,3 +116,4 @@ button.link.active { color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }
 }
+.avatar-placeholder { width: 180px; height: 208px; }

@@ -67,7 +67,11 @@ export interface SendChatResponse {
   conversation_id: string; user_message: ChatMessageInfo; assistant_message: ChatMessageInfo;
 }
 
-export interface Preferences { ui_language: "id" | "en"; avatar_mode_preference: "auto" | "2d" | "3d" }
+export interface Preferences {
+  ui_language: "id" | "en";
+  avatar_mode_preference: "auto" | "2d" | "3d";
+  avatar_character: "female" | "male";
+}
 
 export type ZoiEvent =
   | { type: "hello"; payload: { mode: string; agent: { state: AgentStateName; reason: string }; is_mock: boolean } }

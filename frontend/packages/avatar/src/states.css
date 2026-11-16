@@ -1,0 +1,10 @@
+/* Warna status bersama untuk renderer 2D dan 3D. */
+.zoi-state { --zoi-state: #9385ff; }
+.zoi-state[data-state="LISTENING"], .zoi-state[data-state="RESEARCHING"], .zoi-state[data-state="ANALYZING"] { --zoi-state: #5fd4ff; }
+.zoi-state[data-state="THINKING"], .zoi-state[data-state="PLANNING"] { --zoi-state: #c3a6ff; }
+.zoi-state[data-state="CREATING"], .zoi-state[data-state="EXECUTING"] { --zoi-state: #ffb85f; }
+.zoi-state[data-state="WAITING_APPROVAL"] { --zoi-state: #ffd23f; }
+.zoi-state[data-state="SPEAKING"], .zoi-state[data-state="COMPLETED"] { --zoi-state: #83d9a0; }
+.zoi-state[data-state="FAILED"] { --zoi-state: #ff6b7a; }
+.zoi-avatar-label { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--zoi-state, #9385ff); }
+.zoi-avatar-note { font-size: 12px; color: #9a9bb3; margin: 4px 0 0; text-align: center; max-width: 320px; }

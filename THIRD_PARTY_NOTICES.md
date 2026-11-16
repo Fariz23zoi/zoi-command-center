@@ -62,6 +62,7 @@ Python: seluruh paket di venv backend (termasuk alat pengembangan). npm: depende
 | python | urllib3 | 2.8.0 | MIT |
 | python | uvicorn | 0.54.0 | BSD-3-Clause |
 | python | websockets | 17.4 | BSD-3-Clause |
+| npm | @interviewflowai/talking-avatar | 0.3.0 | MIT |
 | npm | @types/react | 19.3.0 | MIT |
 | npm | cookie | 1.1.1 | MIT |
 | npm | csstype | 3.2.3 | MIT |
@@ -71,7 +72,18 @@ Python: seluruh paket di venv backend (termasuk alat pengembangan). npm: depende
 | npm | react-router-dom | 7.18.5 | MIT |
 | npm | scheduler | 0.28.0 | MIT |
 | npm | set-cookie-parser | 2.7.3 | MIT |
+| npm | three | 0.187.0 | MIT |
 | npm | zustand | 5.1.0 | MIT |
+
+## Aset yang ikut dibundel (avatar 3D)
+
+Disalin dari paket `@interviewflowai/talking-avatar` ke `avatar-assets/` dan disajikan dari server ZOI
+sendiri (tanpa CDN). Teks lisensinya ikut disalin ke folder yang sama.
+
+| Aset | Asal | Lisensi |
+|---|---|---|
+| `female.glb`, `male.glb` | Microsoft Rocketbox (business female 04 / male 01), dikonversi oleh talking-avatar | MIT (Copyright (c) 2020 Microsoft) — `LICENSE-rocketbox.txt` |
+| `viseme-model.bin` | Bobot model lip-sync talking-avatar | MIT — `LICENSE-talking-avatar.txt` |
 
 Lisensi lengkap tiap paket tersedia di folder paket masing-masing (site-packages / node_modules).
 

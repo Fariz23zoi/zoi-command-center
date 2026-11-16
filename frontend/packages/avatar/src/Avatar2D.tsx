@@ -1,5 +1,6 @@
 import type { AgentState } from "./states";
 import { STATE_LABELS } from "./states";
+import "./states.css";
 import "./avatar2d.css";
 
 type Mouth = "rest" | "talk" | "smile" | "frown" | "flat" | "open";
@@ -28,7 +29,7 @@ export interface Avatar2DProps {
 export function Avatar2D({ state, size = 220 }: Avatar2DProps) {
   const mouth = MOUTH[state];
   return (
-    <figure className="zoi-avatar2d" data-state={state} style={{ width: size }}>
+    <figure className="zoi-avatar2d zoi-state" data-state={state} style={{ width: size }}>
       <svg viewBox="0 0 200 200" width={size} height={size} role="img" aria-label={`Avatar ZOI: ${STATE_LABELS[state]}`}>
         <circle className="zoi-ring" cx="100" cy="100" r="94" />
         <circle className="zoi-head" cx="100" cy="100" r="72" />

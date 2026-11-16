@@ -12,7 +12,14 @@ export default defineConfig({
   timeout: 30_000,
   workers: 1,
   reporter: [["list"]],
-  use: { launchOptions: chrome ? { executablePath: chrome } : {}, trace: "off" },
+  use: {
+    launchOptions: {
+      ...(chrome ? { executablePath: chrome } : {}),
+      // WebGL perangkat lunak (SwiftShader) agar avatar 3D bisa diuji di mesin tanpa GPU; audio boleh diputar otomatis.
+      args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--autoplay-policy=no-user-gesture-required"],
+    },
+    trace: "off",
+  },
   projects: [
     { name: "development-desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, baseURL: "http://127.0.0.1:5173" } },
     { name: "development-mobile", use: { ...devices["Desktop Chrome"], viewport: { width: 375, height: 812 }, hasTouch: true, baseURL: "http://127.0.0.1:5173" } },

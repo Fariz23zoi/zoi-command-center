@@ -10,5 +10,9 @@
   },
   "peerDependencies": {
     "react": ">=19"
+  },
+  "dependencies": {
+    "@interviewflowai/talking-avatar": "0.3.0",
+    "three": "0.187.0"
   }
 }
