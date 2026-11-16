@@ -2,7 +2,7 @@ import type {
   AdapterStatus, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
   ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, TranscriptInfo,
   VoicePreferences, VoiceStatus, YouTubeData, YouTubeStatus, ZoiEvent,
-  CompetitorsData, IdeaRequest, IdeaSet, ScriptItem, ScriptRequest, ViralData,
+  CloudModels, CloudStatus, CloudTestResult, CompetitorsData, IdeaRequest, IdeaSet, ScriptItem, ScriptRequest, ViralData,
 } from "./types";
 
 /** Header wajib untuk permintaan yang mengubah data (perlindungan CSRF di backend). */
@@ -94,6 +94,14 @@ export const api = {
     refresh: (what: "all" | "channel" | "videos" | "analytics" = "all") =>
       request<YouTubeData>("POST", "/api/youtube/refresh", { what }),
     data: () => request<YouTubeData>("GET", "/api/youtube/data"),
+  },
+  aiCloud: {
+    status: () => request<CloudStatus>("GET", "/api/ai/cloud/status"),
+    /** API key hanya dikirim ke backend ZOI di komputer ini dan tidak pernah dikembalikan. */
+    putKey: (name: string, key: string) => request<CloudStatus>("PUT", `/api/ai/cloud/keys/${name}`, { key }),
+    deleteKey: (name: string) => request<CloudStatus>("DELETE", `/api/ai/cloud/keys/${name}`),
+    models: (name: string) => request<CloudModels>("GET", `/api/ai/cloud/models/${name}`),
+    test: (name: string) => request<CloudTestResult>("POST", `/api/ai/cloud/test/${name}`),
   },
   youtubePublic: {
     competitors: () => request<CompetitorsData>("GET", "/api/youtube/public/competitors"),

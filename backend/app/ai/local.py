@@ -18,7 +18,7 @@ from app.config.modes import RuntimeConfig
 from app.core.errors import NotFound, ZoiError
 from app.core.events import EventBus
 from app.db.session import Database
-from app.providers.base import LLMProvider, LocalModelAdmin, is_cloud_model
+from app.providers.base import CloudAdmin, LLMProvider, LocalModelAdmin, is_cloud_model
 from app.security.cost_guard import CostGuardBlocked
 from app.tasks.manager import TaskManager
 
@@ -73,8 +73,12 @@ class LocalAIService:
             "url": None, "location": None, "version": None, "installed": [], "running": [],
         }
         if not isinstance(provider, LocalModelAdmin):
-            detail = ("Mode development memakai Mock Provider — tidak ada model sungguhan di sini."
-                      if provider.is_mock else "AI dinonaktifkan (ZOI_AI_PROVIDER=none).")
+            if provider.is_mock:
+                detail = "Mode development memakai Mock Provider — tidak ada model sungguhan di sini."
+            elif isinstance(provider, CloudAdmin):
+                detail = "Penyedia AI yang aktif adalah AI cloud, bukan Ollama. Lihat Settings › AI Cloud."
+            else:
+                detail = "AI dinonaktifkan (ZOI_AI_PROVIDER=none)."
             return {**base, "reachable": False, "detail": detail}
         host = urlparse(provider.base_url).hostname or ""
         base |= {"url": provider.base_url, "location": "lokal" if host in LOCAL_HOSTS else "jaringan"}

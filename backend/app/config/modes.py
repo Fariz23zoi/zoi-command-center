@@ -10,7 +10,16 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlparse
 
-from app.config.settings import REPO_ROOT, AvatarMode, Mode, ProviderChoice, Settings, SttChoice, TtsChoice
+from app.config.settings import (
+    REPO_ROOT,
+    AvatarMode,
+    FallbackChoice,
+    Mode,
+    ProviderChoice,
+    Settings,
+    SttChoice,
+    TtsChoice,
+)
 
 DEV_FRONTEND_ORIGINS = ("http://127.0.0.1:5173", "http://localhost:5173")
 DEFAULT_PORTS = {Mode.DEVELOPMENT: 8000, Mode.LOCAL: 80}
@@ -19,6 +28,9 @@ LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
 CLOUD_OLLAMA_HOSTS = {"ollama.com", "www.ollama.com", "api.ollama.com"}
 
 DEV_BANNER = "DEVELOPMENT MODE — jawaban AI adalah MOCK, bukan AI sungguhan"
+DEV_BANNER_REAL = "DEVELOPMENT MODE"
+CLOUD_PROVIDERS = ("nvidia", "openrouter")
+CLOUD_HOSTS = {"nvidia": "integrate.api.nvidia.com", "openrouter": "openrouter.ai"}
 
 
 class ConfigError(Exception):
@@ -31,7 +43,7 @@ class RuntimeConfig:
     host: str
     port: int
     data_dir: Path
-    provider: str  # "mock" | "ollama" | "none"
+    provider: str  # "mock" | "ollama" | "nvidia" | "openrouter" | "none"
     ollama_url: str
     ollama_model: str
     mock_latency_ms: int
@@ -46,6 +58,17 @@ class RuntimeConfig:
     frontend_dist: Path
     banner: str | None
     warnings: tuple[str, ...] = field(default_factory=tuple)
+    nvidia_model: str = ""
+    openrouter_model: str = ""
+    ai_fallback: str = "none"
+    cloud_test_url: str = ""
+
+    @property
+    def cloud_names(self) -> tuple[str, ...]:
+        """Penyedia cloud yang benar-benar dipakai (utama + cadangan). Kosong = tidak ada data ke cloud."""
+        if self.provider not in CLOUD_PROVIDERS:
+            return ()
+        return (self.provider,) if self.ai_fallback == "none" else (self.provider, self.ai_fallback)
 
     @property
     def is_development(self) -> bool:
@@ -117,6 +140,35 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
             "ZOI_OLLAMA_MODEL belum diisi — fitur AI akan berstatus 'tidak tersedia' sampai model dipilih."
         )
 
+    cloud_test = settings.cloud_test_url.strip().rstrip("/")
+    fallback = settings.ai_fallback.value
+    if provider in CLOUD_PROVIDERS:
+        if provider == "nvidia" and not settings.nvidia_model:
+            raise ConfigError("ZOI_AI_PROVIDER=nvidia membutuhkan ZOI_NVIDIA_MODEL (mis. nama model dari "
+                              "build.nvidia.com). Isi di .env, lalu jalankan ulang.")
+        if provider == "openrouter" and fallback != "none":
+            raise ConfigError("ZOI_AI_FALLBACK hanya dipakai bersama ZOI_AI_PROVIDER=nvidia.")
+        if "openrouter" in (provider, fallback):
+            if not settings.openrouter_model:
+                raise ConfigError("ZOI_OPENROUTER_MODEL belum diisi. Pilih model gratis OpenRouter (berakhiran "
+                                  "':free').")
+            if not settings.openrouter_model.endswith(":free"):
+                raise ConfigError(f"ZOI_OPENROUTER_MODEL={settings.openrouter_model} bukan model gratis. Hanya "
+                                  "model berakhiran ':free' yang diizinkan (aturan ZERO PAID API).")
+        names = " dan ".join("NVIDIA NIM" if n == "nvidia" else "OpenRouter"
+                             for n in ((provider,) if fallback == "none" else (provider, fallback)))
+        warnings.append(f"AI CLOUD aktif — isi chat, memori, judul video, dan naskah dikirim ke {names}. "
+                        "Rekaman suara, token YouTube, dan API key tidak pernah dikirim.")
+    elif fallback != FallbackChoice.NONE.value:
+        raise ConfigError("ZOI_AI_FALLBACK hanya dipakai bersama ZOI_AI_PROVIDER=nvidia.")
+    if cloud_test:
+        cloud_host = urlparse(cloud_test).hostname
+        if urlparse(cloud_test).scheme != "http" or not cloud_host or not _is_loopback(cloud_host):
+            raise ConfigError("ZOI_CLOUD_TEST_URL hanya boleh menunjuk server uji di komputer ini "
+                              "(http://127.0.0.1:PORT). Kosongkan untuk memakai layanan sungguhan.")
+        warnings.append("ZOI_CLOUD_TEST_URL aktif — jawaban 'AI cloud' berasal dari SERVER UJI, bukan "
+                        "NVIDIA/OpenRouter.")
+
     stt = _voice_choice(settings.stt, SttChoice, "whisper", settings.mode, "ZOI_STT")
     tts = _voice_choice(settings.tts, TtsChoice, "piper", settings.mode, "ZOI_TTS")
     piper = urlparse(settings.piper_url)
@@ -159,8 +211,12 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
         cors_origins=DEV_FRONTEND_ORIGINS if is_dev else (),
         serve_frontend=not is_dev,
         frontend_dist=frontend_dist,
-        banner=DEV_BANNER if is_dev else None,
+        banner=(DEV_BANNER if provider == "mock" else DEV_BANNER_REAL) if is_dev else None,
         warnings=tuple(warnings),
+        nvidia_model=settings.nvidia_model,
+        openrouter_model=settings.openrouter_model,
+        ai_fallback=fallback,
+        cloud_test_url=cloud_test,
     )
 
 

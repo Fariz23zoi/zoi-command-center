@@ -29,7 +29,7 @@ test.afterEach(async ({ page }) => {
 
 test("Memory: tambah, cari, ubah, hapus", async ({ page }) => {
   await page.goto("/memory");
-  await page.getByLabel("Isi").fill("Channel fokus ke resep kopi nusantara");
+  await page.getByLabel("Isi", { exact: true }).fill("Channel fokus ke resep kopi nusantara");
   await page.getByRole("button", { name: "Simpan memori" }).click();
   const item = page.getByTestId("memory-item").filter({ hasText: "kopi nusantara" });
   await expect(item).toContainText("dari kamu");

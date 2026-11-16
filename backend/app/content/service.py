@@ -150,15 +150,22 @@ class ContentService:
         self.memory = memory
         self.yt = youtube
         self.public = public
+        self._served: tuple[str, str | None] | None = None
 
     # ── AI ────────────────────────────────────────────────────────────────
     def _stamp(self) -> dict[str, Any]:
+        served, self._served = self._served, None
+        if served:  # penyedia cadangan yang menjawab → label mengikuti yang sebenarnya
+            return {"is_mock": False, "provider": served[0], "model": served[1]}
         return {"is_mock": self.provider.is_mock, "provider": self.provider.name,
                 "model": getattr(self.provider, "model", None)}
 
     async def _ask[T: BaseModel](self, messages: list[ChatMessage], schema: type[T]) -> T:
         try:
-            return (await chat_json(self.provider, messages, schema, timeout_s=AI_TIMEOUT_S)).value
+            result = await chat_json(self.provider, messages, schema, timeout_s=AI_TIMEOUT_S)
+            # Tugas konten berjalan satu per satu (jalur antrean "content"), jadi nilai ini tidak tertukar.
+            self._served = (result.served_by, result.served_model) if result.served_by else None
+            return result.value
         except StructuredOutputError as exc:
             raise RuntimeError(f"AI lokal gagal memberi jawaban yang valid: {exc}") from exc
 

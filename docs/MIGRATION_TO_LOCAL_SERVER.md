@@ -110,6 +110,28 @@ Gratis (kuota harian), tanpa kartu kredit. ZOI hanya **membaca**; tidak bisa men
 Nama menu di Google Cloud bisa berubah; bila berbeda, cari padanannya. Bila ada langkah yang meminta pembayaran,
 berhenti dan laporkan — tidak ada bagian ZOI yang memerlukannya.
 
+## 5d. (Opsional) AI cloud gratis — NVIDIA NIM, cadangan OpenRouter
+
+Bawaan ZOI tetap lokal. Langkah ini membuat chat, agen, ide, dan naskah dijawab server NVIDIA/OpenRouter, sehingga
+**isi chat, memori, judul video, dan naskahmu dikirim ke sana**. Rekaman suara, token YouTube, dan API key tidak.
+
+1. Daftar di <https://build.nvidia.com> → buat API key (`nvapi-…`). Baca ketentuan uji cobanya dulu.
+2. (Cadangan) Daftar di <https://openrouter.ai> → buat API key (`sk-or-…`). **Jangan membeli kredit.** Periksa
+   pengaturan privasinya.
+3. Tambahkan ke file `.env`, lalu jalankan ulang ZOI:
+   ```
+   ZOI_AI_PROVIDER=nvidia
+   ZOI_NVIDIA_MODEL=<nama model dari build.nvidia.com>
+   ZOI_AI_FALLBACK=openrouter
+   ZOI_OPENROUTER_MODEL=<model gratis, harus berakhiran :free>
+   ```
+   Tanpa cadangan: hapus dua baris terakhir.
+4. Buka *Settings › AI Cloud* → masukkan API key masing-masing → **Uji model**. Bila gagal dengan "tidak bisa
+   memanggil model", pilih nama lain dari **Lihat daftar model**, ubah `.env`, jalankan ulang.
+5. **Jangan** menaruh API key di `.env`, chat, atau GitHub.
+
+Kembali ke lokal: hapus baris-baris itu dari `.env` dan jalankan ulang.
+
 ## 6. Impor data (jika ada)
 
 ```powershell
@@ -157,6 +179,12 @@ Buka `http://127.0.0.1` lalu:
       dibuat model sungguhan: periksa apakah temanya masuk akal dan berapa contoh yang dibuang
 - [ ] (Bila Ollama dipasang) Content Ideas → minta 3 ide → "Tulis naskah dari ide ini". Catat berapa lama tiap
       tugas berjalan di laptop ini (batasnya 15 menit) dan apakah naskahnya layak dipakai sebagai draf
+- [ ] (Bila AI cloud diaktifkan) Settings › AI Cloud: **tidak ada** pita "ENDPOINT UJI"; "Uji model" NVIDIA
+      menjawab. Ini pertama kalinya ZOI berbicara dengan NVIDIA sungguhan. Kirim satu pesan di AI Assistant →
+      jawabannya berlabel "AI cloud · NVIDIA NIM · <model>". Laporkan pesan error apa pun apa adanya
+- [ ] (Bila cadangan diaktifkan) "Uji model" OpenRouter menjawab. Hitungan "permintaan hari ini" bertambah satu
+- [ ] (Bila AI cloud diaktifkan) Minta agen satu rencana sederhana dan satu set ide konten; catat apakah model
+      yang dipilih sanggup (keluaran JSON dan pemanggilan tool berbeda-beda antar-model)
 - [ ] (Bila YouTube disiapkan) Buka *Control Panel › Credential Manager › Windows Credentials* → ada entri
       `zoi-youtube-intelligence`. Folder `data\secrets` hanya berisi `youtube_client.json`
 - [ ] (Opsional) Jalankan tes roundtrip suara: `ZOI_TEST_WHISPER_DIR=… ZOI_TEST_PIPER_URL=http://127.0.0.1:5000
@@ -169,5 +197,6 @@ Opsional: `deploy\windows\autostart.ps1` agar ZOI berjalan otomatis saat login.
 - Skrip PowerShell belum pernah dijalankan di Windows sungguhan (lingkungan pengembangan tidak memiliki
   PowerShell). Laporkan baris error apa pun saat migrasi; perbaikan dilakukan sebelum Phase 2 dianggap selesai.
 - Kode backend dan frontend sudah diuji otomatis di Linux, termasuk E2E dalam mode local pada satu port.
+- AI cloud (NVIDIA NIM, OpenRouter) diuji terhadap server **tiruan** bergaya OpenAI; belum pernah dipanggil sungguhan.
 - Integrasi YouTube diuji terhadap server Google **tiruan**. Bentuk respons mengikuti dokumentasi resmi, tetapi
   belum pernah dibandingkan dengan respons Google sungguhan, dan `keyring` belum pernah dijalankan di Windows.

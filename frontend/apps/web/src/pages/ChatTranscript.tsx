@@ -1,6 +1,8 @@
 import type { ChatMessageInfo } from "@zoi/api-client";
 
 import { useApp } from "../stores/appStore";
+
+const CLOUD_LABEL: Record<string, string> = { nvidia: "NVIDIA NIM", openrouter: "OpenRouter" };
 import { AgentRunCard } from "./AgentRunCard";
 
 export function ChatTranscript({ messages }: { messages: ChatMessageInfo[] }) {
@@ -15,6 +17,11 @@ export function ChatTranscript({ messages }: { messages: ChatMessageInfo[] }) {
           <div className="msg-meta">
             <span>{m.role === "user" ? "Kamu" : "ZOI"}</span>
             {m.role === "assistant" && m.is_mock && <span className="badge mock" data-testid="mock-badge">MOCK</span>}
+            {m.role === "assistant" && m.provider && CLOUD_LABEL[m.provider] && (
+              <span className="badge cloud" data-testid="cloud-badge">
+                AI cloud · {CLOUD_LABEL[m.provider]}{m.model ? ` · ${m.model}` : ""}
+              </span>
+            )}
             {m.agent_run_id && <span className="badge">{m.role === "user" ? "permintaan agen" : "hasil agen"}</span>}
             {m.role === "assistant" && m.status === "streaming" && <span className="badge">menulis…</span>}
             {m.status === "stopped" && <span className="badge" data-testid="stopped-badge">dihentikan</span>}
@@ -26,6 +33,7 @@ export function ChatTranscript({ messages }: { messages: ChatMessageInfo[] }) {
             </details>
           )}
           {m.content && <p className="msg-body">{m.content}</p>}
+          {m.note && <p className="msg-note" data-testid="msg-note">{m.note}</p>}
           {m.status === "error" && <p className="msg-error" role="alert">{m.error}</p>}
           {m.role === "user" && m.agent_run_id && runs[m.agent_run_id] && <AgentRunCard run={runs[m.agent_run_id]} />}
           {m.role === "user" && m.agent_run_id && !runs[m.agent_run_id] && <p className="muted">Memuat permintaan agen…</p>}

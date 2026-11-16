@@ -8,6 +8,7 @@ import { AiLocalPage } from "./pages/AiLocalPage";
 import { AssistantPage } from "./pages/AssistantPage";
 import { VoicePage } from "./pages/VoicePage";
 import { MemoryPage } from "./pages/MemoryPage";
+import { AiCloudPage } from "./pages/AiCloudPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { CompetitorsPage } from "./pages/CompetitorsPage";
 import { IdeasPage } from "./pages/IdeasPage";
@@ -77,6 +78,7 @@ export function App() {
         <Route path="/settings/ai" element={<AiLocalPage />} />
         <Route path="/settings/voice" element={<VoicePage />} />
         <Route path="/settings/youtube" element={<YouTubeSettingsPage />} />
+        <Route path="/settings/ai-cloud" element={<AiCloudPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
