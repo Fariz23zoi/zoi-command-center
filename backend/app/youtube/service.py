@@ -13,6 +13,7 @@ import asyncio
 import json
 import secrets
 import time
+from collections.abc import Callable
 from datetime import date, datetime, timedelta
 from functools import cache
 from pathlib import Path
@@ -48,6 +49,8 @@ TOKEN_NAME = "youtube_refresh_token"  # noqa: S105 — nama entri, bukan rahasia
 REVERIFY_DAYS = 30
 RECENT_VIDEOS = 25
 ANALYTICS_METRICS = "views,estimatedMinutesWatched,averageViewDuration,subscribersGained,subscribersLost"
+# Laporan per video: persentase tonton dihitung YOUTUBE (averageViewPercentage), bukan ZOI.
+VIDEO_METRICS = "views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage"
 TIMEOUT = httpx.Timeout(connect=10.0, read=30.0, write=10.0, pool=10.0)
 YPP_FILE = Path(__file__).resolve().parent / "ypp.json"
 
@@ -81,6 +84,8 @@ class YouTubeService:
         self._pending: dict[str, Any] | None = None
         self._last_error: str | None = None
         self._lock = asyncio.Lock()
+        # Dipanggil saat akun diputuskan (data publik & daftar pantauan ikut dihapus).
+        self.purge_hooks: list[Callable[[], None]] = []
 
     # ── HTTP ──────────────────────────────────────────────────────────────
     def _http(self) -> httpx.AsyncClient:
@@ -292,6 +297,8 @@ class YouTubeService:
         self.store.delete(TOKEN_NAME)
         self._access = None
         self._purge_data()
+        for hook in self.purge_hooks:
+            hook()
         self._save_account(None)
         self._last_error = None
         self._changed()
@@ -455,11 +462,20 @@ class YouTubeService:
         self._changed()
         return videos
 
-    async def _report(self, client: ClientConfig, start: date, end: date, *, daily: bool) -> dict[str, Any]:
+    async def api_get(self, path: str, params: dict[str, str], *, search: bool = False) -> dict[str, Any]:
+        """GET berizin ke YouTube Data API untuk modul lain (data publik). Kuota dihitung seperti biasa."""
+        client = self._require()
+        async with self._lock:
+            return await self._api_get(client, f"{self.ep.data_api}/{path}", params, search=search)
+
+    async def _report(self, client: ClientConfig, start: date, end: date, *, daily: bool = False,
+                      by_video: bool = False) -> dict[str, Any]:
         params = {"ids": "channel==MINE", "startDate": start.isoformat(), "endDate": end.isoformat(),
-                  "metrics": ANALYTICS_METRICS}
+                  "metrics": VIDEO_METRICS if by_video else ANALYTICS_METRICS}
         if daily:
             params |= {"dimensions": "day", "sort": "day"}
+        if by_video:
+            params |= {"dimensions": "video", "sort": "-views", "maxResults": "25"}
         data = await self._api_get(client, f"{self.ep.analytics_api}/reports", params, analytics=True)
         headers = [h.get("name") for h in data.get("columnHeaders", [])]
         rows = [dict(zip(headers, row, strict=False)) for row in data.get("rows", []) or []]
@@ -484,6 +500,13 @@ class YouTubeService:
                 raise
             except YouTubeError as exc:
                 result["error"] = exc.message
+            if "error" not in result:
+                try:
+                    result["by_video"] = await self._report(client, end - timedelta(days=27), end, by_video=True)
+                except NeedsReauth:
+                    raise
+                except YouTubeError as exc:
+                    result["by_video_error"] = exc.message
             self._store("analytics", result)
         self._changed()
         return result

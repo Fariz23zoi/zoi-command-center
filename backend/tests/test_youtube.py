@@ -191,7 +191,12 @@ def test_connect_refresh_and_read(yt, google):
     assert analytics["last_365_days"]["rows"][0]["estimatedMinutesWatched"] == 365 * 330
     assert len(data["history"]) == 1 and data["history"][0]["subscriber_count"] == 1530
     # 1 unit saat menghubungkan + channel/playlistItems/videos; laporan Analytics dihitung terpisah.
-    assert data["quota"]["units_used"] == 4 and data["quota"]["analytics_calls"] == 3
+    assert data["quota"]["units_used"] == 4 and data["quota"]["analytics_calls"] == 4
+    by_video = analytics["by_video"]
+    assert by_video["columns"] == ["video", "views", "estimatedMinutesWatched", "averageViewDuration",
+                                   "averageViewPercentage"]
+    assert by_video["rows"][0] == {"video": "vidAAAAAAA1", "views": 900, "estimatedMinutesWatched": 2700,
+                                   "averageViewDuration": 180, "averageViewPercentage": 42.5}
     assert data["ypp"]["tiers"][1]["requirements"][0] == "1.000 subscriber"
 
 
@@ -202,7 +207,9 @@ def test_no_derived_metrics_and_no_secrets_in_responses(yt, google):
     for secret in ("gocspx", "rt-", "at-", "client_secret", "refresh_token"):
         assert secret not in text
     for derived in ("progress", "percent", "persen", "score", "skor", "remaining", "kurang"):
-        assert derived not in json.dumps({k: data[k] for k in ("channel", "videos", "analytics", "history")}).lower()
+        # averageViewPercentage adalah metrik milik YouTube sendiri (bukan hitungan ZOI) → nama kolomnya dikecualikan.
+        shown = json.dumps({k: data[k] for k in ("channel", "videos", "analytics", "history")}).lower()
+        assert derived not in shown.replace("averageviewpercentage", "")
 
 
 def test_token_lives_only_in_secret_store(yt, google, tmp_path):

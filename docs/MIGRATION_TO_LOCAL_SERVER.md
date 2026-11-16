@@ -150,6 +150,13 @@ Buka `http://127.0.0.1` lalu:
       Ini pertama kalinya ZOI berbicara dengan Google sungguhan — semua tes sebelumnya memakai Google tiruan
 - [ ] (Bila YouTube disiapkan) Channel Analytics → "Ambil data terbaru" → bandingkan subscriber, total tayangan,
       dan tayangan 28 hari dengan YouTube Studio. Laporkan bila ada angka yang berbeda atau pesan error
+- [ ] (Bila YouTube disiapkan) Competitor Intelligence: tambah satu channel lewat handle → nama dan angkanya cocok
+      dengan halaman channel itu di YouTube. Viral Video Hunter → "Ambil Trending" → bandingkan beberapa judul
+      teratas dengan youtube.com/feed/trending (urutan bisa sedikit berbeda antara API dan situs)
+- [ ] (Bila YouTube + Ollama) Trend Detector → "Rangkum tema" pada daftar Trending. Ini pertama kalinya rangkuman
+      dibuat model sungguhan: periksa apakah temanya masuk akal dan berapa contoh yang dibuang
+- [ ] (Bila Ollama dipasang) Content Ideas → minta 3 ide → "Tulis naskah dari ide ini". Catat berapa lama tiap
+      tugas berjalan di laptop ini (batasnya 15 menit) dan apakah naskahnya layak dipakai sebagai draf
 - [ ] (Bila YouTube disiapkan) Buka *Control Panel › Credential Manager › Windows Credentials* → ada entri
       `zoi-youtube-intelligence`. Folder `data\secrets` hanya berisi `youtube_client.json`
 - [ ] (Opsional) Jalankan tes roundtrip suara: `ZOI_TEST_WHISPER_DIR=… ZOI_TEST_PIPER_URL=http://127.0.0.1:5000

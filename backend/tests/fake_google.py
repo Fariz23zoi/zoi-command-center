@@ -30,6 +30,24 @@ VIDEOS = [
      "duration": "PT2M", "privacy": "private", "published": "2026-10-10T10:00:00Z"},
 ]
 METRICS = ["views", "estimatedMinutesWatched", "averageViewDuration", "subscribersGained", "subscribersLost"]
+VIDEO_METRICS = ["views", "estimatedMinutesWatched", "averageViewDuration", "averageViewPercentage"]
+# Data PUBLIK tiruan (channel lain, Trending, pencarian) — karangan untuk tes.
+OTHER_ID = "UCotherChannel0000000002"
+OTHER_UPLOADS = "UUotherChannel0000000002"
+OTHER_VIDEOS = [
+    {"id": "othAAAAAAA1", "title": "Resep kopi susu gula aren", "views": "90100", "likes": "4100", "comments": "230",
+     "duration": "PT6M", "privacy": "public", "published": "2026-11-10T03:00:00Z"},
+    {"id": "othAAAAAAA2", "title": "Review grinder kopi murah", "views": "15800", "likes": "700", "comments": "64",
+     "duration": "PT11M", "privacy": "public", "published": "2026-11-03T03:00:00Z"},
+]
+TRENDING = [
+    {"id": "trdAAAAAAA1", "title": "Cara seduh kopi V60 untuk pemula", "channel": "Kopi Harian", "category": "26"},
+    {"id": "trdAAAAAAA2", "title": "Resep kopi susu ala kafe", "channel": "Dapur Kopi", "category": "26"},
+    {"id": "trdAAAAAAA3", "title": "Highlight final bulu tangkis", "channel": "Olahraga ID", "category": "17"},
+    {"id": "trdAAAAAAA4", "title": "Tips belajar coding dari nol", "channel": "Kode Santai", "category": "27"},
+]
+CATEGORIES = [("17", "Olahraga", True), ("26", "Cara & Gaya", True), ("27", "Pendidikan", True),
+              ("44", "Trailer", False)]
 
 
 class FakeGoogle:
@@ -47,6 +65,7 @@ class FakeGoogle:
         self.quota_exceeded = False
         self.analytics_forbidden = False
         self.subscribers = "1530"
+        self.by_video_forbidden = False
         self.server: ThreadingHTTPServer | None = None
 
     # ── util ──────────────────────────────────────────────────────────────
@@ -140,6 +159,16 @@ class FakeGoogle:
                 return js(403, {"error": {"code": 403, "message": "quota exceeded",
                                           "errors": [{"reason": "quotaExceeded"}]}})
             if path == "/youtube/v3/channels":
+                if query.get("id") == OTHER_ID or query.get("forHandle") == "@kopilain":
+                    return js(200, {"items": [{
+                        "id": OTHER_ID,
+                        "snippet": {"title": "Kopi Lain", "customUrl": "@kopilain",
+                                    "publishedAt": "2022-03-01T00:00:00Z", "country": "ID"},
+                        "statistics": {"viewCount": "880000", "subscriberCount": "12400",
+                                       "hiddenSubscriberCount": False, "videoCount": "140"},
+                        "contentDetails": {"relatedPlaylists": {"uploads": OTHER_UPLOADS}}}]})
+                if "id" in query or "forHandle" in query:
+                    return js(200, {"items": []})
                 if query.get("mine") != "true":
                     return js(400, {"error": {"code": 400, "message": "mine required", "errors": []}})
                 if self.no_channel:
@@ -152,20 +181,55 @@ class FakeGoogle:
                                    "hiddenSubscriberCount": False, "videoCount": "37"},
                     "contentDetails": {"relatedPlaylists": {"uploads": UPLOADS}}}]})
             if path == "/youtube/v3/playlistItems":
+                if query.get("playlistId") == OTHER_UPLOADS:
+                    return js(200, {"items": [{"contentDetails": {"videoId": v["id"]}} for v in OTHER_VIDEOS]})
                 if query.get("playlistId") != UPLOADS:
                     return js(404, {"error": {"code": 404, "message": "playlist not found", "errors": []}})
                 return js(200, {"items": [{"contentDetails": {"videoId": v["id"]}} for v in VIDEOS]})
+            if path == "/youtube/v3/videoCategories":
+                return js(200, {"items": [{"id": cid, "snippet": {"title": title, "assignable": ok}}
+                                          for cid, title, ok in CATEGORIES]})
+            if path == "/youtube/v3/search":
+                if query.get("type") != "video" or not query.get("q"):
+                    return js(400, {"error": {"code": 400, "message": "bad search", "errors": []}})
+                return js(200, {"items": [{
+                    "id": {"kind": "youtube#video", "videoId": v["id"]},
+                    "snippet": {"title": v["title"], "channelTitle": v["channel"], "channelId": "UCx" + v["id"],
+                                "publishedAt": "2026-11-12T00:00:00Z"}}
+                    for v in TRENDING if query["q"].lower().split()[0] in v["title"].lower()]})
+            if path == "/youtube/v3/videos" and query.get("chart") == "mostPopular":
+                if query.get("regionCode") != "ID":
+                    return js(400, {"error": {"code": 400, "message": "region", "errors": []}})
+                category = query.get("videoCategoryId")
+                return js(200, {"items": [{
+                    "id": v["id"],
+                    "snippet": {"title": v["title"], "channelTitle": v["channel"], "channelId": "UCx" + v["id"],
+                                "publishedAt": "2026-11-12T00:00:00Z", "categoryId": v["category"]},
+                    "statistics": {"viewCount": str(500000 - 1000 * i), "likeCount": "9000", "commentCount": "410"},
+                    "contentDetails": {"duration": "PT9M"}}
+                    for i, v in enumerate(TRENDING) if category in (None, v["category"])]})
             if path == "/youtube/v3/videos":
                 wanted = query.get("id", "").split(",")
                 return js(200, {"items": [{
                     "id": v["id"], "snippet": {"title": v["title"], "publishedAt": v["published"]},
                     "statistics": {"viewCount": v["views"], "likeCount": v["likes"], "commentCount": v["comments"]},
                     "contentDetails": {"duration": v["duration"]}, "status": {"privacyStatus": v["privacy"]},
-                } for v in VIDEOS if v["id"] in wanted]})
+                } for v in [*VIDEOS, *OTHER_VIDEOS] if v["id"] in wanted]})
             if path == "/v2/reports":
                 if self.analytics_forbidden:
                     return js(403, {"error": {"code": 403, "message": "Forbidden",
                                               "errors": [{"reason": "forbidden"}]}})
+                if query.get("dimensions") == "video":
+                    if self.by_video_forbidden:
+                        return js(403, {"error": {"code": 403, "message": "Forbidden",
+                                                  "errors": [{"reason": "forbidden"}]}})
+                    if query.get("metrics", "").split(",") != VIDEO_METRICS or query.get("sort") != "-views":
+                        return js(400, {"error": {"code": 400, "message": "bad video report", "errors": []}})
+                    columns = [{"name": "video", "columnType": "DIMENSION"},
+                               *[{"name": m, "columnType": "METRIC"} for m in VIDEO_METRICS]]
+                    return js(200, {"columnHeaders": columns,
+                                    "rows": [["vidAAAAAAA1", 900, 2700, 180, 42.5], ["vidAAAAAAA2", 210, 120, 34, 76.1],
+                                             ["vidHAPUS0001", 12, 9, 45, 20.0]]})
                 if query.get("ids") != "channel==MINE" or query.get("metrics", "").split(",") != METRICS:
                     return js(400, {"error": {"code": 400, "message": "bad report query", "errors": []}})
                 start, end = date.fromisoformat(query["startDate"]), date.fromisoformat(query["endDate"])

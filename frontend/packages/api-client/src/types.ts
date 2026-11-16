@@ -90,7 +90,8 @@ export type ZoiEvent =
   | { type: "chat.message"; at: string; payload: { conversation_id: string; message: ChatMessageInfo } }
   | { type: "agent.run.updated"; at: string; payload: { run: AgentRunInfo } }
   | { type: "memory.updated"; at: string; payload: { id: string | null } }
-  | { type: "youtube.updated"; at: string; payload: Record<string, never> };
+  | { type: "youtube.updated"; at: string; payload: Record<string, never> }
+  | { type: "content.updated"; at: string; payload: { id: string; kind: string | null } };
 
 // ── AI lokal (Phase 3) ─────────────────────────────────────────────────────
 export type AiModelSource = "ui" | "env" | "none";
@@ -244,6 +245,7 @@ export interface YouTubeReport {
 
 export interface YouTubeAnalytics {
   error?: string; last_28_days?: YouTubeReport; daily?: YouTubeReport; last_365_days?: YouTubeReport;
+  by_video?: YouTubeReport; by_video_error?: string;
 }
 
 export interface YouTubeCached<T> { payload: T; fetched_at: string }
@@ -264,3 +266,53 @@ export interface YouTubeData {
   videos: YouTubeCached<YouTubeVideo[]> | null; analytics: YouTubeCached<YouTubeAnalytics> | null;
   history: YouTubeSnapshot[]; ypp: YppRequirements; quota: YouTubeQuotaInfo;
 }
+
+// ── Data publik YouTube (Phase 6B) — disimpan ≤30 hari, urutan dari YouTube, tanpa skor buatan ZOI ─────
+export interface PublicEntry<T> { key: string; payload: T; fetched_at: string; expires_at: string }
+
+export interface PublicVideo {
+  id: string | null; title: string; channel_title: string; channel_id: string | null; published_at: string | null;
+  category_id: string | null; duration: string | null; view_count: number | null; like_count: number | null;
+  comment_count: number | null;
+}
+
+export interface PublicInfo {
+  retention_days: number; region: string; test_endpoint: boolean; connected: boolean; source: string;
+  quota: YouTubeQuotaInfo;
+}
+
+export interface CompetitorItem {
+  channel_id: string; note: string; added_at: string;
+  data: PublicEntry<{ channel: YouTubeChannel; videos: PublicVideo[] | null }> | null;
+}
+
+export interface CompetitorsData extends PublicInfo { max: number; items: CompetitorItem[] }
+
+export interface ThemeInfo { nama: string; penjelasan: string; contoh_judul: string[]; contoh_dibuang: number }
+
+export interface ThemesPayload {
+  source_key: string; titles_read: number; themes: ThemeInfo[]; is_mock: boolean; provider: string;
+  model: string | null; label: string;
+}
+
+export interface ViralData extends PublicInfo {
+  categories: PublicEntry<{ id: string; title: string }[]> | null;
+  trending: PublicEntry<{ category_id: string | null; region: string; items: PublicVideo[] }>[];
+  searches: PublicEntry<{ query: string; items: PublicVideo[] }>[];
+  themes: PublicEntry<ThemesPayload>[];
+}
+
+// ── Draf konten AI lokal (Phase 6B) ────────────────────────────────────────
+export type ContentFormat = "panjang" | "shorts";
+export interface IdeaInfo { judul: string; hook: string; garis_besar: string; cta: string }
+export interface ScriptPart { judul: string; narasi: string; visual: string; durasi: string }
+export interface ScriptInfo { judul: string; hook: string; bagian: ScriptPart[]; cta: string }
+
+export interface ContentItemInfo<P, R> {
+  id: string; kind: "ideas" | "script"; title: string; is_mock: boolean; provider: string; model: string | null;
+  created_at: string; request: R; payload: P;
+}
+export interface IdeaRequest { topik: string; format: ContentFormat; jumlah: number; pakai_channel: boolean; tema_key: string | null }
+export interface ScriptRequest { judul: string; catatan: string; format: ContentFormat; durasi: string }
+export type IdeaSet = ContentItemInfo<{ ide: IdeaInfo[] }, IdeaRequest>;
+export type ScriptItem = ContentItemInfo<ScriptInfo, ScriptRequest>;

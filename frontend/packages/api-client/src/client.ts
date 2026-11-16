@@ -2,6 +2,7 @@ import type {
   AdapterStatus, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
   ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, TranscriptInfo,
   VoicePreferences, VoiceStatus, YouTubeData, YouTubeStatus, ZoiEvent,
+  CompetitorsData, IdeaRequest, IdeaSet, ScriptItem, ScriptRequest, ViralData,
 } from "./types";
 
 /** Header wajib untuk permintaan yang mengubah data (perlindungan CSRF di backend). */
@@ -93,6 +94,29 @@ export const api = {
     refresh: (what: "all" | "channel" | "videos" | "analytics" = "all") =>
       request<YouTubeData>("POST", "/api/youtube/refresh", { what }),
     data: () => request<YouTubeData>("GET", "/api/youtube/data"),
+  },
+  youtubePublic: {
+    competitors: () => request<CompetitorsData>("GET", "/api/youtube/public/competitors"),
+    addCompetitor: (ref: string, note: string) =>
+      request<CompetitorsData>("POST", "/api/youtube/public/competitors", { ref, note }),
+    refreshCompetitor: (id: string) =>
+      request<CompetitorsData>("POST", `/api/youtube/public/competitors/${encodeURIComponent(id)}/refresh`),
+    removeCompetitor: (id: string) =>
+      request<CompetitorsData>("DELETE", `/api/youtube/public/competitors/${encodeURIComponent(id)}`),
+    viral: () => request<ViralData>("GET", "/api/youtube/public/viral"),
+    trending: (categoryId: string | null) =>
+      request<ViralData>("POST", "/api/youtube/public/trending", { category_id: categoryId }),
+    search: (query: string) => request<ViralData>("POST", "/api/youtube/public/search", { query }),
+    removeList: (key: string) => request<ViralData>("POST", "/api/youtube/public/lists/remove", { key }),
+    /** Memulai tugas: AI lokal merangkum tema dari judul satu daftar tersimpan. */
+    themes: (key: string) => request<TaskInfo>("POST", "/api/youtube/public/themes", { key }),
+  },
+  content: {
+    ideas: () => request<{ items: IdeaSet[]; is_mock: boolean; provider: string }>("GET", "/api/content/items?kind=ideas"),
+    scripts: () => request<{ items: ScriptItem[]; is_mock: boolean; provider: string }>("GET", "/api/content/items?kind=script"),
+    makeIdeas: (body: IdeaRequest) => request<TaskInfo>("POST", "/api/content/ideas", body),
+    makeScript: (body: ScriptRequest) => request<TaskInfo>("POST", "/api/content/scripts", body),
+    remove: (id: string) => request<null>("DELETE", `/api/content/items/${encodeURIComponent(id)}`),
   },
   voice: {
     status: () => request<VoiceStatus>("GET", "/api/voice/status"),

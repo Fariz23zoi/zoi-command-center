@@ -3,7 +3,7 @@
 Platform web lokal dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
 **ZERO PAID API · ZERO SUBSCRIPTION · LOCAL FIRST.** Lisensi: MIT.
 
-> Status: **Phase 6A — YouTube: channel sendiri** (di atas Phase 1–5). Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
+> Status: **Phase 6B — data publik YouTube & draf konten** (di atas Phase 1–6A). Lihat tabel "Yang sudah berfungsi" di bawah. Fitur yang belum dibangun
 > ditampilkan sebagai "Belum tersedia — Phase N", tanpa data contoh.
 
 ## Arsitektur singkat
@@ -51,7 +51,7 @@ python -m app.cli data import <file.zip>         # pulihkan (ZOI harus berhenti;
 python -m app.cli db upgrade | db status | backup
 ```
 
-## Yang sudah berfungsi (Phase 1–6A)
+## Yang sudah berfungsi (Phase 1–6B)
 
 | Fitur | Status |
 |---|---|
@@ -80,7 +80,12 @@ python -m app.cli db upgrade | db status | backup
 | Channel Analytics: statistik channel, laporan 28 hari & harian, video terbaru, riwayat harian — angka persis dari YouTube dengan sumber & waktu ambil | ✅ (diuji dengan Google tiruan) |
 | Monetization: syarat resmi YPP berdampingan dengan angka channel, **tanpa** persentase/perkiraan buatan ZOI | ✅ |
 | Tool agen `youtube_channel_saya`, `youtube_video_saya` (selalu minta izin), `youtube_kuota` | ✅ |
-| Kompetitor, viral, tren (dirancang ulang agar patuh kebijakan YouTube), ide konten | Phase 6B |
+| Competitor Intelligence: channel pantauan (maks. 20), data publik apa adanya, **dihapus otomatis setelah 30 hari**, tanpa skor | ✅ (diuji dengan Google tiruan) |
+| Viral Video Hunter: Trending resmi Indonesia per kategori + pencarian (ember kuota sendiri), urutan dari YouTube | ✅ (diuji dengan Google tiruan) |
+| Trend Detector: AI lokal merangkum tema dari **judul** saja; berlabel "interpretasi AI, bukan statistik"; contoh karangan dibuang | ✅ (diuji dengan Mock & Ollama tiruan) |
+| Content Ideas dan Script & Storyboard: draf AI lokal berlabel penyedia/model, unduh Markdown; **tidak ada publikasi** | ✅ (diuji dengan Mock & Ollama tiruan) |
+| Performance: laporan per video channel sendiri dari YouTube Analytics | ✅ (diuji dengan Google tiruan) |
+| Skor viral, riwayat kompetitor, "waktu upload terbaik" | sengaja tidak dibuat (ADR 0010) |
 | CLIPPER/Blueprint penuh, automation | Phase 7–8 |
 
 ## Pengujian
@@ -95,5 +100,5 @@ backend/.venv/bin/python scripts/check_licenses.py              # lisensi semua 
 ## Dokumen
 
 - `docs/audit/` — audit Phase 0 dan rencana Phase 1
-- `docs/adr/` — keputusan arsitektur (YouTube: `0009-youtube-akun-sendiri.md`)
+- `docs/adr/` — keputusan arsitektur (YouTube: `0009-youtube-akun-sendiri.md`, `0010-data-publik-dan-draf-konten.md`)
 - `THIRD_PARTY_NOTICES.md` — lisensi dependensi (dibuat otomatis)

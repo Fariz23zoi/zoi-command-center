@@ -53,9 +53,9 @@ test("task manager: pemeriksaan sistem berjalan sampai selesai", async ({ page }
 });
 
 test("halaman fitur mendatang jujur dan tanpa angka", async ({ page }) => {
-  await page.goto("/competitors");
+  await page.goto("/production");
   const box = page.getByTestId("not-yet-available");
-  await expect(box).toContainText("Belum tersedia — dijadwalkan Phase 6");
+  await expect(box).toContainText("Belum tersedia — dijadwalkan Phase 7");
   const text = (await box.textContent())!.replace(/Phase \d+/g, "");
   expect(text).not.toMatch(/\d/);
 });

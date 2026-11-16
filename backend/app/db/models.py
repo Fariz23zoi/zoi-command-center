@@ -186,6 +186,41 @@ class YouTubeCache(Base):
     fetched_at: Mapped[datetime] = mapped_column(UTCDateTime)
 
 
+class YouTubePublicCache(Base):
+    """Data PUBLIK YouTube (channel lain, Trending, hasil pencarian) dan rangkuman tema yang dibuat darinya.
+    Bukan data berizin → tidak boleh disimpan lebih dari 30 hari (kebijakan III.E.4.d); dihapus otomatis."""
+
+    __tablename__ = "youtube_public_cache"
+    key: Mapped[str] = mapped_column(String(120), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(24), index=True)
+    payload_json: Mapped[str] = mapped_column(Text)
+    fetched_at: Mapped[datetime] = mapped_column(UTCDateTime, index=True)
+
+
+class YouTubeWatch(Base):
+    """Channel yang dipantau pengguna. Hanya ID + catatan pengguna; nama & angka channel ada di cache ≤30 hari."""
+
+    __tablename__ = "youtube_watchlist"
+    channel_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    note: Mapped[str] = mapped_column(String(200), default="")
+    added_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+
+
+class ContentItem(Base):
+    """Draf buatan AI lokal: kumpulan ide atau naskah. Selalu menyimpan penyedia/model dan tanda mock."""
+
+    __tablename__ = "content_items"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16), index=True)  # ideas | script
+    title: Mapped[str] = mapped_column(String(300))
+    request_json: Mapped[str] = mapped_column(Text)
+    payload_json: Mapped[str] = mapped_column(Text)
+    is_mock: Mapped[bool] = mapped_column(Boolean, default=False)
+    provider: Mapped[str] = mapped_column(String(64))
+    model: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
+
+
 class YouTubeQuota(Base):
     """Hitungan ZOI sendiri atas panggilan API per hari kuota (zona Pasifik). Bukan data dari YouTube."""
 
