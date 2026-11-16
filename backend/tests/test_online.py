@@ -291,3 +291,21 @@ def test_production_package_from_script(client):
     # draf ide tidak bisa dipaketkan
     missing = client.get("/api/content/items/tidak-ada/package")
     assert missing.status_code == 404
+
+
+def test_security_headers_online(tmp_path, pg_url):
+    app = create_app(make_settings(tmp_path, database_url=pg_url, **ONLINE), return_to_idle_s=0.05)
+    with TestClient(app, base_url="https://127.0.0.1", headers=HEADERS) as client:
+        health = client.get("/api/health")
+        assert health.headers["strict-transport-security"] == "max-age=31536000"
+        assert health.headers["cache-control"] == "no-store"
+        assert health.headers["x-content-type-options"] == "nosniff"
+        assert client.get("/api/docs").status_code == 401  # butuh login; dan docs tidak ada di mode online:
+        client.post("/api/auth/setup", json={"token": SETUP_TOKEN, "password": "kata-sandi-panjang"})
+        assert client.get("/api/docs").status_code == 404
+
+
+def test_no_hsts_in_development(client):
+    response = client.get("/api/health")
+    assert "strict-transport-security" not in response.headers
+    assert response.headers["cache-control"] == "no-store"

@@ -182,6 +182,11 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Referrer-Policy", "no-referrer")
+        if path.startswith("/api/"):
+            # Data pribadi (chat, memori, data channel) tidak boleh disimpan cache browser/proxy.
+            response.headers.setdefault("Cache-Control", "no-store")
+        if runtime.is_online and runtime.public_url.startswith("https://"):
+            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
         return response
 
     hosts = [*TRUSTED_HOSTS, runtime.public_host] if runtime.is_online and runtime.public_host else TRUSTED_HOSTS
