@@ -31,7 +31,7 @@ export function UniverseShell() {
   return (
     <div className="uv-shell" data-nav-open={open}>
       {banner && <div className="dev-banner" role="status" data-testid="dev-banner">{banner}</div>}
-      <aside className="uv-side" aria-label="Menu utama">
+      <aside className="uv-side" aria-label="Sidebar">
         <Link to="/" className="uv-brand" aria-label="ZOI Universe — beranda">
           <span className="uv-logo" aria-hidden="true">Z</span>
           <span><b>ZOI UNIVERSE</b><small>AI Creative Ecosystem</small></span>
@@ -39,7 +39,7 @@ export function UniverseShell() {
         <button type="button" className="icon-btn uv-close" aria-label="Tutup menu" onClick={() => setOpen(false)}>
           <X size={18} />
         </button>
-        <nav onClick={() => setOpen(false)}>
+        <nav aria-label="Menu utama" onClick={() => setOpen(false)}>
           {ORDER.map((group) => (
             <div key={group} className="uv-group">
               {GROUP_LABEL[group] && <p className="uv-group-label">{GROUP_LABEL[group]}</p>}

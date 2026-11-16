@@ -298,7 +298,7 @@ class AutomationService:
             old = ((item.get("data") or {}).get("payload") or {}).get("videos")
             old_ids = {v["id"] for v in old or []}
             try:
-                run_async(self.public.refresh_competitor(cid), timeout=60)
+                run_async(self.public.refresh_competitor(cid, force=True), timeout=60)
             except Exception as exc:  # noqa: BLE001 — dilaporkan per channel
                 failed.append(f"{cid}: {getattr(exc, 'message', str(exc))}")
                 continue

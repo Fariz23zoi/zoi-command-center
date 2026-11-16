@@ -72,7 +72,7 @@ test("local: suara Piper butuh persetujuan lisensi, lalu avatar 3D lip-sync", as
   test.setTimeout(90_000);
   const external = watchExternal(page);
   await setAvatar(page, "3d");
-  await page.goto("/settings/voice");
+  await page.goto("/ai/voice");
   await expect(page.getByTestId("piper-license")).toContainText("malayalam");
   await expect(page.getByTestId("reply-engine")).toContainText("Suara lokal");
   const blocked = await page.request.post("/api/voice/speak", { headers: HEADERS, data: { text: "Halo" } });

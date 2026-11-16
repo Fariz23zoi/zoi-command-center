@@ -34,3 +34,8 @@ def conversations(ctx: AppContext = Depends(get_ctx)) -> dict:
 @router.get("/conversations/{conversation_id}/messages")
 def conversation_messages(conversation_id: str, ctx: AppContext = Depends(get_ctx)) -> dict:
     return {"messages": ctx.chat.messages(conversation_id)}
+
+
+@router.delete("/conversations/{conversation_id}", status_code=204)
+def delete_conversation(conversation_id: str, ctx: AppContext = Depends(get_ctx)) -> None:
+    ctx.chat.delete_conversation(conversation_id)

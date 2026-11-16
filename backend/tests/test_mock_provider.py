@@ -48,6 +48,16 @@ def test_chat_continues_same_conversation(client):
     assert len(msgs) == 4
 
 
+def test_delete_conversation(client):
+    first = client.post("/api/chat", json={"message": "halo"}).json()
+    cid = first["conversation_id"]
+    wait_chat_done(client, cid)
+    assert client.delete(f"/api/conversations/{cid}").status_code == 204
+    assert client.get(f"/api/conversations/{cid}/messages").status_code == 404
+    assert all(c["id"] != cid for c in client.get("/api/conversations").json()["conversations"])
+    assert client.delete(f"/api/conversations/{cid}").status_code == 404
+
+
 def test_chat_validation(client):
     assert client.post("/api/chat", json={"message": ""}).status_code == 422
     assert client.post("/api/chat", json={"message": "   "}).status_code == 400

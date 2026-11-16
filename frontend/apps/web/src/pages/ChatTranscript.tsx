@@ -1,5 +1,6 @@
 import type { ChatMessageInfo } from "@zoi/api-client";
 
+import { CopyButton, Markdown } from "../ai/Markdown";
 import { useApp } from "../stores/appStore";
 
 const CLOUD_LABEL: Record<string, string> = { nvidia: "NVIDIA NIM", openrouter: "OpenRouter" };
@@ -32,7 +33,10 @@ export function ChatTranscript({ messages }: { messages: ChatMessageInfo[] }) {
               <p>{m.thinking}</p>
             </details>
           )}
-          {m.content && <p className="msg-body">{m.content}</p>}
+          {m.content && (m.role === "assistant"
+            ? <div className="msg-body"><Markdown text={m.content} /></div>
+            : <p className="msg-body">{m.content}</p>)}
+          {m.role === "assistant" && m.content && m.status !== "streaming" && <CopyButton text={m.content} label="Salin jawaban" />}
           {m.note && <p className="msg-note" data-testid="msg-note">{m.note}</p>}
           {m.status === "error" && <p className="msg-error" role="alert">{m.error}</p>}
           {m.role === "user" && m.agent_run_id && runs[m.agent_run_id] && <AgentRunCard run={runs[m.agent_run_id]} />}

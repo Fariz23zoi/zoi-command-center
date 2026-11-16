@@ -55,6 +55,7 @@ export const api = {
   sendChat: (message: string, conversationId?: string | null) =>
     request<SendChatResponse>("POST", "/api/chat", { message, conversation_id: conversationId ?? null }),
   conversations: () => request<{ conversations: ConversationInfo[] }>("GET", "/api/conversations"),
+  deleteConversation: (id: string) => request<void>("DELETE", `/api/conversations/${encodeURIComponent(id)}`),
   messages: (conversationId: string) =>
     request<{ messages: ChatMessageInfo[] }>("GET", `/api/conversations/${encodeURIComponent(conversationId)}/messages`),
   stopChat: (messageId: string) =>

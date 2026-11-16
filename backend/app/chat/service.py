@@ -10,13 +10,13 @@ import asyncio
 import uuid
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import delete, select, update
 
 from app.core.agent_state import AgentState, AgentStateTracker
 from app.core.errors import NotFound, ZoiError
 from app.core.events import EventBus
 from app.db.base import utcnow
-from app.db.models import Conversation, Message
+from app.db.models import AgentRun, Conversation, Message
 from app.db.session import Database
 from app.logging_setup import get_logger
 from app.memory.service import MemoryService
@@ -135,6 +135,21 @@ class ChatService:
             rows = s.scalars(select(Conversation).order_by(Conversation.updated_at.desc()).limit(limit)).all()
             return [{"id": c.id, "title": c.title, "is_mock": c.is_mock, "updated_at": c.updated_at.isoformat()}
                     for c in rows]
+
+    def delete_conversation(self, conversation_id: str) -> None:
+        """Menghapus percakapan beserta pesannya. Riwayat agen tetap ada (tautan percakapannya dilepas)."""
+        with self.db.session() as s:
+            conversation = s.get(Conversation, conversation_id)
+            if conversation is None:
+                raise NotFound("Percakapan tidak ditemukan.")
+            ids = s.scalars(select(Message.id).where(Message.conversation_id == conversation_id)).all()
+            if any((t := self._by_message.get(i)) is not None and not t.done() for i in ids):
+                raise ZoiError("ZOI masih menulis jawaban di percakapan ini. Hentikan dulu.", status_code=409,
+                               code="busy")
+            s.execute(update(AgentRun).where(AgentRun.conversation_id == conversation_id).values(conversation_id=None))
+            s.execute(delete(Message).where(Message.conversation_id == conversation_id))
+            s.delete(conversation)
+        self.bus.publish("chat.deleted", {"conversation_id": conversation_id})
 
     def messages(self, conversation_id: str) -> list[dict[str, Any]]:
         with self.db.session() as s:

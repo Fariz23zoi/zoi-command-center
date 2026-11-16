@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/fiber": "9.8.2",
     "@zoi/api-client": "*",
     "@zoi/avatar": "*",
     "lucide-react": "1.73.0",

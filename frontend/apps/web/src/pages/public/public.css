@@ -54,3 +54,4 @@
   .pub main { padding: 0 16px 48px; }
   .pub-stack div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
 }
+.pub-product .zui-badge { white-space: normal; border-radius: var(--radius-sm); }

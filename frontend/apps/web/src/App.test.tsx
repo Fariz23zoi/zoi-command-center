@@ -29,7 +29,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("Command Center", () => {
   it("menampilkan 20 menu", async () => {
-    renderApp();
+    renderApp("/dashboard");
     const nav = screen.getByRole("navigation", { name: "Menu utama" });
     expect(within(nav).getAllByRole("link")).toHaveLength(20);
     expect(MENU).toHaveLength(20);

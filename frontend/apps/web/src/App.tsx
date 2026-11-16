@@ -2,7 +2,7 @@ import { api, connectEvents, type Preferences } from "@zoi/api-client";
 import { type ReactElement, useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
 
-import { CommandCenter } from "./layout/CommandCenter";
+import { AgentShell, ModelsHub } from "./ai/AgentShell";
 import { UniverseShell } from "./layout/UniverseShell";
 import { AccountPage } from "./pages/AccountPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -12,7 +12,6 @@ import {
 } from "./pages/public/PublicPages";
 import { MENU } from "./menu";
 import { AiLocalPage } from "./pages/AiLocalPage";
-import { AssistantPage } from "./pages/AssistantPage";
 import { VoicePage } from "./pages/VoicePage";
 import { MemoryPage } from "./pages/MemoryPage";
 import { AiCloudPage } from "./pages/AiCloudPage";
@@ -89,11 +88,17 @@ export function App() {
         <Route path="/technology" element={<TechnologyPage />} />
         <Route path="/contact" element={<ContactPage />} />
       </Route>
-      {/* Workspace ZOI AI (chat + avatar). Phase 4 menggantinya dengan workspace khusus. */}
-      <Route element={<CommandCenter />}>
-        <Route path="/ai" element={<AssistantPage />} />
-        <Route path="/assistant" element={<AssistantPage />} />
+      {/* Workspace ZOI 3D AI Agent — aplikasi tersendiri di /ai */}
+      <Route element={<AgentShell />}>
+        <Route path="/ai" element={null} />
+        <Route path="/assistant" element={null} />
+        <Route path="/ai/models" element={<ModelsHub />} />
+        <Route path="/ai/models/cloud" element={<AiCloudPage />} />
+        <Route path="/ai/models/local" element={<AiLocalPage />} />
+        <Route path="/ai/agents" element={<TasksPage />} />
+        <Route path="/ai/memory" element={<MemoryPage />} />
         <Route path="/ai/settings" element={<SettingsPage />} />
+        <Route path="/ai/voice" element={<VoicePage />} />
       </Route>
       <Route element={<UniverseShell />}>
         {MENU.filter((item) => item.path !== "/ai").map((item) => (
