@@ -11,6 +11,7 @@ from fastapi import Request
 from app.agent.service import AgentService
 from app.ai.cloud import CloudAIService
 from app.ai.local import LocalAIService
+from app.automation.service import AutomationService
 from app.chat.service import ChatService
 from app.config.modes import RuntimeConfig
 from app.config.settings import Settings
@@ -52,6 +53,7 @@ class AppContext:
     cloud_ai: CloudAIService
     auth: AuthService
     production: ProductionService
+    automation: AutomationService
     migration_backup: str | None = None
     started_monotonic: float = field(default_factory=time.monotonic)
     cache: dict[str, Any] = field(default_factory=dict)

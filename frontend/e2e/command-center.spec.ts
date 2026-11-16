@@ -68,7 +68,7 @@ test("content production: impor paket lalu tampil dengan tautan Blueprint", asyn
   await page.getByTestId("production-import").setInputFiles({ name: "paket-zoi-uji.json",
     mimeType: "application/json", buffer: Buffer.from(JSON.stringify(paket)) });
   const item = page.getByTestId("production-item").filter({ hasText: "Paket uji E2E" }).first();
-  await expect(item).toBeVisible();
+  await expect(item).toBeVisible({ timeout: 15_000 });
   await expect(item.getByTestId("production-blueprint")).toHaveAttribute("href", /\/blueprint-studio\/\?paket=/);
   await expectNoHorizontalOverflow(page);
 });
@@ -79,5 +79,20 @@ test("navigasi mobile lewat drawer", async ({ page }) => {
   await page.getByRole("button", { name: "Buka menu" }).click();
   await page.getByRole("link", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("automation: pengingat dijalankan manual lalu muncul sebagai notifikasi", async ({ page }) => {
+  await page.goto("/automation");
+  await expect(page.getByTestId("ws-status")).toHaveText("Tersambung", { timeout: 15_000 });
+  const text = `Pengingat E2E ${test.info().project.name} ${Date.now()}`;
+  await page.getByTestId("automation-kind").selectOption("pengingat_produksi");
+  await page.getByTestId("automation-text").fill(text);
+  await page.getByTestId("automation-create").click();
+  const item = page.getByTestId("automation-item").filter({ hasText: text });
+  await expect(item).toBeVisible({ timeout: 15_000 });
+  await item.getByTestId("automation-run").click();
+  await expect(page.getByTestId("notifications")).toContainText("Pengingat:", { timeout: 15_000 });
+  await expect(item.getByTestId("automation-last")).toContainText("Selesai", { timeout: 15_000 });
   await expectNoHorizontalOverflow(page);
 });

@@ -1,5 +1,6 @@
 import type {
-  AdapterStatus, AuthStatus, ProductionPackage, ProductionStatus, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
+  AdapterStatus, AuthStatus, AutomationInfo, AutomationOverview, AutomationSchedule, NotificationInfo,
+  ProductionPackage, ProductionStatus, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
   ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, TranscriptInfo,
   VoicePreferences, VoiceStatus, YouTubeData, YouTubeStatus, ZoiEvent,
   CloudModels, CloudStatus, CloudTestResult, CompetitorsData, IdeaRequest, IdeaSet, ScriptItem, ScriptRequest, ViralData,
@@ -104,6 +105,21 @@ export const api = {
     login: (password: string) => request<{ ok: boolean }>("POST", "/api/auth/login", { password }),
     logout: () => request<{ ok: boolean }>("POST", "/api/auth/logout", {}),
     logoutAll: () => request<{ ok: boolean }>("POST", "/api/auth/logout-all", {}),
+  },
+  automation: {
+    overview: () => request<AutomationOverview>("GET", "/api/automation"),
+    create: (body: { kind: string; name?: string; schedule: AutomationSchedule; params?: Record<string, unknown> }) =>
+      request<AutomationInfo>("POST", "/api/automation", body),
+    update: (id: string, body: Partial<{ enabled: boolean; name: string; schedule: AutomationSchedule;
+      params: Record<string, unknown> }>) => request<AutomationInfo>("PATCH", `/api/automation/${id}`, body),
+    remove: (id: string) => request<void>("DELETE", `/api/automation/${id}`),
+    run: (id: string) => request<{ run_id: string; task: TaskInfo }>("POST", `/api/automation/${id}/run`),
+  },
+  notifications: {
+    list: () => request<{ items: NotificationInfo[]; unread: number }>("GET", "/api/notifications"),
+    readAll: () => request<{ items: NotificationInfo[]; unread: number }>("POST", "/api/notifications/read", {}),
+    read: (id: string) =>
+      request<{ items: NotificationInfo[]; unread: number }>("POST", `/api/notifications/${id}/read`, {}),
   },
   production: {
     status: () => request<ProductionStatus>("GET", "/api/production/status"),

@@ -1,4 +1,4 @@
-/** 16 menu ZOI. `phase` = fase saat fitur penuhnya dibangun; `ready` = sudah berfungsi sekarang. */
+/** 17 menu ZOI. `phase` = fase saat fitur penuhnya dibangun; `ready` = sudah berfungsi sekarang. */
 export interface MenuItem {
   path: string;
   label: string;
@@ -21,6 +21,7 @@ export const MENU: MenuItem[] = [
   { path: "/blueprint", label: "BLUEPRINT STUDIO", phase: 7, ready: true, description: "Paket produksi ZOI dimuat ke salinan Blueprint Studio di laptop. File asli tidak diubah." },
   { path: "/monetization", label: "Monetization", phase: 6, ready: true, description: "Syarat resmi YouTube Partner Program berdampingan dengan angka channel-mu dari YouTube." },
   { path: "/performance", label: "Performance", phase: 6, ready: true, description: "Laporan per video channel-mu dari YouTube Analytics, termasuk persentase tonton hitungan YouTube." },
+  { path: "/automation", label: "Automation", phase: 8, ready: true, description: "Laporan channel, pantau kompetitor & Trending, dan pengingat produksi terjadwal (WIB). Tanpa publikasi otomatis." },
   { path: "/tasks", label: "Task Manager", phase: 1, ready: true, description: "Tugas latar belakang: progress, riwayat, dan pembatalan." },
   { path: "/memory", label: "Memory", phase: 5, ready: true, description: "Memori jangka panjang yang bisa dilihat, diedit, dan dihapus." },
   { path: "/settings", label: "Settings", phase: 1, ready: true, description: "Konfigurasi efektif dan preferensi." },

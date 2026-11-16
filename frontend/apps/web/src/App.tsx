@@ -10,6 +10,7 @@ import { VoicePage } from "./pages/VoicePage";
 import { MemoryPage } from "./pages/MemoryPage";
 import { AiCloudPage } from "./pages/AiCloudPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
+import { AutomationPage } from "./pages/AutomationPage";
 import { CompetitorsPage } from "./pages/CompetitorsPage";
 import { IdeasPage } from "./pages/IdeasPage";
 import { PerformancePage } from "./pages/PerformancePage";
@@ -42,6 +43,7 @@ const READY_PAGES: Record<string, ReactElement> = {
   "/ideas": <IdeasPage />,
   "/script": <ScriptPage />,
   "/production": <ProductionPage />,
+  "/automation": <AutomationPage />,
   "/performance": <PerformancePage />,
   "/settings": <SettingsPage />,
   "/clipper": <IntegrationPage adapterName="zoi_ai_clipper" />,
@@ -63,6 +65,7 @@ export function App() {
     api.tasks().then((r) => setTasks(r.tasks)).catch(() => undefined);
     api.providerStatus().then(setProvider).catch(() => undefined);
     api.adapters().then((r) => setAdapters(r.adapters)).catch(() => undefined);
+    api.notifications.list().then((r) => useApp.setState({ unreadNotifications: r.unread })).catch(() => undefined);
     const connection = connectEvents(handleEvent, setConnected);
     return () => connection.close();
   }, [setConfig, setConnected, setTasks, setProvider, setAdapters, setPrefs, setBootstrapped, handleEvent]);

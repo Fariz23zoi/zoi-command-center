@@ -116,6 +116,9 @@ class Settings(BaseSettings):
 
     extra_allowed_hosts: str = ""
 
+    # Phase 8: token Bearer (≥24 karakter) untuk POST /api/automation/wake dari GitHub Actions. Kosong = nonaktif.
+    wake_token: str = ""
+
     # ── Mode online (ADR 0012). Semua nilai di bawah ini RAHASIA: hanya di pengaturan layanan hosting. ──
     # Alamat Postgres (Neon): postgresql://user:sandi@host/db
     database_url: str = ""

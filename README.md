@@ -50,6 +50,9 @@ scripts/dev.sh            # buka http://127.0.0.1:5173
 **Produksi konten (laptop)**: paket dari halaman Naskah → Content Production → narasi Piper, salinan
 Blueprint Studio dengan tombol *Muat paket ZOI*, render HyperFrames opsional. Lihat `docs/adr/0013-produksi-konten-laptop.md`.
 
+**Otomatisasi**: laporan channel, pantau kompetitor/Trending, pengingat — terjadwal (WIB), hasil di
+halaman Automation. Online dibangunkan workflow GitHub Actions `ZOI bangun` (ADR 0014).
+
 **Online (Render + Neon, gratis)**: ikuti [`docs/DEPLOY_ONLINE.md`](docs/DEPLOY_ONLINE.md) —
 `Dockerfile` dan `render.yaml` sudah disiapkan di root repo.
 

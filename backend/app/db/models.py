@@ -250,3 +250,45 @@ class Secret(Base):
     name: Mapped[str] = mapped_column(String(64), primary_key=True)
     value_encrypted: Mapped[str] = mapped_column(Text, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
+
+
+class Automation(Base):
+    """Otomatisasi terjadwal (Phase 8). Jadwal disimpan dalam waktu Asia/Jakarta (WIB)."""
+
+    __tablename__ = "automations"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(32), index=True)
+    name: Mapped[str] = mapped_column(String(120))
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    schedule_json: Mapped[str] = mapped_column(Text, nullable=False)
+    params_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    next_due_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True, index=True)
+    last_run_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+
+
+class AutomationRun(Base):
+    __tablename__ = "automation_runs"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    automation_id: Mapped[str] = mapped_column(ForeignKey("automations.id", ondelete="CASCADE"), index=True)
+    task_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    trigger: Mapped[str] = mapped_column(String(16))  # jadwal | susulan | manual | bangun
+    late: Mapped[bool] = mapped_column(Boolean, default=False)
+    status: Mapped[str] = mapped_column(String(16), default="RUNNING")  # RUNNING | COMPLETED | FAILED | CANCELLED
+    summary: Mapped[str] = mapped_column(Text, default="")
+    result_json: Mapped[str] = mapped_column(Text, default="{}")
+    started_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
+    finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+
+
+class Notification(Base):
+    """Pemberitahuan di dalam ZOI saja (keputusan Phase 8: tanpa layanan luar)."""
+
+    __tablename__ = "notifications"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(32))
+    title: Mapped[str] = mapped_column(String(200))
+    body: Mapped[str] = mapped_column(Text, default="")
+    link: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
+    read_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
