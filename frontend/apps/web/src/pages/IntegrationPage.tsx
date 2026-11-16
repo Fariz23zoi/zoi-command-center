@@ -1,4 +1,4 @@
-import { api, type ClipperLaunch } from "@zoi/api-client";
+import { api, type ClipperLaunch, type ProductionStatus } from "@zoi/api-client";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -29,6 +29,7 @@ export function IntegrationPage({ adapterName }: { adapterName: string }) {
             <Link to="/production">Content Production</Link>. File asli Blueprint Studio hanya dibaca, tidak pernah
             diubah, dan tidak diunggah ke mana pun.
           </p>
+          <BlueprintLauncher />
         </section>
       ) : (
         <ClipperLauncher title={item.label} description={item.description} />
@@ -112,5 +113,48 @@ function ClipperLauncher({ title, description }: { title: string; description: s
         </>
       )}
     </section>
+  );
+}
+
+/** Membuka salinan Blueprint Studio yang disajikan ZOI (/blueprint-studio/). Salinan dibuat/diperbarui bila perlu. */
+function BlueprintLauncher() {
+  const [bp, setBp] = useState<ProductionStatus["blueprint"]>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    api.production.status().then((s) => setBp(s.blueprint)).catch(() => undefined);
+  }, []);
+
+  async function open() {
+    setBusy(true);
+    setError(null);
+    // Tab dibuka saat klik (agar tidak diblokir browser), lalu diarahkan setelah salinan siap.
+    const tab = window.open("", "_blank");
+    try {
+      if (!bp?.copy_exists || !bp.up_to_date) await api.production.buildBlueprint();
+      const fresh = (await api.production.status()).blueprint;
+      setBp(fresh);
+      if (tab) tab.location.href = fresh?.url ?? "/blueprint-studio/";
+    } catch (e) {
+      tab?.close();
+      setError(errorText(e, "Blueprint Studio tidak dapat dibuka."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!bp) return null;
+  const ready = bp.original_found && !bp.problem;
+  return (
+    <>
+      {error && <p className="notice bad" role="alert">{error}</p>}
+      <div className="row">
+        <button type="button" className="primary" disabled={busy || !ready} onClick={open} data-testid="blueprint-open">
+          {busy ? "Menyiapkan…" : "Buka Blueprint Studio"}
+        </button>
+      </div>
+      {!ready && <p className="muted">{bp.problem ?? "Isi ZOI_BLUEPRINT_FILE di file .env dengan lokasi file Blueprint Studio (.html)."}</p>}
+    </>
   );
 }

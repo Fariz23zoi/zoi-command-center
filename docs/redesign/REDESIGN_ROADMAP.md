@@ -58,3 +58,4 @@ Phase 1–8 selesai. Yang sengaja belum dibuat (tercatat jujur):
 - **Keputusan pemilik**: tombol Open ZOI AI CLIPPER menyalakan web app CLIPPER apa adanya (`python app.py`, port 5000) sebagai proses terpisah dan membukanya di tab baru. ZOI tidak mengimpor/mengubah repo CLIPPER dan tidak mengunduh video; pemakaian fitur yt-dlp di CLIPPER tanggung jawab pemilik. API: `/api/clipper/{status,start,stop}` (hanya mode local).
 - `index.html` dikirim dengan `Cache-Control: no-cache` agar update langsung terlihat tanpa hapus cache.
 - Catatan: CLIPPER sendiri mendengarkan di `0.0.0.0:5000` (terjangkau perangkat lain di jaringan yang sama) — perilaku bawaan CLIPPER, tidak diubah.
+- 1.2.2: halaman Blueprint Studio punya tombol **Buka Blueprint Studio** (membuat/memperbarui salinan lalu membuka `/blueprint-studio/`).
