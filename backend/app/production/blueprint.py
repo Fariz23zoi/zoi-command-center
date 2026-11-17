@@ -23,6 +23,31 @@ INJECT_MARK = "<!-- ZOI: tombol Muat paket ZOI -->"
 # Disisipkan apa adanya. Hanya memakai fungsi/variabel global milik Blueprint ($, state, setMode, render, sync).
 INJECT = INJECT_MARK + """
 <script>
+// ZOI: pengganti fitur AI Claude. Blueprint asli memakai claude.use("sample") yang hanya ada di dalam Claude;
+// di sini dijawab AI Brain ZOI (gratis, sesuai .env). Unduhan file memakai unduhan biasa browser.
+(function(){
+  if (window.claude && window.claude.use) return;
+  function note(text){ var s=document.getElementById("zoi-paket-status"); if(s) s.textContent=text; }
+  var sample = { json: function(prompt){
+    note("AI ZOI sedang menulis…");
+    return fetch("/api/production/blueprint/ai", {method:"POST",
+      headers:{"Content-Type":"application/json","X-ZOI-Client":"web"},
+      body: JSON.stringify({prompt: String(prompt).slice(0, 30000)})})
+    .then(function(r){ return r.json().then(function(d){ if(!r.ok) throw new Error((d.error&&d.error.message)||"AI gagal"); return d; }); })
+    .then(function(d){ note("Ditulis oleh AI ZOI (" + d.provider + ")" + (d.is_mock ? " — MOCK, teks tiruan" : "")); return d.result; })
+    .catch(function(e){ note("AI ZOI gagal: " + e.message + " — Blueprint memakai cara cadangan."); throw e; });
+  }};
+  var downloads = { save: function(o){
+    var url = URL.createObjectURL(o.data), a = document.createElement("a");
+    a.href = url; a.download = o.filename || "blueprint.txt"; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000); return Promise.resolve(true);
+  }};
+  window.claude = { use: function(name){
+    return Promise.resolve(name === "sample" ? sample : name === "downloads" ? downloads : null);
+  }};
+})();
+</script>
+<script>
 (function(){
   var SUPPORTED = "zoi.paket/v1";
   function nearestDuration(text){
@@ -54,6 +79,29 @@ INJECT = INJECT_MARK + """
   bar.innerHTML = '<label style="cursor:pointer">📦 Muat paket ZOI<input type="file" accept=".json,application/json" '+
     'id="zoi-paket-file" hidden></label> <span id="zoi-paket-status" style="opacity:.8;margin-left:6px"></span>';
   document.body.appendChild(bar);
+  // Kirim cerita + gaya (prompt motion) ke ZOI → Content Production: narasi Piper → Animasikan dengan ZOI AI.
+  var send = document.createElement("button");
+  send.type = "button"; send.textContent = "🎬 Kirim ke ZOI";
+  send.setAttribute("style","margin-left:8px;padding:4px 10px;border-radius:8px;border:0;background:#8b5cf6;color:#fff;cursor:pointer");
+  bar.insertBefore(send, document.getElementById("zoi-paket-status"));
+  send.addEventListener("click", function(){
+    var st = document.getElementById("zoi-paket-status");
+    var beats = (state.beats||[]).map(function(b){ return {k:String(b.k||""), n:String(b.n||""), v:String(b.v||"")}; })
+      .filter(function(b){ return b.n.trim(); });
+    if(!beats.length){ st.textContent = "Buat cerita dulu, lalu kirim."; return; }
+    var gaya = $("prompt") ? String($("prompt").textContent||"").trim() : "";
+    if(!gaya && typeof STYLES!=="undefined" && STYLES[state.style]){ var g = STYLES[state.style];
+      gaya = "Gaya: " + g.n + ". " + (g.d||"") + (g.c ? " Palet warna: " + g.c.join(", ") + "." : ""); }
+    var p = {format:SUPPORTED, judul:$("topik").value.trim(), topik:$("topik").value.trim(), durasi:$("durasi").value+" detik",
+             bahasa:$("bahasa").value, rasio:$("rasio").value, sumber:"Blueprint Studio", beats:beats, gaya:gaya.slice(0,4000)};
+    send.disabled = true; st.textContent = "Mengirim…";
+    fetch("/api/production/packages", {method:"POST", headers:{"Content-Type":"application/json","X-ZOI-Client":"web"},
+      body: JSON.stringify({package:p})})
+    .then(function(r){ return r.json().then(function(d){ if(!r.ok) throw new Error((d.error&&d.error.message)||"gagal"); return d; }); })
+    .then(function(){ st.innerHTML = 'Terkirim. Lanjut di <a href="/production" target="_top" style="color:#c4b5fd">Content Production</a> — buat narasi lalu Animasikan.'; })
+    .catch(function(e){ st.textContent = "Gagal mengirim: " + e.message; })
+    .then(function(){ send.disabled = false; });
+  });
   document.getElementById("zoi-paket-file").addEventListener("change", function(e){
     var f = e.target.files && e.target.files[0]; if(!f) return;
     f.text().then(function(t){ apply(JSON.parse(t), null); }).catch(function(){ alert("File paket tidak bisa dibaca."); });
@@ -69,6 +117,11 @@ INJECT = INJECT_MARK + """
 })();
 </script>
 """
+
+
+def _stamp(raw: bytes) -> str:
+    """Sidik salinan: berubah bila file asli ATAU sisipan ZOI berubah → salinan dibuat ulang otomatis."""
+    return hashlib.sha256(raw + INJECT.encode("utf-8")).hexdigest()
 
 
 class BlueprintCopyError(Exception):
@@ -112,7 +165,7 @@ class BlueprintCopy:
         try:
             raw = self._original_bytes()
             info["original_found"] = True
-            digest = hashlib.sha256(raw).hexdigest()
+            digest = _stamp(raw)
             make_copy(raw.decode("utf-8"))  # validasi penanda
             stamp = self.out_dir / "source.sha256"
             info["up_to_date"] = info["copy_exists"] and stamp.is_file() and stamp.read_text().strip() == digest
@@ -130,5 +183,5 @@ class BlueprintCopy:
         tmp = self.copy_path.with_suffix(".tmp")
         tmp.write_text(html, encoding="utf-8")
         tmp.replace(self.copy_path)
-        (self.out_dir / "source.sha256").write_text(hashlib.sha256(raw).hexdigest(), encoding="utf-8")
+        (self.out_dir / "source.sha256").write_text(_stamp(raw), encoding="utf-8")
         return self.status()

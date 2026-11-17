@@ -361,7 +361,7 @@ export interface CloudTestResult {
 }
 
 export interface ProductionPackage {
-  id: string; judul: string; rasio: string; mock: boolean; beats: number; created: number;
+  id: string; judul: string; rasio: string; mock: boolean; beats: number; created: number; gaya?: string;
   files: Record<string, number>; blueprint_url: string;
   narration: { start: number; speech: number; duration: number; file: string }[] | null;
 }

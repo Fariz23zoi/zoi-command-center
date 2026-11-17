@@ -117,11 +117,14 @@ export function ProductionPage() {
         </dd>
       </dl>
 
+      <ProductionTasks />
+
       <h2>Paket</h2>
       {items.length === 0 && <p className="empty">Belum ada paket. Impor file paket dari halaman Naskah.</p>}
       {items.map((p) => (
         <article key={p.id} className="panel" data-testid="production-item">
           <h3>{p.judul || "(tanpa judul)"} {p.mock && <span className="badge warn">MOCK</span>}</h3>
+          {p.gaya && <p className="muted" title={p.gaya}>Gaya dari Blueprint: {p.gaya.slice(0, 120)}{p.gaya.length > 120 ? "…" : ""}</p>}
           <p className="muted">{p.beats} beat · rasio {p.rasio}
             {p.narration ? ` · narasi ${p.narration.reduce((a, t) => a + t.duration, 0).toFixed(1)} detik` : ""}</p>
           <p>
@@ -134,6 +137,12 @@ export function ProductionPage() {
                aria-disabled={!blueprint?.copy_exists} data-testid="production-blueprint">
               Buka di Blueprint Studio
             </a>{" "}
+            <button type="button" className="primary" disabled={!hf?.enabled || running("production_animate")}
+                    title={hf?.enabled ? "AI ZOI merancang adegan sesuai gaya, lalu HyperFrames me-render" : "HyperFrames belum siap"}
+                    data-testid="production-animate"
+                    onClick={() => act(api.production.animate(p.id), "Animasi dimulai — progres ada di bagian Proses.")}>
+              🎬 Animasikan dengan ZOI AI
+            </button>{" "}
             <button type="button" disabled={!hf?.enabled || running("production_render")}
                     title={hf?.enabled ? undefined : "HyperFrames belum siap"} data-testid="production-render"
                     onClick={() => act(api.production.render(p.id), "Render dimulai — lihat Task Manager.")}>
@@ -141,6 +150,10 @@ export function ProductionPage() {
             </button>{" "}
             <button type="button" onClick={() => act(api.production.remove(p.id), "Paket dihapus.")}>Hapus</button>
           </p>
+          {p.files["video.mp4"] && (
+            <video className="production-video" controls preload="metadata" src={api.production.fileUrl(p.id, "video.mp4")}
+                   data-testid="production-video" />
+          )}
           <p data-testid="production-files">
             {Object.keys(p.files).map((name) => (
               <a key={name} className="button ghost" href={api.production.fileUrl(p.id, name)} download>
@@ -150,6 +163,37 @@ export function ProductionPage() {
           </p>
         </article>
       ))}
+    </section>
+  );
+}
+
+const PROD_KINDS = new Set(["production_render", "production_narrate", "production_animate"]);
+const TONE: Record<string, string> = { RUNNING: "ok", QUEUED: "", COMPLETED: "ok", FAILED: "bad", CANCELLED: "warn" };
+
+/** Proses narasi/render terbaru dengan progres langsung, supaya tidak perlu membuka Task Manager. */
+function ProductionTasks() {
+  const tasks = useApp((s) => s.tasks);
+  const recent = tasks.filter((t) => PROD_KINDS.has(t.kind))
+    .sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? "")).slice(0, 3);
+  if (recent.length === 0) return null;
+  return (
+    <section className="panel production-tasks" aria-live="polite" data-testid="production-tasks">
+      <h2>Proses</h2>
+      {recent.map((t) => {
+        const active = t.status === "RUNNING" || t.status === "QUEUED";
+        return (
+          <div key={t.id} className="production-task">
+            <p>
+              <b>{t.name}</b> <span className={`badge ${TONE[t.status] ?? ""}`}>{t.status === "QUEUED" ? "menunggu" : t.status.toLowerCase()}</span>
+              {active && <> {" "}<button type="button" onClick={() => api.cancelTask(t.id).catch(() => undefined)}>Hentikan</button></>}
+            </p>
+            {active && <progress max={1} value={t.progress} aria-label={`Progres ${t.name}`} />}
+            <p className="muted">{active ? `${Math.round(t.progress * 100)}% · ` : ""}{t.error ?? t.message}</p>
+          </div>
+        );
+      })}
+      <p className="muted">Render di laptop lemah bisa makan waktu lama. Halaman ini boleh ditinggal; progres juga ada di
+        Task Manager.</p>
     </section>
   );
 }

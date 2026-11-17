@@ -112,7 +112,7 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
     voice = VoiceService(stt=stt, tts=tts, db=db)
     production = ProductionService(data_dir=runtime.data_dir, blueprint_file=settings.blueprint_file,
                                    hyperframes_dir=settings.hyperframes_dir, voice=voice, content=content,
-                                   available=not runtime.is_online, bus=bus)
+                                   available=not runtime.is_online, bus=bus, provider=provider)
     automation = AutomationService(db=db, bus=bus, tasks=tasks, youtube=youtube, public=public)
     registry = build_registry(ToolDeps(memory=memory, tasks=tasks, provider=provider, adapters=adapters,
                                        data_dir=runtime.data_dir, is_mock=lambda: provider.is_mock,

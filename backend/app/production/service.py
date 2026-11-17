@@ -18,7 +18,9 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from app.ai.structured import StructuredOutputError
 from app.content.package import PackageError, build_package
+from app.production.animate import compose_animated, generate_scenes
 from app.production.blueprint import BlueprintCopy
 from app.production.hyperframes import HyperFrames, compose
 from app.tasks.manager import TaskContext, TaskKind
@@ -62,6 +64,9 @@ def validate_package(data: Any) -> dict[str, Any]:
                                                            "sumber", "dibuat")}
     if package["rasio"] not in {"9:16", "16:9", "1:1"}:
         package["rasio"] = "9:16"
+    gaya = _clean_text(data.get("gaya"), 4000).strip()
+    if gaya:
+        package["gaya"] = gaya  # gaya visual / prompt motion dari Blueprint Studio (untuk animasi ZOI AI)
     package |= {"format": FORMAT, "mock": bool(data.get("mock")), "beats": clean_beats,
                 "naskah_tts": "\n\n".join(b["n"] for b in clean_beats if b["n"].strip())}
     return package
@@ -85,9 +90,10 @@ def build_srt(beats: list[dict[str, Any]], timings: list[dict[str, Any]]) -> str
 
 class ProductionService:
     def __init__(self, *, data_dir: Path, blueprint_file: Path | None, hyperframes_dir: Path | None,
-                 voice: Any, content: Any, available: bool, bus: Any = None) -> None:
+                 voice: Any, content: Any, available: bool, bus: Any = None, provider: Any = None) -> None:
         self.root = data_dir / "production"
         self.voice = voice
+        self.provider = provider  # AI Brain ZOI untuk animasi (ADR 0018)
         self.content = content
         self.available = available  # False di mode online: fitur ini hanya di laptop
         self.bus = bus
@@ -144,6 +150,7 @@ class ProductionService:
         timings = json.loads(timings_file.read_text(encoding="utf-8")) if timings_file.is_file() else None
         return {"id": package_id, "judul": package.get("judul"), "rasio": package.get("rasio"),
                 "mock": package.get("mock"), "beats": len(package.get("beats", [])), "files": files,
+                "gaya": package.get("gaya", ""),
                 "narration": timings, "created": (folder / "paket.json").stat().st_mtime,
                 "blueprint_url": f"/blueprint-studio/?paket={package_id}"}
 
@@ -233,26 +240,21 @@ class ProductionService:
             return {"package_id": package_id, "seconds": round(t, 2), "mock": mock,
                     "note": "MOCK — nada uji, bukan suara manusia." if mock else "Narasi Piper siap."}
 
-        def render(ctx: TaskContext) -> dict[str, Any]:
-            package_id = ctx.params["package_id"]
-            folder = self._dir(package_id)
+        def hyperframes_render(ctx: TaskContext, folder: Path, doc: str, timings: Any) -> int:
             hf = self.hyperframes.status()
             if not hf["enabled"]:
                 raise ProductionError("HyperFrames belum siap: " + " ".join(hf["problems"]))
-            package = self.package(package_id)
-            timings_file = folder / "waktu.json"
-            timings = json.loads(timings_file.read_text(encoding="utf-8")) if timings_file.is_file() else None
             project = folder / "komposisi"
             if project.exists():
                 shutil.rmtree(project)
             project.mkdir()
             if timings:
                 shutil.copytree(folder / "narasi", project / "narasi")
-            (project / "index.html").write_text(compose(package, timings), encoding="utf-8")
+            (project / "index.html").write_text(doc, encoding="utf-8")
             output = folder / "video.tmp.mp4"
             output.unlink(missing_ok=True)
             cmd, env = self.hyperframes.command(project, output)
-            ctx.progress(10, "HyperFrames me-render (bisa lama di laptop lemah)…")
+            ctx.progress(30, "HyperFrames me-render (bisa lama di laptop lemah)…")
             proc = subprocess.Popen(cmd, cwd=project, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                     text=True, encoding="utf-8", errors="replace")
             self._processes[ctx.task_id] = proc
@@ -264,7 +266,7 @@ class ProductionService:
                     lines = (lines + [line.rstrip()])[-40:]
                     match = re.search(r'"pct":\s*(\d+)', line)
                     if match:
-                        ctx.progress(10 + int(int(match.group(1)) * 0.85), "Me-render video…")
+                        ctx.progress(30 + int(int(match.group(1)) * 0.65), "Me-render video…")
                     if ctx.cancel_event.is_set() or time.monotonic() > deadline:
                         proc.kill()
                         break
@@ -277,8 +279,42 @@ class ProductionService:
                 raise ProductionError(f"Render HyperFrames gagal (kode {proc.returncode}). {tail}")
             output.replace(folder / "video.mp4")
             self._changed()
-            return {"package_id": package_id, "bytes": (folder / "video.mp4").stat().st_size,
-                    "with_audio": bool(timings), "mock": bool(package.get("mock"))}
+            return (folder / "video.mp4").stat().st_size
+
+        def load_timings(folder: Path) -> Any:
+            timings_file = folder / "waktu.json"
+            return json.loads(timings_file.read_text(encoding="utf-8")) if timings_file.is_file() else None
+
+        def render(ctx: TaskContext) -> dict[str, Any]:
+            package_id = ctx.params["package_id"]
+            folder = self._dir(package_id)
+            package = self.package(package_id)
+            timings = load_timings(folder)
+            size = hyperframes_render(ctx, folder, compose(package, timings), timings)
+            return {"package_id": package_id, "bytes": size, "with_audio": bool(timings),
+                    "mock": bool(package.get("mock"))}
+
+        def animate(ctx: TaskContext) -> dict[str, Any]:
+            package_id = ctx.params["package_id"]
+            folder = self._dir(package_id)
+            package = self.package(package_id)
+            if self.provider is None:
+                raise ProductionError("AI ZOI belum tersedia.")
+            if not self.hyperframes.status()["enabled"]:
+                raise ProductionError("HyperFrames belum siap — pasang dulu (lihat Content Production).")
+            ctx.progress(5, "AI ZOI merancang adegan animasi…")
+            try:
+                scenes = run_async(generate_scenes(self.provider, package), timeout=330)
+            except StructuredOutputError as exc:
+                raise ProductionError(f"AI ZOI gagal merancang adegan: {exc}") from exc
+            timings = load_timings(folder)
+            doc, report = compose_animated(package, scenes, timings)
+            (folder / "animasi.html").write_text(doc, encoding="utf-8")
+            ctx.progress(25, f"{report['ai_scenes']} adegan dari AI, {report['fallback_scenes']} kartu cadangan.")
+            size = hyperframes_render(ctx, folder, doc, timings)
+            return {"package_id": package_id, "bytes": size, "with_audio": bool(timings), **report,
+                    "mock": bool(package.get("mock")) or bool(getattr(self.provider, "is_mock", False))}
 
         return [TaskKind(kind="production_narrate", name="Narasi paket produksi", func=narrate, lane="production"),
-                TaskKind(kind="production_render", name="Render HyperFrames", func=render, lane="production")]
+                TaskKind(kind="production_render", name="Render HyperFrames", func=render, lane="production"),
+                TaskKind(kind="production_animate", name="Animasi ZOI AI", func=animate, lane="production")]

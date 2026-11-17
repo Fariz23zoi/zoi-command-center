@@ -185,3 +185,89 @@ def test_online_mode_production_is_laptop_only(tmp_path):
         service.import_package(PAKET)
     assert service.list() == [] or True
     json.dumps(PAKET)
+
+
+# ── AI pengganti Claude di salinan Blueprint (ADR 0018) ──────────────────────
+class _FakeProvider:
+    name = "nvidia"
+    is_mock = False
+
+    def __init__(self, replies):
+        self.replies = list(replies)
+        self.seen = []
+
+    async def chat(self, messages, *, timeout_s=0, options=None):
+        from app.providers.base import ChatChunk as StreamChunk
+        self.seen.append(messages)
+        yield StreamChunk(type="text", text=self.replies.pop(0))
+        yield StreamChunk(type="done")
+
+
+async def test_blueprint_ai_parses_json_and_retries_once():
+    from app.core.errors import ZoiError
+    from app.production.blueprint_ai import blueprint_json
+
+    fake = _FakeProvider(["Tentu! ```json\n[{\"k\": \"Hook\", \"n\": \"Halo\", \"v\": \"\"}]\n```"])
+    out = await blueprint_json(fake, "Tulis cerita. Balas HANYA JSON array.")
+    assert out == {"result": [{"k": "Hook", "n": "Halo", "v": ""}], "provider": "nvidia", "is_mock": False}
+    assert fake.seen[0][1].content == "Tulis cerita. Balas HANYA JSON array."  # prompt Blueprint tidak diubah
+
+    fake = _FakeProvider(["maaf", '{"n": "baru"}'])
+    assert (await blueprint_json(fake, "x"))["result"] == {"n": "baru"} and len(fake.seen) == 2
+    with pytest.raises(ZoiError, match="JSON"):
+        await blueprint_json(_FakeProvider(["a", "b"]), "x")
+
+
+def test_blueprint_copy_has_ai_shim_and_endpoint_validates(client_factory):
+    copy = make_copy(FAKE_BLUEPRINT)
+    assert "/api/production/blueprint/ai" in copy and 'name === "sample"' in copy and "X-ZOI-Client" in copy
+    client = client_factory()
+    assert client.post("/api/production/blueprint/ai", json={"prompt": ""}).status_code == 422
+    assert client.post("/api/production/blueprint/ai", json={"prompt": "x" * 30_001}).status_code == 422
+
+
+# ── Animasi ZOI AI ────────────────────────────────────────────────────────────
+def test_sanitizer_removes_script_urls_events():
+    from app.production.animate import sanitize_css, sanitize_html
+
+    dirty = ('<div class="a" onclick="x()" style="background:url(http://x)"><script>alert(1)</script>Hai'
+             '<img src="http://x/y.png"><svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#fff"/>'
+             '<foreignObject><p>no</p></foreignObject></svg><iframe src="http://x"></iframe></div>')
+    clean, dropped = sanitize_html(dirty)
+    assert clean == '<div class="a">Hai<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#fff"/></svg></div>'
+    assert dropped >= 5
+    assert sanitize_css(".s1 .b{background:url(http://x)}") is None
+    assert sanitize_css("@import 'x.css';") is None
+    assert sanitize_css(".s1 .b{fill:url(#g)}") is not None and sanitize_css(".s1{background:url( 'a.png')}") is None
+    assert sanitize_html('<circle fill="url(#g)"/>')[0] == '<circle fill="url(#g)"/>'
+    assert sanitize_html('<circle fill="url(http://x/#g)"/>')[0] == "<circle/>"
+    assert sanitize_css(".s1 .b{animation:s1-x 1s}@keyframes s1-x{from{opacity:0}}") is not None
+
+
+def test_compose_animated_uses_timings_captions_and_fallback():
+    from app.production.animate import Scene, Scenes, compose_animated
+
+    package = validate_package({**PAKET, "gaya": "kertas potong, hangat"})
+    assert package["gaya"] == "kertas potong, hangat"
+    scenes = Scenes(background="#112233", text_color="javascript:x", scenes=[
+        Scene(html='<h1 class="t">Bulan</h1>', css=".s1 .t{animation:s1-in 1s both}@keyframes s1-in{from{opacity:0}}"),
+        Scene(html="<script>x</script>", css=""),
+    ])
+    timings = [{"duration": 2.0, "file": "narasi/beat-01.wav"}, {"duration": 3.0}, {"duration": 1.5}]
+    doc, report = compose_animated(package, scenes, timings)
+    assert report == {"ai_scenes": 1, "fallback_scenes": 2, "removed_parts": 1}
+    assert 'data-duration="6.500"' in doc and "background:#112233" in doc and "color:#f2f4f8" in doc
+    assert '<audio data-start="0.000"' in doc and doc.count('class="cap"') == 3 and "<script" not in doc
+
+
+@pytest.mark.skipif(not os.environ.get("ZOI_TEST_HYPERFRAMES_DIR"), reason="HyperFrames tidak terpasang")
+def test_real_animate_render(client_factory):
+    client = client_factory(hyperframes_dir=os.environ["ZOI_TEST_HYPERFRAMES_DIR"], tts="mock")
+    pid = client.post("/api/production/packages", json={"package": {**PAKET, "gaya": "risograph"}}).json()["id"]
+    task = client.post(f"/api/production/packages/{pid}/animate").json()
+    done = wait_for(lambda: (t := client.get(f"/api/tasks/{task['id']}").json())["status"] in
+                    {"COMPLETED", "FAILED"} and t, timeout=600)
+    assert done["status"] == "COMPLETED", done
+    assert done["result"]["mock"] is True and done["result"]["ai_scenes"] + done["result"]["fallback_scenes"] == 3
+    video = client.get(f"/api/production/packages/{pid}/files/video.mp4")
+    assert video.status_code == 200 and video.content[4:8] == b"ftyp"

@@ -134,6 +134,8 @@ export const api = {
     remove: (id: string) => request<void>("DELETE", `/api/production/packages/${id}`),
     narrate: (id: string) => request<TaskInfo>("POST", `/api/production/packages/${id}/narrate`),
     render: (id: string) => request<TaskInfo>("POST", `/api/production/packages/${id}/render`),
+    /** AI ZOI merancang adegan animasi (gaya dari Blueprint), lalu HyperFrames me-render video. */
+    animate: (id: string) => request<TaskInfo>("POST", `/api/production/packages/${id}/animate`),
     fileUrl: (id: string, name: string) => `/api/production/packages/${id}/files/${name}`,
     buildBlueprint: () => request<NonNullable<ProductionStatus["blueprint"]>>("POST", "/api/production/blueprint/build"),
   },

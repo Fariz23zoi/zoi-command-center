@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.context import AppContext, get_ctx
 from app.core.errors import ZoiError
+from app.production.blueprint_ai import blueprint_json
 from app.production.service import ProductionError
 
 router = APIRouter(prefix="/production", tags=["production"])
@@ -88,6 +89,18 @@ def render(package_id: str, ctx: AppContext = Depends(get_ctx)) -> dict[str, Any
     return ctx.tasks.submit("production_render", {"package_id": package_id})
 
 
+@router.post("/packages/{package_id}/animate")
+def animate(package_id: str, ctx: AppContext = Depends(get_ctx)) -> dict[str, Any]:
+    """AI ZOI merancang adegan animasi dari paket (gaya dari Blueprint), lalu HyperFrames me-render video."""
+    try:
+        ctx.production.get(package_id)
+        if not ctx.production.hyperframes.status()["enabled"]:
+            raise ProductionError("HyperFrames belum siap — pasang dulu (lihat Content Production).", 409)
+    except ProductionError as exc:
+        raise _wrap(exc) from exc
+    return ctx.tasks.submit("production_animate", {"package_id": package_id})
+
+
 @router.post("/blueprint/build")
 def build_blueprint(ctx: AppContext = Depends(get_ctx)) -> dict[str, Any]:
     from app.production.blueprint import BlueprintCopyError
@@ -95,3 +108,14 @@ def build_blueprint(ctx: AppContext = Depends(get_ctx)) -> dict[str, Any]:
         return ctx.production.build_blueprint()
     except (ProductionError, BlueprintCopyError) as exc:
         raise ZoiError(getattr(exc, "message", str(exc))) from exc
+
+
+class BlueprintAIBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    prompt: str = Field(min_length=1, max_length=30_000)
+
+
+@router.post("/blueprint/ai")
+async def blueprint_ai(body: BlueprintAIBody, ctx: AppContext = Depends(get_ctx)) -> dict[str, Any]:
+    """Pengganti `claude.use("sample").json()` di salinan Blueprint Studio: memakai AI Brain ZOI (gratis)."""
+    return await blueprint_json(ctx.provider, body.prompt)
