@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { GROUP_LABEL, MENU, type MenuGroup } from "../menu";
+import { UpdateBanner } from "../pages/UpdatePage";
 import { useApp } from "../stores/appStore";
 import { StatusDot } from "../ui";
 import "./universe.css";
@@ -64,6 +65,7 @@ export function UniverseShell() {
       <div className="uv-scrim" onClick={() => setOpen(false)} aria-hidden="true" />
       <div className="uv-main">
         <TopBar title={current?.label ?? "ZOI"} onMenu={() => setOpen(true)} />
+        <UpdateBanner />
         <main className="uv-content" id="konten">
           <Outlet />
         </main>

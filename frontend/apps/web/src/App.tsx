@@ -7,6 +7,7 @@ import { UniverseShell } from "./layout/UniverseShell";
 import { AccountPage } from "./pages/AccountPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
+import { UpdatePage } from "./pages/UpdatePage";
 import {
   AboutPage, ContactPage, LandingPage, ProductDetailPage, ProductsPage, PublicLayout, TechnologyPage,
 } from "./pages/public/PublicPages";
@@ -111,6 +112,7 @@ export function App() {
         <Route path="/settings/ai" element={<AiLocalPage />} />
         <Route path="/settings/voice" element={<VoicePage />} />
         <Route path="/settings/youtube" element={<YouTubeSettingsPage />} />
+        <Route path="/settings/update" element={<UpdatePage />} />
         <Route path="/settings/ai-cloud" element={<AiCloudPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

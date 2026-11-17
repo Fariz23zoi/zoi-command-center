@@ -25,8 +25,8 @@ jobs:
           ZOI_WAKE_TOKEN: ${{ secrets.ZOI_WAKE_TOKEN }}
         run: |
           if [ -z "$ZOI_URL" ] || [ -z "$ZOI_WAKE_TOKEN" ]; then
-            echo "::error::Secrets ZOI_URL dan ZOI_WAKE_TOKEN belum diisi."
-            exit 1
+            echo "::notice::ZOI online tidak dipakai (Secrets ZOI_URL/ZOI_WAKE_TOKEN kosong) — dilewati."
+            exit 0
           fi
           for attempt in 1 2 3 4 5 6; do
             code=$(curl -sS -o response.json -w '%{http_code}' --max-time 90 -X POST "${ZOI_URL%/}/api/automation/wake" \

@@ -48,3 +48,7 @@
 }
 .uv-content pre { white-space: pre-wrap; max-width: 100%; }
 .proj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 16px; }
+.update-banner { padding: 8px 24px; background: var(--gradient-soft), var(--bg-2); border-bottom: 1px solid var(--border-strong);
+  font-size: var(--fs-sm); }
+.update-banner a { color: var(--accent); font-weight: 600; margin-left: 6px; }
+.update-notes { white-space: pre-wrap; font-family: var(--font); font-size: var(--fs-sm); color: #cfd0e0; margin: 0 0 12px; }

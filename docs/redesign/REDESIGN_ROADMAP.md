@@ -28,7 +28,7 @@ Semua pekerjaan redesign di branch `redesign/v2`; `main` baru diubah setelah Pha
 - Contact: **link GitHub Fariz23zoi saja**, tanpa formulir/email.
 - Avatar 3D: **React Three Fiber + Drei disetujui** (MIT), lazy di workspace AI.
 
-## Arah visual dari pemilik (16 Nov 2026) — referensi di `reference/`
+## Arah visual dari pemilik (16 Nov 2026) — gambar referensi tidak disimpan di repo (asal-usul/lisensi tidak jelas)
 **Dashboard (`dashboard-ref.png`)**: sidebar ungu gelap berkelompok (Analytics / Creation / Products), banner sambutan + tombol alur (Analisis Channel → Riset Tren → Ide Konten → Buat Video), 4 kartu statistik, grafik performa bertab, Sumber Traffic (donut), Perangkat Penonton, Video Terbaik, Insight AI, Tren Topik, badge "Mode: Local" + "AI Terhubung".
 Aturan penerapan:
 - Semua angka dari YouTube Analytics/Data API milik pengguna; belum terhubung → kartu kosong + tombol "Hubungkan YouTube". **Tidak ada angka contoh.**

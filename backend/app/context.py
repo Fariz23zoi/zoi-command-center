@@ -26,6 +26,7 @@ from app.providers.base import LLMProvider
 from app.security.auth import AuthService
 from app.security.cost_guard import CostGuard
 from app.tasks.manager import TaskManager
+from app.update.service import UpdateService
 from app.voice.service import VoiceService
 from app.youtube.public import PublicDataService
 from app.youtube.service import YouTubeService
@@ -52,6 +53,7 @@ class AppContext:
     content: ContentService
     cloud_ai: CloudAIService
     auth: AuthService
+    updates: UpdateService
     production: ProductionService
     automation: AutomationService
     migration_backup: str | None = None

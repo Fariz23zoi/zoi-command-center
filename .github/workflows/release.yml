@@ -1,0 +1,50 @@
+# Membuat GitHub Release otomatis setiap versi baru masuk ke main (ADR 0017).
+# Versi diambil dari backend/app/__init__.py. Bila rilis v<versi> sudah ada, tidak ada yang dilakukan.
+# Hasil: zoi-command-center-<versi>.zip + .sha256 — dipakai tombol "Update" di ZOI. Gratis (repo publik).
+name: ZOI rilis
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: zoi-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Versi
+        id: v
+        run: |
+          VERSION=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' backend/app/__init__.py)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if gh release view "v$VERSION" >/dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - if: steps.v.outputs.exists == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - if: steps.v.outputs.exists == 'false'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build & rilis
+        if: steps.v.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          python scripts/scan_secrets.py
+          bash scripts/build_frontend.sh
+          python scripts/build_release.py
+          cd release
+          ZIP="zoi-command-center-$VERSION.zip"
+          sha256sum "$ZIP" > "$ZIP.sha256"
+          awk -v v="## $VERSION" '$0==v{f=1;next} /^## /{f=0} f' ../CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "ZOI $VERSION" > notes.md
+          gh release create "v$VERSION" "$ZIP" "$ZIP.sha256" --title "ZOI $VERSION" --notes-file notes.md --target "$GITHUB_SHA"

@@ -401,3 +401,14 @@ export interface NotificationInfo {
 export interface ClipperLaunch {
   running: boolean; port: number; can_start: boolean; reason: string | null; started_by_zoi: boolean;
 }
+
+export interface UpdateRelease {
+  version: string; name: string; notes: string; published_at: string | null; url: string | null;
+  zip_url: string | null; sha_url: string | null; size: number | null;
+}
+
+export interface UpdateStatus {
+  enabled: boolean; repo: string; current: string; latest: UpdateRelease | null; update_available: boolean;
+  checked_at: string | null; error: string | null; phase: "idle" | "downloading" | "applying";
+  can_install: boolean; install_note: string | null;
+}

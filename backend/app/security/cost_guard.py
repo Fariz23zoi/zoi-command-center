@@ -24,6 +24,10 @@ YOUTUBE_HOSTS = {
     "accounts.google.com",
 }
 
+# Update ZOI dari GitHub Releases (gratis, publik). Hanya dipakai layanan update (ADR 0017).
+UPDATE_HOSTS = {"api.github.com", "github.com", "objects.githubusercontent.com",
+                "release-assets.githubusercontent.com"}
+
 # Diblokir selalu (layanan AI/voice/clipping berbayar & model cloud).
 BLOCKED_HOSTS = {
     "api.openai.com",
@@ -92,6 +96,8 @@ class CostGuard:
             return True, "localhost"
         if host in YOUTUBE_HOSTS:
             return True, "YouTube API resmi (gratis dengan kuota)"
+        if host in UPDATE_HOSTS:
+            return True, "update ZOI dari GitHub Releases (gratis)"
         if host in self.extra_hosts:
             return True, "diizinkan lewat konfigurasi"
         return False, "host tidak ada di allowlist"

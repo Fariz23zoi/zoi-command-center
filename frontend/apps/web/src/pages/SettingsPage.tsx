@@ -64,6 +64,7 @@ export function SettingsPage() {
         cara memasang model suara.
         {" · "}<Link to="/settings/ai-cloud" data-testid="ai-cloud-link">AI Cloud</Link> — NVIDIA NIM dan OpenRouter (gratis,
         opsional): API key, uji model, batas permintaan, dan data yang dikirim.
+        {" · "}<Link to="/settings/update">Update</Link> — cek & pasang versi baru ZOI
         {" · "}<Link to="/settings/youtube" data-testid="youtube-link">YouTube</Link> — hubungkan channel-mu (hanya-baca),
         kuota, dan hapus data.
       </p>

@@ -38,7 +38,7 @@ export default defineConfig({
       url: "http://127.0.0.1:8000/api/health",
       reuseExistingServer: false,
       env: { ZOI_MODE: "development", ZOI_PORT: "8000", ZOI_DATA_DIR: `/tmp/zoi-e2e-dev-${stamp}`, ZOI_MOCK_LATENCY_MS: "40",
-        ZOI_ENV_FILE: "/nonexistent" },
+        ZOI_ENV_FILE: "/nonexistent", ZOI_UPDATE_CHECK: "false" },
     },
     {
       command: "npm --workspace @zoi/web run dev",
@@ -72,7 +72,7 @@ export default defineConfig({
         ZOI_OLLAMA_URL: `http://127.0.0.1:${FAKE_OLLAMA_PORT}`, ZOI_OLLAMA_MODEL: "qwen3:4b",
         ZOI_PIPER_URL: `http://127.0.0.1:${FAKE_PIPER_PORT}`,
         ZOI_YOUTUBE_TEST_URL: `http://127.0.0.1:${FAKE_GOOGLE_PORT}`,
-        ZOI_ENV_FILE: "/nonexistent" },
+        ZOI_ENV_FILE: "/nonexistent", ZOI_UPDATE_CHECK: "false" },
     },
   ],
 });

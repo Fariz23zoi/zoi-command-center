@@ -12,7 +12,7 @@
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File deploy\windows\upgrade.ps1 -From C:\ZOI\zoi-command-center-1.2.0
 #>
-param([Parameter(Mandatory = $true)][string]$From)
+param([Parameter(Mandatory = $true)][string]$From, [switch]$Yes)
 . (Join-Path $PSScriptRoot "common.ps1")
 
 $old = (Resolve-Path $From -ErrorAction SilentlyContinue).Path
@@ -33,7 +33,17 @@ if (Test-Path $dataOld) {
     Write-Zoi "Folder data disalin." "Green"
 }
 
-if (-not (Test-Path $VenvPython)) { & (Join-Path $PSScriptRoot "install.ps1") }
+if (-not (Test-Path $VenvPython)) { & (Join-Path $PSScriptRoot "install.ps1") -Yes:$Yes }
+
+# Paket suara ikut dipasang bila versi lama memakainya.
+$oldPy = Join-Path $old "backend\.venv\Scripts\python.exe"
+if ((Test-Path $oldPy) -and (Test-Path $VenvPython)) {
+    & $oldPy -c "import faster_whisper" 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Zoi "Memasang paket suara (dipakai di versi lama)..."
+        & $VenvPython -m pip install -q -r (Join-Path $Backend "requirements-voice.txt")
+    }
+}
 
 $desktop = [Environment]::GetFolderPath("Desktop")
 $shell = New-Object -ComObject WScript.Shell

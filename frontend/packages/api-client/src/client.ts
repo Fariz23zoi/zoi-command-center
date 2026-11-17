@@ -3,7 +3,7 @@ import type {
   ProductionPackage, ProductionStatus, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
   ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, TranscriptInfo,
   VoicePreferences, VoiceStatus, YouTubeCached, YouTubeChannel, YouTubeData, YouTubeReport, YouTubeStatus, ZoiEvent,
-  ClipperLaunch, CloudModels, CloudStatus, CloudTestResult, CompetitorsData, IdeaRequest, IdeaSet, ScriptItem, ScriptRequest, ViralData,
+  ClipperLaunch, CloudModels, CloudStatus, UpdateStatus, CloudTestResult, CompetitorsData, IdeaRequest, IdeaSet, ScriptItem, ScriptRequest, ViralData,
 } from "./types";
 
 /** Header wajib untuk permintaan yang mengubah data (perlindungan CSRF di backend). */
@@ -155,6 +155,11 @@ export const api = {
     deleteKey: (name: string) => request<CloudStatus>("DELETE", `/api/ai/cloud/keys/${name}`),
     models: (name: string) => request<CloudModels>("GET", `/api/ai/cloud/models/${name}`),
     test: (name: string) => request<CloudTestResult>("POST", `/api/ai/cloud/test/${name}`),
+  },
+  update: {
+    status: () => request<UpdateStatus>("GET", "/api/update/status"),
+    check: () => request<UpdateStatus>("POST", "/api/update/check", {}),
+    install: () => request<UpdateStatus>("POST", "/api/update/install", {}),
   },
   clipper: {
     status: () => request<ClipperLaunch>("GET", "/api/clipper/status"),

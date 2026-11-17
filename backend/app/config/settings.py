@@ -108,6 +108,10 @@ class Settings(BaseSettings):
     # Kosong = Google sungguhan. Bila diisi, UI menandai semua data sebagai "ENDPOINT UJI".
     youtube_test_url: str = ""
 
+    # Update ZOI dari GitHub Releases (ADR 0017): cek otomatis tiap 24 jam (mode local); pasang hanya lewat tombol.
+    update_repo: str = "Fariz23zoi/zoi-command-center"
+    update_check: bool = True
+
     clipper_dir: Path | None = None
     clipper_python: Path | None = None
     blueprint_file: Path | None = None

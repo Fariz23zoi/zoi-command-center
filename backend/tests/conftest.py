@@ -15,7 +15,7 @@ HEADERS = {"X-ZOI-Client": "web"}
 
 
 def make_settings(tmp_path: Path, **overrides: Any) -> Settings:
-    values: dict[str, Any] = {"data_dir": str(tmp_path / "data"), "mock_latency_ms": 0}
+    values: dict[str, Any] = {"data_dir": str(tmp_path / "data"), "mock_latency_ms": 0, "update_check": False}
     values.update(overrides)
     return Settings.model_validate(values)
 

@@ -46,6 +46,7 @@ from app.security.remote import remote_denied
 from app.security.secrets_db import DbSecretStore
 from app.tasks.builtin import make_run_async, system_check_kind
 from app.tasks.manager import TaskManager
+from app.update.service import UpdateService
 from app.voice.registry import build_voice
 from app.voice.service import VoiceService
 from app.youtube.oauth import endpoints as youtube_endpoints
@@ -124,6 +125,8 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
                      automation=automation,
                      youtube=youtube, public=public, content=content,
                      cloud_ai=CloudAIService(provider=provider, store=secrets, bus=bus), auth=auth,
+                     updates=UpdateService(guard=guard, repo=settings.update_repo, enabled=not runtime.is_online,
+                                           root=Path(__file__).resolve().parents[2]),
                      local_ai=LocalAIService(provider=provider, runtime=runtime, db=db, bus=bus, tasks=tasks,
                                              source=ai_source),
                      migration_backup=str(backup) if backup else None)
@@ -150,10 +153,13 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
         log.info("zoi_started", version=__version__, mode=runtime.mode.value, provider=provider.name,
                  url=runtime.base_url, recovered_tasks=recovered, warnings=list(runtime.warnings))
         scheduler = asyncio.create_task(_automation_loop(automation, scheduler_interval_s))
+        updater = asyncio.create_task(ctx.updates.loop()) if settings.update_check and not runtime.is_online else None
         try:
             yield
         finally:
             scheduler.cancel()
+            if updater is not None:
+                updater.cancel()
             await youtube.cancel_connect()
             for adapter in adapters:
                 if hasattr(adapter, "stop"):
