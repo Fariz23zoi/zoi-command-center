@@ -109,7 +109,7 @@ function ClipperLauncher({ title, description }: { title: string; description: s
             )}
             {state.started_by_zoi && <button type="button" disabled={busy} onClick={() => run("stop")}>Matikan CLIPPER</button>}
           </div>
-          <p className="source">Alamat: {url}. Dari HP alamat ini hanya terbuka bila Tailscale aktif dan firewall laptop mengizinkan.</p>
+          <p className="source">Alamat: {url}. CLIPPER hanya menerima akses dari laptop ini (bawaannya 127.0.0.1), jadi tombol Buka dipakai dari browser laptop.</p>
         </>
       )}
     </section>

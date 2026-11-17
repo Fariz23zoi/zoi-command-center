@@ -77,7 +77,7 @@ def test_wrong_html_not_accepted(client_factory, tmp_path):
     assert adapters["blueprint_studio"]["found"] is False
 
 
-def test_clipper_launcher_starts_and_stops_without_touching_repo(client_factory, tmp_path):
+def test_clipper_launcher_starts_and_stops_without_touching_repo(client_factory, tmp_path, monkeypatch):
     import socket
     import sys
     import time
@@ -90,7 +90,8 @@ def test_clipper_launcher_starts_and_stops_without_touching_repo(client_factory,
     for name in ("main.py", "LICENSE"):
         (root / name).write_text("x", encoding="utf-8")
     (root / "app.py").write_text(
-        "import http.server\n"
+        "import http.server, os\n"
+        "assert os.environ['ZOI_PORT'] == os.environ['EXPECT_PORT'] and 'ZOI_SECRET_KEY' not in os.environ\n"
         f"http.server.HTTPServer(('127.0.0.1', {port}), http.server.BaseHTTPRequestHandler).serve_forever()\n",
         encoding="utf-8")
     before = snapshot(root)
@@ -102,6 +103,8 @@ def test_clipper_launcher_starts_and_stops_without_touching_repo(client_factory,
     client = client_factory(clipper_dir=str(root), clipper_python=sys.executable)
     adapter = next(a for a in client.app.state.zoi.adapters if a.name == "zoi_ai_clipper")
     adapter.port = port
+    monkeypatch.setenv("EXPECT_PORT", str(port))
+    monkeypatch.setenv("ZOI_SECRET_KEY", "jangan-diwariskan")
     assert client.get("/api/clipper/status").json() == {"running": False, "port": port, "can_start": True,
                                                         "reason": None, "started_by_zoi": False}
     assert client.post("/api/clipper/start").json()["started_by_zoi"] is True

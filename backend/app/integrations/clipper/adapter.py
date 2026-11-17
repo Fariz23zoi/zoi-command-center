@@ -7,6 +7,7 @@ sebagai proses terpisah dengan Python milik CLIPPER. ZOI tidak memanggil fitur u
 
 from __future__ import annotations
 
+import os
 import socket
 import subprocess
 import sys
@@ -62,9 +63,12 @@ class ClipperAdapter:
         if not status["can_start"]:
             raise ZoiError(str(status["reason"]), status_code=409, code="clipper_unavailable")
         flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0  # type: ignore[attr-defined]
+        # CLIPPER juga membaca variabel ZOI_* (ZOI_PORT, ZOI_HOST, ...). Jangan wariskan milik ZOI; paksa port 5000.
+        env = {k: v for k, v in os.environ.items() if not k.upper().startswith("ZOI_")}
+        env["ZOI_PORT"] = str(self.port)
         self._proc = subprocess.Popen(  # noqa: S603 — path tetap dari .env, tanpa argumen dari pengguna
             [str(self._python()), "app.py"], cwd=str(self.clipper_dir), stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=flags)
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=flags, env=env)
         return self.launch_status()
 
     def stop(self) -> dict[str, object]:

@@ -1,5 +1,9 @@
 # Catatan rilis ZOI
 
+## 1.2.5
+- Tombol **Jalankan CLIPPER** cocok dengan ZOI AI CLIPPER versi laptop (yang dijalankan lewat file .bat): memakai `.venv` milik CLIPPER dan memaksa port 5000, tanpa mewariskan pengaturan ZOI.
+- Rilis pertama yang dipasang lewat tombol Update.
+
 ## 1.2.4
 - **Update otomatis**: ZOI mengecek versi baru dari GitHub tiap 24 jam. Pemberitahuan muncul di atas; pasang dengan satu klik di Settings › Update. Versi lama tetap disimpan; bila pemasangan gagal, versi lama dinyalakan lagi.
 - File update dicocokkan dengan hash SHA-256 sebelum dipasang.
