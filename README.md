@@ -1,7 +1,7 @@
 # ZOI — Command Center (YouTube Intelligence)
 
 Platform web dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
-**ZERO PAID API · ZERO SUBSCRIPTION.** Lisensi: MIT. Versi **1.2.2** (ZOI Universe V2). Online = laptop + Tailscale (lihat `docs/AKSES_HP.md`).
+**ZERO PAID API · ZERO SUBSCRIPTION.** Lisensi: MIT. Versi **1.2.3** (ZOI Universe V2). Online = laptop + Tailscale (lihat `docs/AKSES_HP.md`).
 
 > Bentuk akhir: **ZOI online** (Render + Neon, gratis) untuk dibuka dari HP — chat, analitik, kompetitor, tren,
 > ide, naskah, otomatisasi — dan **ZOI laptop** (mode local) untuk produksi konten: narasi, Blueprint Studio,
@@ -14,7 +14,10 @@ Platform web dengan avatar ZOI sebagai pusat kendali ekosistem YouTube.
    (opsional) YouTube, otomatisasi, cadangan.
 2. **Laptop**: [`docs/MIGRATION_TO_LOCAL_SERVER.md`](docs/MIGRATION_TO_LOCAL_SERVER.md) — paket rilis ZIP,
    `install.ps1`, `start.ps1`, lalu bagian 5e untuk produksi konten.
-3. Masalah: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md). Pemeriksaan keamanan:
+3. **Update ke versi baru**: ekstrak ZIP ke folder baru, lalu di folder itu jalankan
+   `powershell -ExecutionPolicy Bypass -File deploy\windows\upgrade.ps1 -From <folder lama>` — menyalin `.env` & data
+   dan membuat pintasan Desktop **Buka ZOI / Matikan ZOI / Matikan Semua**. Suara: [`docs/SUARA.md`](docs/SUARA.md).
+4. Masalah: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md). Pemeriksaan keamanan:
    [`docs/SECURITY_CHECKS.md`](docs/SECURITY_CHECKS.md). Keputusan desain: `docs/adr/`.
 
 ## Arsitektur singkat

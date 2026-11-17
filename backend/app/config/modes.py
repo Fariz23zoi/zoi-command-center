@@ -253,7 +253,7 @@ def resolve_runtime(settings: Settings) -> RuntimeConfig:
         tts = _voice_choice(settings.tts, TtsChoice, "piper", settings.mode, "ZOI_TTS")
     piper = urlparse(settings.piper_url)
     if piper.scheme not in {"http", "https"} or not piper.hostname:
-        raise ConfigError(f"ZOI_PIPER_URL tidak valid: {settings.piper_url!r} (contoh: http://127.0.0.1:5000)")
+        raise ConfigError(f"ZOI_PIPER_URL tidak valid: {settings.piper_url!r} (contoh: http://127.0.0.1:5001)")
     whisper_dir = settings.whisper_model_dir
     if whisper_dir is not None and not whisper_dir.is_absolute():
         whisper_dir = (REPO_ROOT / whisper_dir).resolve()

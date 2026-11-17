@@ -13,13 +13,13 @@
 .PARAMETER Voice
   Nama suara. Bawaan: id_ID-news_tts-medium
 .PARAMETER Port
-  Port server Piper. Harus sama dengan ZOI_PIPER_URL. Bawaan: 5000
+  Port server Piper. Harus sama dengan ZOI_PIPER_URL. Bawaan: 5001 (5000 dipakai ZOI AI CLIPPER)
 #>
 param(
     [string]$PiperPython = "C:\zoi-piper\Scripts\python.exe",
     [string]$VoiceDir = "D:\zoi-models\piper",
     [string]$Voice = "id_ID-news_tts-medium",
-    [int]$Port = 5000
+    [int]$Port = 5001
 )
 . (Join-Path $PSScriptRoot "common.ps1")
 

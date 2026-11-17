@@ -19,6 +19,14 @@ if (Test-Path $PidFile) {
     Remove-Item $PidFile -ErrorAction SilentlyContinue
 }
 
+$port = Get-ZoiPort
+$owner = Get-PortOwner $port
+if ($owner) {
+    Write-Zoi "Port $port sudah dipakai: $($owner.ExecutablePath)" "Red"
+    Write-Zoi "Kemungkinan ZOI (mungkin versi/folder lain) masih berjalan. Jalankan dulu: deploy\windows\stop.ps1" "Yellow"
+    exit 1
+}
+
 Push-Location $Backend
 try {
     & $VenvPython -m app.cli doctor

@@ -93,8 +93,8 @@ button.link.active { color: var(--accent); }
 .task progress { width: 100%; accent-color: var(--accent); }
 .task-failed { border-color: var(--bad); }
 .task-completed .badge { color: var(--ok); border-color: var(--ok); }
-.form { display: grid; gap: 8px; max-width: 360px; }
-.form select { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; min-height: 40px; }
+.form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; max-width: 420px; }
+.form select { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; min-height: 40px; width: 100%; min-width: 0; text-overflow: ellipsis; }
 .not-ready .tag-phase { display: inline-block; border: 1px dashed var(--muted); border-radius: 8px; padding: 4px 10px; color: var(--muted); }
 
 /* ---------- Responsif ---------- */

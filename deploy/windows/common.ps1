@@ -12,7 +12,9 @@ function Write-Zoi([string]$Message, [string]$Color = "Gray") {
 
 function Find-Python312 {
     # Mengembalikan perintah Python 3.12+ yang tersedia, atau $null.
-    foreach ($candidate in @("py -3.12", "py -3", "python")) {
+    # Urutan: 3.14 - 3.12 dulu (paket suara onnxruntime belum ada untuk 3.15 di Windows, dicek 17 Nov 2026),
+    # baru versi terbaru apa pun.
+    foreach ($candidate in @("py -3.14", "py -3.13", "py -3.12", "py -3", "python")) {
         $parts = $candidate.Split(" ")
         $exeName = $parts[0]
         $pyArgs = @()
@@ -32,4 +34,23 @@ function Get-FreeGB([string]$Path) {
     $root = [System.IO.Path]::GetPathRoot((Resolve-Path $Path).Path)
     $drive = Get-PSDrive -Name $root.Substring(0, 1) -PSProvider FileSystem
     return [math]::Round($drive.Free / 1GB, 2)
+}
+
+function Get-ZoiPort {
+    # Port ZOI menurut .env folder ini (bawaan 80).
+    if (Test-Path $VenvPython) {
+        Push-Location $Backend
+        try {
+            $p = (& $VenvPython -c "from app.config.modes import resolve_runtime; from app.config.settings import load_settings; print(resolve_runtime(load_settings()).port)" 2>$null)
+        } finally { Pop-Location }
+        if ("$p".Trim() -match '^\d+$') { return [int]"$p".Trim() }
+    }
+    return 80
+}
+
+function Get-PortOwner([int]$Port) {
+    # Proses yang mendengarkan di port itu (atau $null), lengkap dengan lokasi programnya.
+    $conn = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $conn) { return $null }
+    return Get-CimInstance Win32_Process -Filter "ProcessId=$($conn.OwningProcess)" -ErrorAction SilentlyContinue
 }

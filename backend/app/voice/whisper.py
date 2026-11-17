@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import io
+import sys
 import threading
 import time
 from pathlib import Path
@@ -36,6 +37,11 @@ class WhisperSTT:
         try:
             import faster_whisper  # noqa: F401
         except ImportError:
+            if sys.version_info >= (3, 15):
+                return ("Paket faster-whisper belum terpasang, dan ZOI berjalan di Python "
+                        f"{sys.version_info.major}.{sys.version_info.minor} "
+                        "yang belum didukung paket suara di Windows. "
+                        "Pasang Python 3.14, lalu buat ulang backend\\.venv dengan py -3.14 (lihat docs/SUARA.md).")
             return ("Paket faster-whisper belum terpasang. Pasang: "
                     "backend\\.venv\\Scripts\\pip install -r backend\\requirements-voice.txt")
         if self.model_dir is None:

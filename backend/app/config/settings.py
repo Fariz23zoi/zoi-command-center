@@ -102,7 +102,7 @@ class Settings(BaseSettings):
     stt: SttChoice = SttChoice.AUTO
     whisper_model_dir: Path | None = None
     tts: TtsChoice = TtsChoice.AUTO
-    piper_url: str = "http://127.0.0.1:5000"
+    piper_url: str = "http://127.0.0.1:5001"  # 5000 dipakai ZOI AI CLIPPER
 
     # YouTube (Phase 6). HANYA untuk tes: arahkan semua endpoint Google ke server tiruan di komputer ini.
     # Kosong = Google sungguhan. Bila diisi, UI menandai semua data sebagai "ENDPOINT UJI".

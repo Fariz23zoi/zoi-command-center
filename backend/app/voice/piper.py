@@ -1,6 +1,6 @@
 """Suara Piper lewat server HTTP Piper sendiri (proses terpisah, GPL-3.0). ZOI tidak mengimpor kode Piper.
 
-Server dijalankan pengguna: `python -m piper.http_server -m id_ID-news_tts-medium` (port 5000).
+Server dijalankan pengguna: `python -m piper.http_server -m id_ID-news_tts-medium` (port 5001: --port 5001).
 """
 
 from __future__ import annotations

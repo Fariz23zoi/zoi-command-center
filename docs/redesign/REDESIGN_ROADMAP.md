@@ -59,3 +59,9 @@ Phase 1–8 selesai. Yang sengaja belum dibuat (tercatat jujur):
 - `index.html` dikirim dengan `Cache-Control: no-cache` agar update langsung terlihat tanpa hapus cache.
 - Catatan: CLIPPER sendiri mendengarkan di `0.0.0.0:5000` (terjangkau perangkat lain di jaringan yang sama) — perilaku bawaan CLIPPER, tidak diubah.
 - 1.2.2: halaman Blueprint Studio punya tombol **Buka Blueprint Studio** (membuat/memperbarui salinan lalu membuka `/blueprint-studio/`).
+- 1.2.3 (17 Nov 2026): `stop.ps1` kini juga menghentikan ZOI yang dijalankan di jendela (lewat port, folder mana pun) —
+  penyebab "versi masih 1.2.0" setelah update; `start.ps1` menolak jalan bila port dipakai dan menyebut programnya;
+  `upgrade.ps1 -From <folder lama>` (salin .env & data, pintasan Desktop); `Buka ZOI.bat` / `Matikan ZOI.bat` /
+  `Matikan Semua.bat` di root rilis; installer memilih Python 3.14→3.12 dulu (paket suara belum ada untuk 3.15);
+  Piper bawaan port 5001 (5000 = CLIPPER); form Suara tidak lagi melebar di HP + sapu HP kini cek elemen yang keluar
+  layar; `docs/SUARA.md`.
