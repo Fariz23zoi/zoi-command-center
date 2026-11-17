@@ -18,7 +18,8 @@ from app import __version__  # noqa: E402
 
 DIST = ROOT / "frontend" / "apps" / "web" / "dist"
 INCLUDE_TRACKED = ("backend/", "deploy/", "docs/", ".env.development.example", ".env.local.example",
-                   "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md", ".gitattributes")
+                   "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md", ".gitattributes", "Buka ZOI.bat",
+                   "Matikan ZOI.bat", "Matikan Semua.bat")
 EXCLUDE_PARTS = {"tests", "__pycache__", ".pytest_cache", ".ruff_cache", ".venv"}
 
 
@@ -40,7 +41,7 @@ def main() -> int:
             if not rel.startswith(INCLUDE_TRACKED) or EXCLUDE_PARTS & set(Path(rel).parts):
                 continue
             data = (ROOT / rel).read_bytes()
-            if rel.endswith(".ps1"):  # Windows: CRLF
+            if rel.endswith((".ps1", ".bat")):  # Windows: CRLF
                 data = data.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
             zf.writestr(f"{prefix}/{rel}", data)
             count += 1
