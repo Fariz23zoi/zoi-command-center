@@ -3,7 +3,7 @@ import type {
   ProductionPackage, ProductionStatus, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
   ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, TranscriptInfo,
   VoicePreferences, VoiceStatus, YouTubeCached, YouTubeChannel, YouTubeData, YouTubeReport, YouTubeStatus, ZoiEvent,
-  ClipperLaunch, CloudModels, CloudStatus, UpdateStatus, CloudTestResult, CompetitorsData, IdeaRequest, IdeaSet, ScriptItem, ScriptRequest, ViralData,
+  ChatAttachment, ClipperLaunch, CloudModels, CloudStatus, UpdateStatus, CloudTestResult, CompetitorsData, IdeaRequest, IdeaSet, ScriptItem, ScriptRequest, ViralData,
 } from "./types";
 
 /** Header wajib untuk permintaan yang mengubah data (perlindungan CSRF di backend). */
@@ -52,8 +52,11 @@ export const api = {
   task: (id: string) => request<TaskInfo>("GET", `/api/tasks/${encodeURIComponent(id)}`),
   runSystemCheck: () => request<TaskInfo>("POST", "/api/tasks/system-check"),
   cancelTask: (id: string) => request<TaskInfo>("POST", `/api/tasks/${encodeURIComponent(id)}/cancel`),
-  sendChat: (message: string, conversationId?: string | null) =>
-    request<SendChatResponse>("POST", "/api/chat", { message, conversation_id: conversationId ?? null }),
+  sendChat: (message: string, conversationId?: string | null, attachments: ChatAttachment[] = []) =>
+    request<SendChatResponse>("POST", "/api/chat", { message, conversation_id: conversationId ?? null, attachments }),
+  /** Ambil teks dari file (diproses di laptop; file tidak disimpan). */
+  extractAttachment: (name: string, dataBase64: string) =>
+    request<ChatAttachment>("POST", "/api/attachments/extract", { name, data_base64: dataBase64 }),
   conversations: () => request<{ conversations: ConversationInfo[] }>("GET", "/api/conversations"),
   deleteConversation: (id: string) => request<void>("DELETE", `/api/conversations/${encodeURIComponent(id)}`),
   messages: (conversationId: string) =>

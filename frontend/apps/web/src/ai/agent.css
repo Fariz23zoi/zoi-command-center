@@ -75,3 +75,11 @@
   .ai-suggest { grid-template-columns: minmax(0, 1fr); }
   .ai-model { max-width: 150px; }
 }
+.attach-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; width: 100%; order: -1; }
+.attach-chip { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 2px 4px 2px 10px; border-radius: 999px;
+  background: var(--panel); border: 1px solid var(--border-strong); font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attach-chip .icon-btn { min-height: 28px; width: 28px; border: 0; background: none; }
+.attach-block { margin: 0 0 6px; }
+.attach-block summary { cursor: pointer; color: var(--accent); }
+.attach-block pre { max-height: 240px; overflow: auto; white-space: pre-wrap; font-size: var(--fs-xs); background: var(--bg); padding: 8px; border-radius: 8px; }
+.msg-body > p { margin: 0; white-space: pre-wrap; }

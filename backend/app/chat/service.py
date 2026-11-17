@@ -12,6 +12,7 @@ from typing import Any
 
 from sqlalchemy import delete, select, update
 
+from app.chat.attachments import compose as compose_attachments
 from app.core.agent_state import AgentState, AgentStateTracker
 from app.core.errors import NotFound, ZoiError
 from app.core.events import EventBus
@@ -47,7 +48,8 @@ class ChatService:
         self._by_message: dict[str, asyncio.Task[None]] = {}
         self.memory: MemoryService | None = None  # dipasang di main (Phase 5)
 
-    async def send(self, text: str, conversation_id: str | None = None) -> dict[str, Any]:
+    async def send(self, text: str, conversation_id: str | None = None,
+                   attachments: list[dict] | None = None) -> dict[str, Any]:
         text = text.strip()
         if not text:
             raise ZoiError("Pesan tidak boleh kosong.", code="empty_message")
@@ -67,7 +69,8 @@ class ChatService:
                 conversation = Conversation(id=str(uuid.uuid4()), title=text[:60], is_mock=is_mock)
                 s.add(conversation)
             conversation.updated_at = utcnow()
-            user_msg = Message(id=str(uuid.uuid4()), conversation_id=conversation.id, role="user", content=text,
+            user_msg = Message(id=str(uuid.uuid4()), conversation_id=conversation.id, role="user",
+                               content=compose_attachments(text, attachments or []),
                                is_mock=is_mock, status="complete")
             assistant = Message(id=str(uuid.uuid4()), conversation_id=conversation.id, role="assistant",
                                 content="", provider=self.provider.name, model=self.provider.model,

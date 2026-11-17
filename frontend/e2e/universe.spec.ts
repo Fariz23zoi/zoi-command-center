@@ -36,3 +36,22 @@ test("workspace AI: kantor 3D di desktop, chat tersimpan di riwayat lalu dihapus
   await expect(page.getByRole("heading", { name: "Hello, I'm ZOI." })).toBeVisible();
   expect(external).toEqual([]);
 });
+
+test("chat: lampirkan file teks lalu kirim", async ({ page }) => {
+  test.skip(test.info().project.name !== "development-desktop", "cukup sekali");
+  await page.goto("/ai");
+  await expect(page.getByTestId("ws-status")).toHaveText("Tersambung", { timeout: 15_000 });
+  await page.getByTestId("attach-input").setInputFiles({ name: "catatan.md", mimeType: "text/markdown",
+    buffer: Buffer.from("# Rencana video\nTopik: langit biru") });
+  await expect(page.getByText("📄 catatan.md")).toBeVisible();
+  await page.getByTestId("attach-input").setInputFiles({ name: "foto.png", mimeType: "image/png",
+    buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47]) });
+  await expect(page.getByRole("alert")).toContainText("belum didukung");
+  await page.getByLabel("Pesan untuk ZOI").fill("Ringkas lampiran ini");
+  await page.getByRole("button", { name: "Kirim" }).click();
+  const user = page.getByTestId("msg-user").last();
+  await expect(user).toContainText("Ringkas lampiran ini");
+  await user.getByText("📄 catatan.md").click();
+  await expect(user.locator("pre")).toContainText("Topik: langit biru");
+  await expect(page.getByText("📄 catatan.md", { exact: true }).locator("xpath=ancestor::ul[@aria-label='Lampiran']")).toHaveCount(0);
+});

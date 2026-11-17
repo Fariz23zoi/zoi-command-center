@@ -69,6 +69,7 @@ Python: seluruh paket di venv backend (termasuk alat pengembangan). npm: depende
 | python | pydantic_core | 2.50.4 | MIT |
 | python | Pygments | 2.21.0 | BSD-2-Clause |
 | python | pyparsing | 3.3.3 | MIT |
+| python | pypdf | 7.1.0 | BSD-3-Clause |
 | python | pytest | 9.2.0 | MIT |
 | python | pytest-asyncio | 1.5.0 | Apache-2.0 |
 | python | python-dateutil | 4.0.0 | BSD-3-Clause |

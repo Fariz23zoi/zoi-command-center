@@ -35,7 +35,7 @@ export function ChatTranscript({ messages }: { messages: ChatMessageInfo[] }) {
           )}
           {m.content && (m.role === "assistant"
             ? <div className="msg-body"><Markdown text={m.content} /></div>
-            : <p className="msg-body">{m.content}</p>)}
+            : <UserBody content={m.content} />)}
           {m.role === "assistant" && m.content && m.status !== "streaming" && <CopyButton text={m.content} label="Salin jawaban" />}
           {m.note && <p className="msg-note" data-testid="msg-note">{m.note}</p>}
           {m.status === "error" && <p className="msg-error" role="alert">{m.error}</p>}
@@ -44,5 +44,24 @@ export function ChatTranscript({ messages }: { messages: ChatMessageInfo[] }) {
         </li>
       ))}
     </ol>
+  );
+}
+
+const ATTACH = /\[Lampiran: ([^\]\n]*)\]\n([\s\S]*?)\n\[\/Lampiran\]\n*/g;
+
+/** Pesan pengguna: blok lampiran ditampilkan ringkas (bisa dibuka), lalu pertanyaannya. */
+function UserBody({ content }: { content: string }) {
+  const files = [...content.matchAll(ATTACH)].map((m) => ({ name: m[1], text: m[2] }));
+  const rest = content.replace(ATTACH, "").trim();
+  return (
+    <div className="msg-body">
+      {files.map((f, i) => (
+        <details key={i} className="attach-block">
+          <summary>📄 {f.name}</summary>
+          <pre>{f.text}</pre>
+        </details>
+      ))}
+      <p>{rest}</p>
+    </div>
   );
 }

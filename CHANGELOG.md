@@ -1,5 +1,9 @@
 # Catatan rilis ZOI
 
+## 1.2.7
+- **Lampiran file di ZOI AI**: tombol 📎 di kotak pesan. Bisa TXT, MD, CSV, JSON, SRT, HTML, kode, **PDF**, dan **DOCX** (maks 3 file, 10 MB). Teks dibaca di laptop; file tidak disimpan. Gambar/audio/video belum didukung (model AI saat ini hanya membaca teks).
+- Update ini memasang satu paket Python baru (pypdf, BSD-3) — tombol Update memasangnya otomatis.
+
 ## 1.2.6
 - **Blueprint Studio memakai AI ZOI**: "Buat cerita", "Kejutkan aku", dan tulis ulang beat kini dijawab AI ZOI (gratis), bukan lagi "Fitur AI tidak tersedia". Unduh naskah/prompt juga berfungsi.
 - Tombol **🎬 Kirim ke ZOI** di Blueprint: cerita + gaya dikirim ke Content Production.

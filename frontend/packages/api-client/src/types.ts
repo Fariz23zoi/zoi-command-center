@@ -412,3 +412,5 @@ export interface UpdateStatus {
   checked_at: string | null; error: string | null; phase: "idle" | "downloading" | "applying";
   can_install: boolean; install_note: string | null;
 }
+
+export interface ChatAttachment { name: string; text: string; chars?: number; truncated: boolean }
