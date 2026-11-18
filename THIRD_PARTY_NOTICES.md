@@ -130,6 +130,11 @@ sendiri (tanpa CDN). Teks lisensinya ikut disalin ke folder yang sama.
 | `female.glb`, `male.glb` | Microsoft Rocketbox (business female 04 / male 01), dikonversi oleh talking-avatar | MIT (Copyright (c) 2020 Microsoft) — `LICENSE-rocketbox.txt` |
 | `viseme-model.bin` | Bobot model lip-sync talking-avatar | MIT — `LICENSE-talking-avatar.txt` |
 
+## Font yang dibundel (frontend/apps/web/public/fonts)
+
+- **Luckiest Guy** (Astigmatic) dan **Permanent Marker** (Font Diner) — Apache-2.0, dari `google/fonts`.
+  Teks lisensi: `frontend/apps/web/public/fonts/LICENSE-Apache-2.0.txt`. Dipakai untuk thumbnail otomatis.
+
 ## Program terpisah (TIDAK dibundel dengan ZOI)
 
 - **Piper** (`piper-tts` 1.8.0, GPL-3.0-or-later) — dipasang & dijalankan pengguna sendiri sebagai server

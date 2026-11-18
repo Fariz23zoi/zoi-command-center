@@ -28,11 +28,11 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Command Center", () => {
-  it("menampilkan 20 menu", async () => {
+  it("menampilkan 21 menu", async () => {
     renderApp("/dashboard");
     const nav = screen.getByRole("navigation", { name: "Menu utama" });
-    expect(within(nav).getAllByRole("link")).toHaveLength(20);
-    expect(MENU).toHaveLength(20);
+    expect(within(nav).getAllByRole("link")).toHaveLength(21);
+    expect(MENU).toHaveLength(21);
   });
 
   it("banner development tampil di mode development", async () => {

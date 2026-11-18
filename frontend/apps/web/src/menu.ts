@@ -26,6 +26,7 @@ export const MENU: MenuItem[] = [
   { path: "/trends", group: "analytics", label: "Trend Detector", phase: 6, ready: true, description: "AI lokal merangkum tema dari judul di daftar Trending atau pencarian. Interpretasi teks, bukan statistik." },
   { path: "/ideas", group: "creation", label: "Content Ideas", phase: 6, ready: true, description: "Draf ide video panjang & Shorts oleh AI lokal: judul, hook, garis besar, dan CTA." },
   { path: "/script", group: "creation", label: "Script & Storyboard", phase: 6, ready: true, description: "Draf naskah dan storyboard oleh AI lokal. Tidak ada yang dipublikasikan." },
+  { path: "/thumbnail", group: "creation", label: "Thumbnail", phase: 7, ready: true, description: "Thumbnail otomatis: AI ZOI menulis teks hook, gambar disusun di browser dari foto atau frame videomu." },
   { path: "/production", group: "creation", label: "Content Production", phase: 7, ready: true, description: "Paket produksi, narasi Piper, salinan Blueprint Studio, dan render HyperFrames opsional — di laptop." },
     { path: "/clipper", group: "products", label: "ZOI AI CLIPPER", phase: 7, ready: true, description: "Menyalakan dan membuka aplikasi ZOI AI CLIPPER di laptop. Repository CLIPPER tidak diubah; ZOI tidak mengolah videonya." },
   { path: "/blueprint", group: "products", label: "BLUEPRINT STUDIO", phase: 7, ready: true, description: "Paket produksi ZOI dimuat ke salinan Blueprint Studio di laptop. File asli tidak diubah." },

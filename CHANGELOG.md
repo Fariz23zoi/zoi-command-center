@@ -1,5 +1,10 @@
 # Catatan rilis ZOI
 
+## 1.2.8
+- **Thumbnail otomatis** (menu Creation → Thumbnail, atau tombol **🖼️ Buat Thumbnail** di tiap paket Content Production): klik **✨ Buat Thumbnail Otomatis**, AI ZOI menulis teks hook (kata kunci besar pink/kuning, kotak kertas, bubble reaksi), lalu gambar disusun di browser.
+- Latar dari foto, video (pilih frame), atau video paket produksi. Foto/video tidak diunggah ke mana pun. Hasil PNG 1080×1920 (Shorts) atau 1280×720 (YouTube); teks bisa diedit, posisi teks atas/bawah, geser latar, acak gaya.
+- Font baru: Luckiest Guy & Permanent Marker (Apache-2.0). Tidak ada paket Python baru.
+
 ## 1.2.7
 - **Lampiran file di ZOI AI**: tombol 📎 di kotak pesan. Bisa TXT, MD, CSV, JSON, SRT, HTML, kode, **PDF**, dan **DOCX** (maks 3 file, 10 MB). Teks dibaca di laptop; file tidak disimpan. Gambar/audio/video belum didukung (model AI saat ini hanya membaca teks).
 - Update ini memasang satu paket Python baru (pypdf, BSD-3) — tombol Update memasangnya otomatis.

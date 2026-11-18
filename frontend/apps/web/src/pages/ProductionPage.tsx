@@ -1,4 +1,5 @@
 import { api, type ProductionPackage, type ProductionStatus } from "@zoi/api-client";
+import { Link } from "react-router-dom";
 import { type ChangeEvent, useCallback, useEffect, useState } from "react";
 
 import { errorText } from "../lib/youtube";
@@ -148,6 +149,9 @@ export function ProductionPage() {
                     onClick={() => act(api.production.render(p.id), "Render dimulai — lihat Task Manager.")}>
               Render kartu teks (HyperFrames)
             </button>{" "}
+            <Link className="button" to={`/thumbnail?paket=${p.id}`} data-testid="production-thumbnail">
+              🖼️ Buat Thumbnail
+            </Link>{" "}
             <button type="button" onClick={() => act(api.production.remove(p.id), "Paket dihapus.")}>Hapus</button>
           </p>
           {p.files["video.mp4"] && (

@@ -366,6 +366,12 @@ export interface ProductionPackage {
   narration: { start: number; speech: number; duration: number; file: string }[] | null;
 }
 
+export interface ThumbnailHook {
+  baris: { teks: string; ukuran: "kecil" | "sedang" | "besar"; warna: "hitam" | "putih" | "pink" | "kuning";
+    kotak: "putih" | "kuning" | "hitam" | "tanpa" }[];
+  bubble: string[]; aksen: "pink" | "kuning"; provider: string; is_mock: boolean;
+}
+
 export interface ProductionStatus {
   available: boolean;
   blueprint: { configured: boolean; original_found: boolean; copy_exists: boolean; up_to_date: boolean;

@@ -1,6 +1,6 @@
 import type {
   AdapterStatus, AuthStatus, AutomationInfo, AutomationOverview, AutomationSchedule, NotificationInfo,
-  ProductionPackage, ProductionStatus, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
+  ProductionPackage, ProductionStatus, ThumbnailHook, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
   ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, TranscriptInfo,
   VoicePreferences, VoiceStatus, YouTubeCached, YouTubeChannel, YouTubeData, YouTubeReport, YouTubeStatus, ZoiEvent,
   ChatAttachment, ClipperLaunch, CloudModels, CloudStatus, UpdateStatus, CloudTestResult, CompetitorsData, IdeaRequest, IdeaSet, ScriptItem, ScriptRequest, ViralData,
@@ -141,6 +141,11 @@ export const api = {
     animate: (id: string) => request<TaskInfo>("POST", `/api/production/packages/${id}/animate`),
     fileUrl: (id: string, name: string) => `/api/production/packages/${id}/files/${name}`,
     buildBlueprint: () => request<NonNullable<ProductionStatus["blueprint"]>>("POST", "/api/production/blueprint/build"),
+  },
+  thumbnail: {
+    /** AI ZOI menulis teks hook thumbnail (JSON). Gambarnya disusun di browser — foto tidak diunggah. */
+    hook: (topik: string, rasio: "9:16" | "16:9") =>
+      request<ThumbnailHook>("POST", "/api/thumbnail/hook", { topik, rasio }),
   },
   backup: {
     downloadUrl: "/api/backup/download",

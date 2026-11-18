@@ -23,6 +23,7 @@ import { IdeasPage } from "./pages/IdeasPage";
 import { PerformancePage } from "./pages/PerformancePage";
 import { ProductionPage } from "./pages/ProductionPage";
 import { ScriptPage } from "./pages/ScriptPage";
+import { ThumbnailPage } from "./pages/ThumbnailPage";
 import { TrendsPage } from "./pages/TrendsPage";
 import { ViralPage } from "./pages/ViralPage";
 import { MonetizationPage } from "./pages/MonetizationPage";
@@ -52,6 +53,7 @@ const READY_PAGES: Record<string, ReactElement> = {
   "/ideas": <IdeasPage />,
   "/script": <ScriptPage />,
   "/production": <ProductionPage />,
+  "/thumbnail": <ThumbnailPage />,
   "/automation": <AutomationPage />,
   "/performance": <PerformancePage />,
   "/settings": <SettingsPage />,
