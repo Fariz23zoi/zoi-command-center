@@ -21,8 +21,10 @@ from app.ai.cloud import CloudAIService
 from app.ai.local import LocalAIService
 from app.ai.tasks import model_eval_kind
 from app.api.router import api_router, ws_router
+from app.artifacts import RAW_CSP, ArtifactError, ArtifactService
 from app.automation.service import AutomationService
 from app.chat.service import ChatService
+from app.code_agent import CodeService
 from app.config.modes import CLOUD_HOSTS, RuntimeConfig, resolve_runtime
 from app.config.settings import Settings, load_settings
 from app.content.service import ContentService
@@ -114,6 +116,8 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
                                    hyperframes_dir=settings.hyperframes_dir, voice=voice, content=content,
                                    available=not runtime.is_online, bus=bus, provider=provider)
     automation = AutomationService(db=db, bus=bus, tasks=tasks, youtube=youtube, public=public)
+    artifacts = ArtifactService(data_dir=runtime.data_dir, provider=provider, available=not runtime.is_online)
+    code = CodeService(data_dir=runtime.data_dir, provider=provider, available=not runtime.is_online)
     registry = build_registry(ToolDeps(memory=memory, tasks=tasks, provider=provider, adapters=adapters,
                                        data_dir=runtime.data_dir, is_mock=lambda: provider.is_mock,
                                        youtube=youtube, automation=automation))
@@ -122,7 +126,7 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
     ctx = AppContext(settings=settings, runtime=runtime, db=db, bus=bus, agent=agent, guard=guard,
                      provider=provider, adapters=adapters, tasks=tasks, chat=chat,
                      voice=voice, memory=memory, agent_service=agent_service, production=production,
-                     automation=automation,
+                     automation=automation, artifacts=artifacts, code=code,
                      youtube=youtube, public=public, content=content,
                      cloud_ai=CloudAIService(provider=provider, store=secrets, bus=bus), auth=auth,
                      updates=UpdateService(guard=guard, repo=settings.update_repo, enabled=not runtime.is_online,
@@ -146,6 +150,8 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
         for kind in production.task_kinds(make_run_async(loop)):
             tasks.register(kind)
         tasks.register(automation.task_kind(make_run_async(loop)))
+        tasks.register(artifacts.task_kind(make_run_async(loop)))
+        tasks.register(code.task_kind(make_run_async(loop)))
         public.purge_expired()
         agent_service.recover()
         automation.recover()
@@ -221,6 +227,7 @@ def create_app(settings: Settings | None = None, *, return_to_idle_s: float = 2.
                                                                 "message": f"Endpoint /api/{rest} tidak ada."}})
 
     _mount_blueprint(app, production)
+    _mount_artifacts(app, artifacts)
     _mount_frontend(app, runtime)
     return app
 
@@ -261,6 +268,18 @@ def _mount_blueprint(app: FastAPI, production: ProductionService) -> None:
         response.headers["Content-Security-Policy"] = BLUEPRINT_CSP
         response.headers["Cache-Control"] = "no-store"
         return response
+
+
+def _mount_artifacts(app: FastAPI, artifacts: ArtifactService) -> None:
+    @app.get("/artefak-raw/{artifact_id}/", include_in_schema=False)
+    def artifact_raw(artifact_id: str) -> Response:
+        try:
+            html = artifacts.serve(artifact_id)
+        except ArtifactError as exc:
+            return HTMLResponse(status_code=exc.status_code, content=f"<p>{exc.message}</p>")
+        # Origin buram (CSP sandbox): kode artefak tidak bisa memanggil API ZOI / membaca cookie.
+        return HTMLResponse(html, headers={"Content-Security-Policy": RAW_CSP, "Cache-Control": "no-store",
+                                           "X-Frame-Options": "SAMEORIGIN"})
 
 
 def _mount_frontend(app: FastAPI, runtime: RuntimeConfig) -> None:

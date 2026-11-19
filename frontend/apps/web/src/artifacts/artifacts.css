@@ -1,0 +1,32 @@
+.art-new, .code-side, .code-main { display: grid; gap: 8px; min-width: 0; }
+.art-new textarea, .art-view textarea, .code-page textarea, .code-page input[type="text"], .code-page select {
+  width: 100%; min-width: 0; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 10px; color: inherit; font: inherit;
+}
+.art-row, .art-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.art-chips button { font-size: 0.85rem; }
+.art-list { list-style: none; padding: 0; display: grid; gap: 8px; }
+.art-list li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
+.art-list .art-actions { margin-left: auto; display: flex; gap: 6px; }
+.art-head { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.art-head h1 { margin: 0; overflow-wrap: anywhere; }
+.art-frame { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff; }
+.art-frame iframe { display: block; width: 100%; height: min(72vh, 900px); border: 0; background: #fff; }
+.art-frame:fullscreen iframe { height: 100vh; }
+
+.code-grid { display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.code-files { list-style: none; padding: 0; margin: 0; max-height: 40vh; overflow: auto; font: 0.85rem/1.5 ui-monospace, monospace; }
+.code-files button { all: unset; cursor: pointer; display: block; width: 100%; padding: 2px 6px; border-radius: 4px; overflow-wrap: anywhere; }
+.code-files button:hover, .code-files button[aria-current="true"] { background: var(--surface-2); }
+.code-log { display: grid; gap: 8px; max-height: 60vh; overflow: auto; padding-right: 4px; }
+.code-step { border-left: 3px solid var(--border); padding: 6px 10px; background: var(--surface-2); border-radius: 6px; min-width: 0; }
+.code-step.pengguna { border-color: #8b5cf6; }
+.code-step.selesai { border-color: #22c55e; }
+.code-step.galat, .code-step.ditolak, .code-step.gagal { border-color: #ef4444; }
+.code-step pre { margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; max-height: 260px; overflow: auto;
+  font: 0.8rem/1.45 ui-monospace, monospace; }
+.code-approve { border: 2px solid #f59e0b; border-radius: 10px; padding: 10px 12px; display: grid; gap: 8px; }
+.code-approve pre { margin: 0; white-space: pre-wrap; word-break: break-word; font: 0.85rem/1.4 ui-monospace, monospace; }
+.code-editor { font: 0.85rem/1.45 ui-monospace, monospace !important; min-height: 240px; }
+@media (max-width: 900px) { .code-grid { grid-template-columns: minmax(0, 1fr); } }

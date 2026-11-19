@@ -1,5 +1,10 @@
 # Catatan rilis ZOI
 
+## 1.2.9
+- **Artefak** (menu Creation → Artefak): minta halaman HTML siap pakai (kalkulator, kuis, alat) ke AI ZOI, revisi dengan kalimat biasa, kembali ke versi sebelumnya, unduh HTML. Bisa juga **unggah HTML** buatan Claude. Fungsi `claude.use("sample")` dijawab AI ZOI dan `"downloads"` menjadi unduhan biasa. Artefak berjalan terisolasi (tidak bisa mengakses data/API ZOI) dan hanya bisa dibuka di jaringan ZOI-mu.
+- **ZOI Code** (menu Creation → Code): agen pemrograman ala Claude Code. Agen membaca, menulis, mengedit, dan mencari file di folder proyek ZOI, lalu menguji hasilnya. **Menjalankan perintah dan menghapus file selalu minta izinmu.** Ada editor file, unduh ZIP, dan pratinjau HTML sebagai artefak.
+- **Blueprint Studio V2** sudah didukung tanpa perubahan kode: ganti file Blueprint lama dengan V2 (atau arahkan `ZOI_BLUEPRINT_FILE` ke file V2), salinan ZOI dibuat ulang otomatis.
+
 ## 1.2.8
 - **Thumbnail otomatis** (menu Creation → Thumbnail, atau tombol **🖼️ Buat Thumbnail** di tiap paket Content Production): klik **✨ Buat Thumbnail Otomatis**, AI ZOI menulis teks hook (kata kunci besar pink/kuning, kotak kertas, bubble reaksi), lalu gambar disusun di browser.
 - Latar dari foto, video (pilih frame), atau video paket produksi. Foto/video tidak diunggah ke mana pun. Hasil PNG 1080×1920 (Shorts) atau 1280×720 (YouTube); teks bisa diedit, posisi teks atas/bawah, geser latar, acak gaya.

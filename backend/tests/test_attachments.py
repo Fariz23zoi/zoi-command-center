@@ -47,7 +47,7 @@ def make_pdf(text: str) -> bytes:
 
 
 def test_extract_text_docx_pdf():
-    assert extract("catatan.md", b64("# Judul\nisi".encode()))["text"] == "# Judul\nisi"
+    assert extract("catatan.md", b64(b"# Judul\nisi"))["text"] == "# Judul\nisi"
     assert extract("laporan.docx", b64(make_docx("Halo ZOI")))["text"] == "Halo ZOI\nbaris dua"
     assert "Laporan Triwulan" in extract("a.pdf", b64(make_pdf("Laporan Triwulan")))["text"]
     big = extract("besar.txt", b64(("x" * 40_000).encode()))

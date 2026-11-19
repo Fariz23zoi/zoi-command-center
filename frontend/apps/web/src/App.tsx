@@ -23,6 +23,8 @@ import { IdeasPage } from "./pages/IdeasPage";
 import { PerformancePage } from "./pages/PerformancePage";
 import { ProductionPage } from "./pages/ProductionPage";
 import { ScriptPage } from "./pages/ScriptPage";
+import { ArtifactViewerPage, ArtifactsPage } from "./pages/ArtifactsPage";
+import { CodePage } from "./pages/CodePage";
 import { ThumbnailPage } from "./pages/ThumbnailPage";
 import { TrendsPage } from "./pages/TrendsPage";
 import { ViralPage } from "./pages/ViralPage";
@@ -54,6 +56,8 @@ const READY_PAGES: Record<string, ReactElement> = {
   "/script": <ScriptPage />,
   "/production": <ProductionPage />,
   "/thumbnail": <ThumbnailPage />,
+  "/artefak": <ArtifactsPage />,
+  "/code": <CodePage />,
   "/automation": <AutomationPage />,
   "/performance": <PerformancePage />,
   "/settings": <SettingsPage />,
@@ -111,6 +115,7 @@ export function App() {
             element={READY_PAGES[item.path] ?? <NotYetAvailable item={item} />}
           />
         ))}
+        <Route path="/artefak/:id" element={<ArtifactViewerPage />} />
         <Route path="/settings/ai" element={<AiLocalPage />} />
         <Route path="/settings/voice" element={<VoicePage />} />
         <Route path="/settings/youtube" element={<YouTubeSettingsPage />} />

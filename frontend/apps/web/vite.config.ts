@@ -14,6 +14,7 @@ export default defineConfig({
     proxy: {
       "/api": { target: backend },
       "/blueprint-studio": { target: backend },
+      "/artefak-raw": { target: backend },
       "/ws": { target: backend.replace(/^http/, "ws"), ws: true },
     },
   },

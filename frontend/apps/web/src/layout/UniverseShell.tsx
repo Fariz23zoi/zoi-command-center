@@ -1,7 +1,5 @@
 import {
-  Activity, BarChart3, FolderKanban, UserRound, Bot, Brain, ChevronRight, Clapperboard, Compass, Flame, Gauge, Home, LayoutDashboard,
-  Lightbulb, ListChecks, type LucideIcon, Menu, PenLine, Scissors, Settings, Sparkles, Stethoscope, TrendingUp, Users,
-  Wallet, Workflow, X,
+  Activity, AppWindow, BarChart3, Bot, Brain, ChevronRight, Clapperboard, Compass, Flame, FolderKanban, Gauge, Home, ImagePlus, LayoutDashboard, Lightbulb, ListChecks, Menu, PenLine, Scissors, Settings, Sparkles, Stethoscope, Terminal, TrendingUp, UserRound, Users, Wallet, Workflow, X, type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
@@ -16,6 +14,7 @@ const ICONS: Record<string, LucideIcon> = {
   "/dashboard": LayoutDashboard, "/projects": FolderKanban, "/account": UserRound, "/ai": Bot, "/tasks": ListChecks, "/memory": Brain,
   "/analytics": BarChart3, "/competitors": Users, "/viral": Flame, "/trends": TrendingUp, "/performance": Gauge,
   "/monetization": Wallet, "/ideas": Lightbulb, "/script": PenLine, "/production": Clapperboard,
+  "/thumbnail": ImagePlus, "/artefak": AppWindow, "/code": Terminal,
   "/automation": Workflow, "/clipper": Scissors, "/blueprint": Compass, "/diagnostics": Stethoscope,
   "/settings": Settings,
 };

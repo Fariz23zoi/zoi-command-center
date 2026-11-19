@@ -1,6 +1,6 @@
 import type {
   AdapterStatus, AuthStatus, AutomationInfo, AutomationOverview, AutomationSchedule, NotificationInfo,
-  ProductionPackage, ProductionStatus, ThumbnailHook, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
+  ProductionPackage, ProductionStatus, ThumbnailHook, Artifact, CodeProject, CodeSession, AgentRunInfo, AgentStatusInfo, AgentToolInfo, AiModelSource, ApprovalInfo, MemoryInfo, MemoryKind, AiStatus, ChatMessageInfo, ConversationInfo, EvaluationInfo, ModelDetails, Preferences,
   ProviderStatus, PublicConfig, RunningModel, SendChatResponse, SystemStatus, TaskInfo, TranscriptInfo,
   VoicePreferences, VoiceStatus, YouTubeCached, YouTubeChannel, YouTubeData, YouTubeReport, YouTubeStatus, ZoiEvent,
   ChatAttachment, ClipperLaunch, CloudModels, CloudStatus, UpdateStatus, CloudTestResult, CompetitorsData, IdeaRequest, IdeaSet, ScriptItem, ScriptRequest, ViralData,
@@ -141,6 +141,39 @@ export const api = {
     animate: (id: string) => request<TaskInfo>("POST", `/api/production/packages/${id}/animate`),
     fileUrl: (id: string, name: string) => `/api/production/packages/${id}/files/${name}`,
     buildBlueprint: () => request<NonNullable<ProductionStatus["blueprint"]>>("POST", "/api/production/blueprint/build"),
+  },
+  artifacts: {
+    list: () => request<{ items: Artifact[] }>("GET", "/api/artifacts"),
+    get: (id: string) => request<Artifact>("GET", `/api/artifacts/${encodeURIComponent(id)}`),
+    /** AI ZOI menulis (atau merevisi bila artifactId diisi) — tugas latar. */
+    generate: (permintaan: string, artifactId?: string) =>
+      request<TaskInfo>("POST", "/api/artifacts/generate", { permintaan, artifact_id: artifactId ?? null }),
+    upload: (html: string, judul = "") => request<Artifact>("POST", "/api/artifacts", { html, judul }),
+    rename: (id: string, judul: string) => request<Artifact>("PUT", `/api/artifacts/${encodeURIComponent(id)}`, { judul }),
+    undo: (id: string) => request<Artifact>("POST", `/api/artifacts/${encodeURIComponent(id)}/undo`),
+    remove: (id: string) => request<{ deleted: string }>("DELETE", `/api/artifacts/${encodeURIComponent(id)}`),
+    htmlUrl: (id: string) => `/api/artifacts/${encodeURIComponent(id)}/html`,
+    sample: (prompt: string, mode: "json" | "text") =>
+      request<{ result: unknown; provider: string; is_mock: boolean }>("POST", "/api/artifacts/sample", { prompt, mode }),
+  },
+  code: {
+    projects: () => request<{ items: CodeProject[] }>("GET", "/api/code/projects"),
+    create: (name: string) => request<CodeProject>("POST", "/api/code/projects", { name }),
+    remove: (name: string) => request<{ deleted: string }>("DELETE", `/api/code/projects/${encodeURIComponent(name)}`),
+    files: (name: string) =>
+      request<{ items: { path: string; bytes: number }[] }>("GET", `/api/code/projects/${encodeURIComponent(name)}/files`),
+    file: (name: string, path: string) =>
+      request<{ path: string; content: string; binary: boolean }>(
+        "GET", `/api/code/projects/${encodeURIComponent(name)}/file?path=${encodeURIComponent(path)}`),
+    save: (name: string, path: string, content: string) =>
+      request<{ message: string }>("PUT", `/api/code/projects/${encodeURIComponent(name)}/file`, { path, content }),
+    zipUrl: (name: string) => `/api/code/projects/${encodeURIComponent(name)}/zip`,
+    start: (project: string, perintah: string, sessionId?: string) =>
+      request<CodeSession>("POST", "/api/code/sessions", { project, perintah, session_id: sessionId ?? null }),
+    session: (id: string) => request<CodeSession>("GET", `/api/code/sessions/${encodeURIComponent(id)}`),
+    decide: (id: string, setuju: boolean, semua = false) =>
+      request<CodeSession>("POST", `/api/code/sessions/${encodeURIComponent(id)}/izin`, { setuju, semua }),
+    stop: (id: string) => request<CodeSession>("POST", `/api/code/sessions/${encodeURIComponent(id)}/stop`),
   },
   thumbnail: {
     /** AI ZOI menulis teks hook thumbnail (JSON). Gambarnya disusun di browser — foto tidak diunggah. */

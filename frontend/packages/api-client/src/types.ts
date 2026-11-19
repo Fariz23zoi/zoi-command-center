@@ -366,6 +366,25 @@ export interface ProductionPackage {
   narration: { start: number; speech: number; duration: number; file: string }[] | null;
 }
 
+export interface Artifact {
+  id: string; judul: string; versi: number; dibuat: number; updated: number; sumber: "ai" | "unggah";
+  bytes: number; provider: string | null; mock: boolean; url: string; raw_url: string;
+  riwayat: { versi: number; sumber: string; permintaan: string; waktu: number }[];
+}
+
+export interface CodeProject { name: string; files: number; updated: number }
+
+export interface CodeStep {
+  jenis: "pengguna" | "aksi" | "hasil" | "ditolak" | "selesai" | "galat"; waktu: number;
+  teks?: string; alat?: string; args?: Record<string, string>; pikir?: string; gagal?: boolean;
+}
+
+export interface CodeSession {
+  id: string; project: string; status: "idle" | "running" | "waiting" | "done" | "error" | "stopped";
+  steps: CodeStep[]; pending: { alat: string; args: Record<string, string> } | null; allow_all: boolean;
+  task_id: string | null; provider: string | null;
+}
+
 export interface ThumbnailHook {
   baris: { teks: string; ukuran: "kecil" | "sedang" | "besar"; warna: "hitam" | "putih" | "pink" | "kuning";
     kotak: "putih" | "kuning" | "hitam" | "tanpa" }[];

@@ -6,6 +6,7 @@ from app.api import (
     agent_api,
     ai,
     ai_cloud,
+    artifacts,
     auth,
     automation,
     backup,
@@ -26,7 +27,7 @@ from app.api import (
 
 api_router = APIRouter(prefix="/api")
 for module in (health, auth, backup, system, tasks, chat, ai, voice, memory, agent_api, youtube,
-               youtube_public, content, ai_cloud, production, automation, update, thumbnail):
+               youtube_public, content, ai_cloud, production, automation, update, thumbnail, artifacts):
     api_router.include_router(module.router)
 api_router.include_router(automation.notifications_router)
 
